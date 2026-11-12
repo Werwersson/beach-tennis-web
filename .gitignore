@@ -14,6 +14,7 @@ env/
 app/static/uploads/*
 !app/static/uploads/.gitkeep
 scratch/_*.py
+public/env-status.json
 .vercel/
 .DS_Store
 Thumbs.db
