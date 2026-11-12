@@ -20,6 +20,10 @@ def seed_database():
         admin_email = os.environ.get('ADMIN_EMAIL', 'professor@beachtennis.com').strip().lower()
         admin_senha = os.environ.get('ADMIN_PASSWORD', 'admin123')
         admin_nome = os.environ.get('ADMIN_NOME', 'Everson Vicktor Silva Silveira')
+        if os.environ.get('FLASK_ENV', '').lower() == 'production' and admin_senha == 'admin123':
+            raise RuntimeError(
+                'Defina ADMIN_PASSWORD com uma senha forte antes de rodar o seed em produção.'
+            )
         professor = Usuario.query.filter_by(email=admin_email).first()
         if not professor:
             professor = Usuario(
