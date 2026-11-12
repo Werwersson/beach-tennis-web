@@ -128,6 +128,8 @@ O `.gitignore` já protege `.env`, bancos SQLite, `instance/`, uploads e
 
 ## Deploy no Render + Neon
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Werwersson/beach-tennis-web)
+
 1. Suba o código no GitHub.
 2. Crie o banco no Neon e copie a connection string.
 3. No Render, escolha **New → Blueprint** e selecione o repositório. O
