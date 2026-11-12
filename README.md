@@ -213,7 +213,8 @@ O Vercel não executa `flask db upgrade`/`seed` sozinho. Use o workflow do GitHu
    - `ADMIN_PASSWORD`: senha forte do primeiro admin
 2. Vá em **Actions → Inicializar banco online → Run workflow**.
 3. O workflow aplica as migrações e, se marcado, cria o admin e o conteúdo
-   inicial (`SEED_DEMO=0`, sem aluno de demonstração).
+   inicial. Com `SEED_DEMO=0`, não cria aluno, turmas, planos nem depoimentos
+   de exemplo (apenas conquistas, modalidades e configurações base).
 
 Alternativa: rode localmente com a URL unpooled:
 
