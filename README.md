@@ -100,12 +100,12 @@ senha de um admin existente.
 
 ## Publicando no GitHub
 
-O projeto não tem repositório Git inicializado. Na raiz:
+O projeto já está com o Git inicializado localmente na branch `main`. Falta
+apenas criar o repositório remoto e enviar:
 
 ```bash
-git init
 git add .
-git commit -m "Beach Tennis Web: plataforma completa com evolução por categoria"
+git commit -m "Atualizacoes do projeto"   # se houver mudancas pendentes
 ```
 
 Crie o repositório no GitHub e envie. Com o GitHub CLI autenticado:
