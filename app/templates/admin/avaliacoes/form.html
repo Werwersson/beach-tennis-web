@@ -1,0 +1,462 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .criterio-slider-card {
+    background: #FAF8F5;
+    border: 1px solid #E8E2D9;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    transition: all 0.2s ease;
+  }
+  .criterio-slider-card:hover {
+    border-color: var(--bt-ocean);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .nota-badge-live {
+    font-size: 1.25rem;
+    font-weight: 800;
+    min-width: 52px;
+    text-align: center;
+    border-radius: 8px;
+    padding: 0.2rem 0.5rem;
+  }
+  .sticky-media-bar {
+    position: sticky;
+    top: 70px;
+    z-index: 1020;
+    background: #FFFFFF;
+    border: 2px solid var(--bt-ocean);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    background: var(--bt-laranja);
+  }
+  input[type=range]::-moz-range-thumb {
+    background: var(--bt-laranja);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+
+    <!-- Barra Sticky de Média em Tempo Real -->
+    <div class="sticky-media-bar p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-speedometer2 text-ocean fs-4"></i>
+          <div>
+            <span class="text-muted fw-bold text-uppercase" style="font-size:0.75rem;">Média na Categoria (tempo real):</span>
+            <div class="d-flex align-items-baseline gap-2">
+              <span class="fs-3 fw-bold text-ocean" id="liveMediaDisplay">5.0</span>
+              <span class="text-muted" style="font-size:0.85rem;">/ 10.0</span>
+              <span class="badge ms-2" id="liveMediaStatusBadge">Regular</span>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 ps-md-3">
+          <i class="bi bi-graph-up-arrow text-laranja fs-5"></i>
+          <div>
+            <span class="text-muted fw-bold text-uppercase" style="font-size:0.72rem;">Índice Técnico (0–100):</span>
+            <div class="d-flex align-items-baseline gap-2">
+              <span class="fs-4 fw-bold text-laranja" id="liveIndiceDisplay">35.0</span>
+              <span class="text-muted" style="font-size:0.8rem;">/ 100</span>
+              <span class="badge bg-light text-dark border" id="liveCategoriaPeso">Categoria D · peso 70%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <a href="{{ url_for('admin.avaliacoes_lista') }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+      </div>
+    </div>
+
+    <form method="POST" id="formAvaliacao">
+      {{ form.hidden_tag() }}
+
+      <!-- Card de Identificação -->
+      <div class="card-bt mb-4">
+        <div class="card-header-bt">
+          <i class="bi bi-person-badge-fill me-1"></i>1. Identificação do Atleta, Categoria & Data
+        </div>
+        <div class="p-4">
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label fw-bold">{{ form.aluno_id.label.text }} <span class="text-danger">*</span></label>
+              {{ form.aluno_id(class="form-select form-select-lg" ~ (' is-invalid' if form.aluno_id.errors else ''), id="aluno_id") }}
+              {% for error in form.aluno_id.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold">{{ form.categoria.label.text }} <span class="text-danger">*</span></label>
+              {{ form.categoria(class="form-select form-select-lg" ~ (' is-invalid' if form.categoria.errors else ''), id="categoria") }}
+              {% for error in form.categoria.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">{{ form.data.label.text }} <span class="text-danger">*</span></label>
+              {{ form.data(class="form-control form-control-lg" ~ (' is-invalid' if form.data.errors else '')) }}
+              {% for error in form.data.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="alert alert-light border mt-3 mb-0 d-flex gap-2" style="font-size:0.82rem;">
+            <i class="bi bi-info-circle-fill text-ocean mt-1"></i>
+            <div>
+              A nota de cada critério é dada <strong>dentro da categoria</strong>. Ao subir de categoria
+              (ex.: D → C), a mesma qualidade técnica tende a receber nota menor, porque a comparação fica mais forte.
+              O <strong>Índice Técnico</strong> corrige essa diferença e é o que forma a curva de aprendizado.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card dos 11 Critérios Técnicos -->
+      <div class="card-bt mb-4">
+        <div class="card-header-bt d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-sliders me-1"></i>2. Avaliação por Critérios (Notas de 1.0 a 10.0)</span>
+          <span class="badge bg-light text-dark fw-bold" style="font-size:0.75rem;">11 Critérios Oficiais</span>
+        </div>
+        <div class="p-4">
+
+          <!-- GRUPO A: FUNDAMENTOS DE ATAQUE -->
+          <h6 class="text-ocean fw-bold text-uppercase border-bottom pb-2 mb-3" style="font-size:0.85rem; letter-spacing:0.5px;">
+            <i class="bi bi-lightning-charge-fill me-1 text-laranja"></i>Fundamentos de Ataque
+          </h6>
+          <div class="row g-3 mb-4">
+            
+            <!-- Saque -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Saque</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_saque">{{ "%.1f"|format(form.nota_saque.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Potência, regularidade, direção e colocação de bola.</div>
+                {{ form.nota_saque(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_saque", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Forehand -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Forehand</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_forehand">{{ "%.1f"|format(form.nota_forehand.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Golpe de direita, ponto de contato, terminação e spin.</div>
+                {{ form.nota_forehand(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_forehand", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Backhand -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Backhand</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_backhand">{{ "%.1f"|format(form.nota_backhand.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Golpe de esquerda, firmeza de punho e controle de altura.</div>
+                {{ form.nota_backhand(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_backhand", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Smash -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Smash</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_smash">{{ "%.1f"|format(form.nota_smash.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Ataque aéreo, alcance, precisão e definição do ponto.</div>
+                {{ form.nota_smash(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_smash", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- GRUPO B: REDE E DEFESA -->
+          <h6 class="text-ocean fw-bold text-uppercase border-bottom pb-2 mb-3" style="font-size:0.85rem; letter-spacing:0.5px;">
+            <i class="bi bi-shield-shaded me-1 text-laranja"></i>Rede e Defesa
+          </h6>
+          <div class="row g-3 mb-4">
+            
+            <!-- Voleio -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Voleio</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_voleio">{{ "%.1f"|format(form.nota_voleio.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Reação rápida, bloqueio na rede e voleio ofensivo/baixo.</div>
+                {{ form.nota_voleio(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_voleio", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Bandeja / Defesa -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Bandeja / Defesa</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_bandeja_defesa">{{ "%.1f"|format(form.nota_bandeja_defesa.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Recuperação de bolas fundas, lob defensivo e transição.</div>
+                {{ form.nota_bandeja_defesa(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_bandeja_defesa", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- GRUPO C: TÁTICA E MOBILIDADE -->
+          <h6 class="text-ocean fw-bold text-uppercase border-bottom pb-2 mb-3" style="font-size:0.85rem; letter-spacing:0.5px;">
+            <i class="bi bi-diagram-3-fill me-1 text-laranja"></i>Tática e Mobilidade
+          </h6>
+          <div class="row g-3 mb-4">
+            
+            <!-- Deslocamento -->
+            <div class="col-md-4">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Deslocamento</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_deslocamento">{{ "%.1f"|format(form.nota_deslocamento.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Passadas na areia, agilidade lateral e recuperação de base.</div>
+                {{ form.nota_deslocamento(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_deslocamento", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Posicionamento em Dupla -->
+            <div class="col-md-4">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Posicionamento em Dupla</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_posicionamento_dupla">{{ "%.1f"|format(form.nota_posicionamento_dupla.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Comunicação, cobertura do centro e sincronia com o parceiro.</div>
+                {{ form.nota_posicionamento_dupla(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_posicionamento_dupla", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Leitura de Jogo -->
+            <div class="col-md-4">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Leitura de Jogo</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_leitura_jogo">{{ "%.1f"|format(form.nota_leitura_jogo.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Antecipação de jogadas e escolha tática do melhor golpe.</div>
+                {{ form.nota_leitura_jogo(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_leitura_jogo", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- GRUPO D: FÍSICO E MENTAL -->
+          <h6 class="text-ocean fw-bold text-uppercase border-bottom pb-2 mb-3" style="font-size:0.85rem; letter-spacing:0.5px;">
+            <i class="bi bi-heart-pulse-fill me-1 text-laranja"></i>Físico & Mental
+          </h6>
+          <div class="row g-3">
+            
+            <!-- Condicionamento Físico -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Condicionamento Físico</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_condicionamento">{{ "%.1f"|format(form.nota_condicionamento.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Resistência aeróbica em ralis longos e explosão muscular.</div>
+                {{ form.nota_condicionamento(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_condicionamento", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+            <!-- Aspecto Mental e Foco -->
+            <div class="col-md-6">
+              <div class="criterio-slider-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="fw-bold mb-0">Aspecto Mental & Foco</label>
+                  <span class="badge bg-ocean nota-badge-live" id="badge_nota_mental_foco">{{ "%.1f"|format(form.nota_mental_foco.data or 5.0) }}</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size:0.78rem;">Concentração nos pontos decisivos, calma e espírito esportivo.</div>
+                {{ form.nota_mental_foco(type="range", min="1", max="10", step="0.5", class="form-range range-criterio", id="nota_mental_foco", oninput="atualizarNota(this)") }}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card de Parecer Técnico e Metas -->
+      <div class="card-bt mb-4">
+        <div class="card-header-bt">
+          <i class="bi bi-chat-left-quote-fill me-1"></i>3. Feedback Descritivo & Próximo Ciclo
+        </div>
+        <div class="p-4">
+          <div class="row g-3">
+            
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-success">
+                <i class="bi bi-check-circle-fill me-1"></i>{{ form.pontos_fortes.label.text }}
+              </label>
+              {{ form.pontos_fortes(class="form-control", rows="3", placeholder="Ex: Saque potente com boa precisão; ótimo tempo de bola no smash...") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-warning text-dark">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ form.pontos_melhorar.label.text }}
+              </label>
+              {{ form.pontos_melhorar(class="form-control", rows="3", placeholder="Ex: Ajustar o ponto de contato no backhand; movimentação mais ativa nas bolas curtas...") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-primary">
+                <i class="bi bi-bullseye me-1"></i>{{ form.metas_proximo_ciclo.label.text }}
+              </label>
+              {{ form.metas_proximo_ciclo(class="form-control", rows="3", placeholder="Ex: Consolidar voleio curto defensivo e treinar tomada de decisão sob pressão...") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-secondary">
+                <i class="bi bi-journal-text me-1"></i>{{ form.comentarios.label.text }}
+              </label>
+              {{ form.comentarios(class="form-control", rows="3", placeholder="Observações gerais sobre a postura, assiduidade e dedicação...") }}
+            </div>
+
+            <div class="col-12 mt-3">
+              <label class="form-label fw-bold">
+                <i class="bi bi-youtube text-danger me-1"></i>{{ form.link_video_analise.label.text }}
+              </label>
+              {{ form.link_video_analise(class="form-control" ~ (' is-invalid' if form.link_video_analise.errors else ''), placeholder="https://www.youtube.com/watch?v=... ou https://youtu.be/...") }}
+              <div class="form-text">Cole o link de um vídeo não listado ou público do YouTube com gravação de jogadas ou análise biomecânica do atleta.</div>
+              {% for error in form.link_video_analise.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão de Ação -->
+      <div class="d-flex justify-content-between align-items-center mb-5">
+        <a href="{{ url_for('admin.avaliacoes_lista') }}" class="btn btn-outline-secondary">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-laranja btn-lg px-5 py-3 fw-bold shadow">
+          <i class="bi bi-check2-circle me-2"></i>{{ form.submit.label.text }}
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const pesosCategoria = {{ pesos_categoria_json | safe }};
+  const categoriaPorAluno = {{ categorias_aluno_json | safe }};
+
+  function atualizarNota(input) {
+    const badge = document.getElementById(`badge_${input.id}`);
+    if (badge) {
+      const val = parseFloat(input.value);
+      badge.textContent = val.toFixed(1);
+      
+      // Cores do badge por faixa
+      badge.className = 'badge nota-badge-live';
+      if (val >= 8.0) {
+        badge.classList.add('bg-success');
+      } else if (val >= 6.0) {
+        badge.classList.add('bg-primary');
+      } else if (val >= 4.0) {
+        badge.classList.add('bg-warning', 'text-dark');
+      } else {
+        badge.classList.add('bg-danger');
+      }
+    }
+    calcularMediaGeral();
+  }
+
+  function calcularMediaGeral() {
+    const sliders = document.querySelectorAll('.range-criterio');
+    let soma = 0;
+    let count = 0;
+    sliders.forEach(s => {
+      soma += parseFloat(s.value);
+      count++;
+    });
+    const media = count > 0 ? (soma / count) : 0;
+    const mediaDisplay = document.getElementById('liveMediaDisplay');
+    const statusBadge = document.getElementById('liveMediaStatusBadge');
+    const indiceDisplay = document.getElementById('liveIndiceDisplay');
+    const categoriaPeso = document.getElementById('liveCategoriaPeso');
+    const selectCategoria = document.getElementById('categoria');
+    const categoria = selectCategoria ? selectCategoria.value : 'D';
+    const peso = pesosCategoria[categoria] || 1;
+
+    if (mediaDisplay) {
+      mediaDisplay.textContent = media.toFixed(1);
+    }
+
+    if (indiceDisplay) {
+      indiceDisplay.textContent = (media * peso * 10).toFixed(1);
+    }
+
+    if (categoriaPeso) {
+      const nomeCat = categoria === 'Open' ? 'Open' : `Categoria ${categoria}`;
+      categoriaPeso.textContent = `${nomeCat} · peso ${Math.round(peso * 100)}%`;
+    }
+
+    if (statusBadge) {
+      statusBadge.className = 'badge ms-2';
+      if (media >= 8.5) {
+        statusBadge.textContent = 'Excelente / Avançado';
+        statusBadge.classList.add('bg-success');
+      } else if (media >= 7.0) {
+        statusBadge.textContent = 'Bom / Em Evolução';
+        statusBadge.classList.add('bg-primary');
+      } else if (media >= 5.0) {
+        statusBadge.textContent = 'Regular / Intermediário';
+        statusBadge.classList.add('bg-warning', 'text-dark');
+      } else {
+        statusBadge.textContent = 'Iniciando Fundamentos';
+        statusBadge.classList.add('bg-danger');
+      }
+    }
+  }
+
+  // Inicializa visual ao carregar a página
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.range-criterio').forEach(s => {
+      atualizarNota(s);
+    });
+    calcularMediaGeral();
+
+    // Ao trocar o atleta, sugere a categoria atual dele (o professor pode alterar)
+    const selectAluno = document.getElementById('aluno_id');
+    const selectCategoria = document.getElementById('categoria');
+    if (selectAluno && selectCategoria) {
+      selectAluno.addEventListener('change', () => {
+        const sugerida = categoriaPorAluno[selectAluno.value];
+        if (sugerida) {
+          selectCategoria.value = sugerida;
+          calcularMediaGeral();
+        }
+      });
+      selectCategoria.addEventListener('change', calcularMediaGeral);
+    }
+  });
+</script>
+{% endblock %}

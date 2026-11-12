@@ -1,0 +1,30 @@
+{% extends 'base_admin.html' %}
+{% block title %}Nova Meta — {{ aluno.nome }}{% endblock %}
+{% block page_title %}Nova Meta{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card-bt">
+      <div class="card-header-bt"><i class="bi bi-bullseye"></i> Adicionar Meta para {{ aluno.nome }}</div>
+      <div class="p-4">
+        <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label class="form-label">Descrição da meta *</label>
+            <textarea name="descricao" class="form-control" rows="3" required placeholder="Ex: Melhorar o saque em 2 pontos..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Prazo (opcional)</label>
+            <input type="date" name="prazo" class="form-control">
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ocean"><i class="bi bi-check-lg me-1"></i>Adicionar Meta</button>
+            <a href="{{ url_for('admin.aluno_perfil', id=aluno.id) }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

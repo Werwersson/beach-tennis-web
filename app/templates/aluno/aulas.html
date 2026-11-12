@@ -1,0 +1,250 @@
+{% extends 'base_aluno.html' %}
+{% block aluno_title %}Minhas Aulas & Frequência — {{ aluno.nome }}{% endblock %}
+
+{% block aluno_content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">Minhas Aulas & Presença 📅</h3>
+    <p class="text-muted mb-0" style="font-size:0.95rem;">
+      Consulte suas próximas aulas, confirme presença, avise ausências e acompanhe sua assiduidade.
+    </p>
+  </div>
+</div>
+
+<!-- PRÓXIMAS AULAS PROGRAMADAS -->
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+  <div class="aluno-card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-calendar2-week-fill text-laranja fs-5"></i>
+      <span>Próximas Aulas Agendadas ({{ aulas_futuras|length }})</span>
+    </div>
+  </div>
+  <div class="p-3 p-md-4 bg-white">
+    {% if aulas_futuras %}
+      <div class="list-group list-group-flush gap-3">
+        {% for item in aulas_futuras %}
+          {% set a = item.aula %}
+          {% set p = item.presenca %}
+          <div class="border rounded-3 p-3 p-md-4 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background:#FAF8F5;">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="fs-5 fw-bold text-ocean">{{ a.data_hora.strftime('%d/%m (%a) às %H:%M') }}</span>
+                <span class="badge bg-secondary" style="font-size:0.75rem;">{{ a.duracao_minutos }} min</span>
+              </div>
+              <div class="fw-bold text-dark fs-6">{{ a.turma.nome }}</div>
+              <div class="text-muted" style="font-size:0.85rem;">
+                <i class="bi bi-geo-alt-fill text-ocean me-1"></i>{{ a.turma.local }}
+              </div>
+              {% if a.objetivo %}
+                <div class="mt-2 text-ocean fw-bold" style="font-size:0.83rem;">
+                  <i class="bi bi-bullseye text-laranja me-1"></i>Objetivo: {{ a.objetivo }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Status de Presença e Ações -->
+            <div class="d-flex flex-column align-items-md-end gap-2">
+              <div>
+                {% if p and p.status == 'confirmado' %}
+                  <span class="badge bg-success fs-6 px-3 py-2">
+                    <i class="bi bi-check-circle-fill me-1"></i>Presença Confirmada!
+                  </span>
+                {% elif p and p.status == 'ausencia_avisada' %}
+                  <span class="badge bg-warning text-dark fs-6 px-3 py-2" title="{{ p.justificativa }}">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Ausência Avisada
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary fs-6 px-3 py-2 border">
+                    <i class="bi bi-clock me-1"></i>Presença Pendente
+                  </span>
+                {% endif %}
+              </div>
+
+              <div class="d-flex gap-2">
+                <form method="POST" action="{{ url_for('aluno.confirmar_presenca', id=a.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="origem" value="aulas">
+                  <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1"
+                          {{ 'disabled' if p and p.status == 'confirmado' else '' }}>
+                    <i class="bi bi-check-lg me-1"></i>Confirmar
+                  </button>
+                </form>
+
+                <button type="button" class="btn btn-sm btn-outline-danger px-3 py-1"
+                        data-bs-toggle="modal" data-bs-target="#modalAusenciaAula{{ a.id }}">
+                  <i class="bi bi-x-lg me-1"></i>Avisar Ausência
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal de Ausência para esta aula -->
+          <div class="modal fade" id="modalAusenciaAula{{ a.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <form method="POST" action="{{ url_for('aluno.avisar_ausencia', id=a.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="origem" value="aulas">
+                  <div class="modal-header">
+                    <h5 class="modal-title">
+                      <i class="bi bi-calendar-x text-warning me-2"></i>Avisar Ausência
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p style="font-size:0.9rem;">
+                      Aula: <strong>{{ a.data_hora.strftime('%d/%m/%Y às %H:%M') }}</strong> ({{ a.turma.nome }}).
+                    </p>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold" style="font-size:0.85rem;">Motivo (opcional):</label>
+                      <textarea name="motivo" rows="3" class="form-control" placeholder="Informe o motivo para o professor..."></textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">Confirmar Aviso</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state text-center py-4">
+        <i class="bi bi-calendar-x text-muted" style="font-size:2.5rem;"></i>
+        <h6 class="mt-2 text-dark">Nenhuma aula futura agendada no momento</h6>
+        <p class="text-muted mb-0" style="font-size:0.85rem;">O professor atualizará os horários da sua turma em breve.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- GRÁFICO DE BARRAS DE FREQUÊNCIA MENSAL -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+      <div class="aluno-card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-bar-chart-fill text-verde fs-5"></i>
+          <span>Assiduidade Mensal (Últimos 6 meses)</span>
+        </div>
+      </div>
+      <div class="p-3 p-md-4 bg-white">
+        <div style="height: 260px;">
+          <canvas id="alunoFreqChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO DE PRESENÇAS PASSADAS -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+      <div class="aluno-card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-clock-history text-laranja fs-5"></i>
+          <span>Histórico de Presenças ({{ historico|length }})</span>
+        </div>
+      </div>
+      <div class="p-3 bg-white">
+        {% if historico %}
+          <div class="table-responsive" style="max-height: 290px; overflow-y: auto;">
+            <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.85rem;">
+              <thead class="table-light sticky-top">
+                <tr style="font-size:0.75rem; text-transform:uppercase;">
+                  <th>Data da Aula</th>
+                  <th>Turma</th>
+                  <th class="text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for h in historico %}
+                  <tr>
+                    <td class="fw-bold">{{ h.aula.data_hora.strftime('%d/%m/%Y às %H:%M') }}</td>
+                    <td>{{ h.aula.turma.nome }}</td>
+                    <td class="text-center">
+                      {% if h.status == 'presente' %}
+                        <span class="badge bg-success">Presente</span>
+                      {% elif h.status == 'reposicao' %}
+                        <span class="badge bg-info text-dark">Reposição</span>
+                      {% elif h.status == 'falta' %}
+                        <span class="badge bg-danger">Falta</span>
+                      {% elif h.status == 'falta_justificada' %}
+                        <span class="badge bg-warning text-dark">Justificada</span>
+                      {% elif h.status == 'ausencia_avisada' %}
+                        <span class="badge bg-warning text-dark">Ausência Avisada</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ h.status|capitalize }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-4">
+            <i class="bi bi-calendar-x text-muted" style="font-size:2rem;"></i>
+            <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">Nenhum registro de aula passada ainda.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block aluno_js %}
+<script>
+  const freqLabels = {{ analytics.frequencia_labels_json | safe }};
+  const freqPresentes = {{ analytics.frequencia_presentes_json | safe }};
+  const freqFaltas = {{ analytics.frequencia_faltas_json | safe }};
+  const freqJustificadas = {{ analytics.frequencia_justificadas_json | safe }};
+
+  const ctxFreq = document.getElementById('alunoFreqChart').getContext('2d');
+  new Chart(ctxFreq, {
+    type: 'bar',
+    data: {
+      labels: freqLabels,
+      datasets: [
+        {
+          label: 'Presenças',
+          data: freqPresentes,
+          backgroundColor: '#2E7D32',
+          borderRadius: 6
+        },
+        {
+          label: 'Faltas',
+          data: freqFaltas,
+          backgroundColor: '#C62828',
+          borderRadius: 6
+        },
+        {
+          label: 'Justificadas',
+          data: freqJustificadas,
+          backgroundColor: '#F57C00',
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, precision: 0 }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11 }, boxWidth: 12 }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
+

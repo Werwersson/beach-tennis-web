@@ -1,0 +1,361 @@
+{% extends 'base_admin.html' %}
+{% block title %}Plano de Aula — {{ aula.turma.nome }} ({{ aula.data_hora.strftime('%d/%m') }}){% endblock %}
+{% block page_title %}Plano de Aula & Detalhes{% endblock %}
+
+{% block content %}
+<!-- Cabeçalho da Aula -->
+<div class="card-bt mb-4">
+  <div class="card-header-bt d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <span class="fs-5 fw-bold">{{ aula.turma.nome }}</span>
+      <span class="badge bg-light text-dark ms-2">{{ aula.data_hora.strftime('%d/%m/%Y às %H:%M') }}</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <!-- BOTÃO FAZER CHAMADA -->
+      <a href="{{ url_for('admin.aula_chamada', id=aula.id) }}" class="btn btn-success fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-2">
+        <i class="bi bi-check2-square fs-5"></i>
+        <span>Fazer Chamada</span>
+      </a>
+      <!-- BOTÃO MODO QUADRA EM DESTAQUE -->
+      <a href="{{ url_for('admin.aula_modo_quadra', id=aula.id) }}" class="btn btn-laranja fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-2">
+        <i class="bi bi-tablet-landscape-fill fs-5"></i>
+        <span>Abrir Modo Quadra</span>
+      </a>
+      <a href="{{ url_for('admin.aulas_lista') }}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <!-- Avisos de Status -->
+    {% if aula.status == 'cancelada' %}
+      <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+        <div>
+          <strong>Aula Cancelada!</strong><br>
+          <span style="font-size:0.9rem;">{{ aula.aviso_cancelamento or 'Cancelada pelo professor.' }}</span>
+        </div>
+      </div>
+    {% elif aula.status == 'remarcada' %}
+      <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+        <i class="bi bi-calendar-event fs-4"></i>
+        <div>
+          <strong>Aula Remarcada!</strong><br>
+          <span style="font-size:0.9rem;">{{ aula.aviso_cancelamento }}</span>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:0.8rem;">LOCAL / QUADRA</div>
+        <div class="fw-bold"><i class="bi bi-geo-alt text-ocean me-1"></i>{{ aula.turma.local }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:0.8rem;">NÍVEL</div>
+        <div><span class="badge badge-nivel badge-{{ aula.turma.nivel }}">{{ aula.turma.nivel|capitalize }}</span></div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:0.8rem;">DURAÇÃO TOTAL</div>
+        <div class="fw-bold"><i class="bi bi-clock text-ocean me-1"></i>{{ aula.duracao_minutos }} minutos</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:0.8rem;">STATUS DA AULA</div>
+        <div>
+          {% if aula.status == 'agendada' %}<span class="badge bg-primary">Agendada</span>
+          {% elif aula.status == 'realizada' %}<span class="badge bg-success">Realizada</span>
+          {% elif aula.status == 'cancelada' %}<span class="badge bg-danger">Cancelada</span>
+          {% else %}<span class="badge bg-warning text-dark">{{ aula.status|capitalize }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if aula.objetivo %}
+      <div class="p-3 bg-light rounded border mb-3">
+        <div class="text-muted mb-1" style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Objetivo Principal da Aula</div>
+        <div class="fw-600">{{ aula.objetivo }}</div>
+      </div>
+    {% endif %}
+
+    <!-- Ações de Gerenciamento da Aula -->
+    <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+      {% if aula.status != 'cancelada' %}
+        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar">
+          <i class="bi bi-x-circle me-1"></i> Cancelar Aula
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-warning text-dark" data-bs-toggle="modal" data-bs-target="#modalRemarcar">
+          <i class="bi bi-calendar2-range me-1"></i> Remarcar Aula
+        </button>
+      {% endif %}
+
+      {% if outras_aulas %}
+        <button type="button" class="btn btn-sm btn-outline-ocean ms-auto" data-bs-toggle="modal" data-bs-target="#modalDuplicar">
+          <i class="bi bi-files me-1"></i> Duplicar Plano de Outra Aula
+        </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- SEÇÃO DO PLANO DE AULA (LISTA DE EXERCÍCIOS) -->
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card-bt">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-check me-2"></i>Exercícios do Treino</span>
+        
+        <!-- Tempo Planejado -->
+        {% set tempo_planejado = aula.exercicios|sum(attribute='duracao_minutos') %}
+        <span class="badge {% if tempo_planejado > aula.duracao_minutos %}bg-danger{% elif tempo_planejado == aula.duracao_minutos %}bg-success{% else %}bg-light text-dark border{% endif %}">
+          {{ tempo_planejado }} / {{ aula.duracao_minutos }} min
+        </span>
+      </div>
+
+      <div class="p-3">
+        {% if aula.exercicios %}
+          <div id="exerciciosSortable">
+            {% for item in aula.exercicios %}
+            <div class="exercicio-item border rounded p-3 mb-2 bg-white shadow-sm d-flex align-items-start gap-3" data-id="{{ item.id }}">
+              <div class="drag-handle text-muted pt-1" style="cursor: grab;" title="Arraste para reordenar">
+                <i class="bi bi-grip-vertical fs-5"></i>
+              </div>
+
+              <div class="badge bg-ocean rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px; flex-shrink:0;">
+                {{ item.ordem }}
+              </div>
+
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                  <h6 class="fw-bold mb-1">
+                    <a href="{{ url_for('admin.exercicio_detalhe', id=item.exercicio.id) }}" target="_blank" class="text-dark">
+                      {{ item.exercicio.titulo }}
+                    </a>
+                  </h6>
+                  <span class="badge bg-light text-ocean border fw-bold">
+                    <i class="bi bi-clock me-1"></i>{{ item.duracao_minutos or item.exercicio.duracao_minutos }} min
+                  </span>
+                </div>
+
+                <div class="d-flex gap-2 mb-2" style="font-size:0.75rem;">
+                  <span class="badge bg-secondary">{{ item.exercicio.categoria_nome }}</span>
+                  <span class="badge badge-nivel badge-{{ item.exercicio.nivel }}">{{ item.exercicio.nivel_nome }}</span>
+                </div>
+
+                <p class="text-muted mb-1" style="font-size:0.85rem; line-height:1.4;">
+                  {{ item.exercicio.descricao|truncate(120) }}
+                </p>
+
+                {% if item.observacao %}
+                  <div class="alert alert-warning py-1 px-2 mb-0 mt-2" style="font-size:0.8rem;">
+                    <i class="bi bi-pin-angle me-1"></i><strong>Foco do Professor:</strong> {{ item.observacao }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <form method="POST" action="{{ url_for('admin.aula_plano_remover_exercicio', id=aula.id, item_id=item.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-sm text-danger border-0 p-1" title="Remover do plano">
+                    <i class="bi bi-trash fs-6"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="text-muted text-center pt-2" style="font-size:0.78rem;">
+            <i class="bi bi-arrows-move me-1"></i>Arraste os exercícios pelo ícone ⋮⋮ para reordenar a sequência da aula.
+          </div>
+        {% else %}
+          <div class="empty-state py-4">
+            <i class="bi bi-journal-x"></i>
+            <h5>Plano de aula vazio</h5>
+            <p class="text-muted">Adicione exercícios da biblioteca usando o formulário ao lado ou duplique um plano anterior.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ADICIONAR EXERCÍCIO DA BIBLIOTECA -->
+  <div class="col-lg-4">
+    <div class="card-bt mb-4">
+      <div class="card-header-bt">
+        <i class="bi bi-plus-circle me-1"></i> Adicionar Exercício
+      </div>
+      <div class="p-3">
+        <form method="POST" action="{{ url_for('admin.aula_plano_adicionar_exercicio', id=aula.id) }}">
+          {{ form_ex.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label" for="exercicio_id">Exercício da Biblioteca *</label>
+            {{ form_ex.exercicio_id(class="form-select", id="exercicio_id") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="duracao_minutos">Tempo neste treino (minutos) *</label>
+            {{ form_ex.duracao_minutos(class="form-control", id="duracao_minutos", type="number", min="1") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="observacao">Foco Específico (opcional)</label>
+            {{ form_ex.observacao(class="form-control", id="observacao", rows=2, placeholder="Ex: Insistir no ponto de contato adiantado") }}
+          </div>
+
+          <button type="submit" class="btn btn-ocean w-100">
+            <i class="bi bi-plus-lg me-1"></i> Adicionar ao Plano
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Alunos Convocados da Turma -->
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-people me-1"></i> Alunos da Turma
+      </div>
+      <div class="p-3">
+        <div class="d-flex flex-column gap-2">
+          {% for ta in aula.turma.alunos if ta.ativo %}
+            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light">
+              <div class="d-flex align-items-center gap-2">
+                <div class="avatar-circle" style="width:30px; height:30px; font-size:0.75rem;">
+                  {{ ta.aluno.nome[0].upper() }}
+                </div>
+                <span style="font-size:0.85rem;" class="fw-600">{{ ta.aluno.nome }}</span>
+              </div>
+              <span class="badge badge-nivel badge-{{ ta.aluno.nivel }}">{{ ta.aluno.nivel|capitalize }}</span>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0" style="font-size:0.85rem;">Nenhum aluno vinculado a esta turma.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CANCELAR AULA -->
+<div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.aula_cancelar', id=aula.id) }}">
+        {{ cancelar_form.hidden_tag() }}
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title"><i class="bi bi-x-circle me-1"></i> Cancelar Aula</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>O cancelamento da aula será sinalizado no calendário e no painel dos alunos.</p>
+          <div class="mb-3">
+            <label class="form-label" for="aviso_cancelamento">Motivo do Cancelamento *</label>
+            {{ cancelar_form.aviso_cancelamento(class="form-control", id="aviso_cancelamento", rows=3, placeholder="Ex: Quadras impróprias devido a forte chuva.") }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-danger">Confirmar Cancelamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REMARCAR AULA -->
+<div class="modal fade" id="modalRemarcar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.aula_remarcar', id=aula.id) }}">
+        {{ remarcar_form.hidden_tag() }}
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title"><i class="bi bi-calendar2-range me-1"></i> Remarcar Aula</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Esta aula será arquivada como remarcada e uma nova aula será criada mantendo os exercícios do plano.</p>
+          <div class="mb-3">
+            <label class="form-label" for="nova_data_hora">Nova Data e Horário *</label>
+            {{ remarcar_form.nova_data_hora(class="form-control", id="nova_data_hora") }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="motivo">Motivo da Remarcação (opcional)</label>
+            {{ remarcar_form.motivo(class="form-control", id="motivo", rows=2, placeholder="Ex: Manutenção da quadra...") }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-warning">Remarcar Aula</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DUPLICAR PLANO -->
+{% if outras_aulas %}
+<div class="modal fade" id="modalDuplicar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.aula_plano_duplicar', id=aula.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header bg-ocean text-white">
+          <h5 class="modal-title"><i class="bi bi-files me-1"></i> Duplicar Plano de Aula Anterior</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Selecione uma aula anterior para importar seus exercícios estruturados e objetivos:</p>
+          <div class="mb-3">
+            <label class="form-label">Aula de Origem</label>
+            <select name="aula_origem_id" class="form-select" required>
+              {% for oa in outras_aulas %}
+                <option value="{{ oa.id }}">
+                  {{ oa.data_hora.strftime('%d/%m/%Y %H:%M') }} — {{ oa.turma.nome }} ({{ oa.exercicios|length }} exercícios)
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-ocean">Duplicar Plano</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+// Reordenação de exercícios com SortableJS
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('exerciciosSortable');
+  if (el && typeof Sortable !== 'undefined') {
+    Sortable.create(el, {
+      handle: '.drag-handle',
+      animation: 150,
+      onEnd: function () {
+        var items = el.querySelectorAll('.exercicio-item');
+        var ids = Array.from(items).map(function(item) {
+          return item.getAttribute('data-id');
+        });
+        
+        fetch('{{ url_for("admin.aula_plano_reordenar", id=aula.id) }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+          },
+          body: JSON.stringify({ ordem_ids: ids })
+        }).then(function(res) {
+          if (res.ok) {
+            window.location.reload();
+          }
+        });
+      }
+    });
+  }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,162 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ exercicio.titulo }} — Beach Tennis{% endblock %}
+{% block page_title %}Detalhe do Exercício{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+    
+    <!-- Cabeçalho do Exercício -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-clipboard2-check-fill fs-5"></i>
+          <span class="fs-6">{{ exercicio.titulo }}</span>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('admin.exercicio_editar', id=exercicio.id) }}" class="btn btn-sm btn-light">
+            <i class="bi bi-pencil me-1"></i>Editar
+          </a>
+          <a href="{{ url_for('admin.exercicios_lista') }}" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i>Voltar à Lista
+          </a>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <!-- Badges e Metadados -->
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+          <span class="badge bg-ocean fs-6 px-3 py-2">
+            <i class="bi bi-tag me-1"></i>{{ exercicio.categoria_nome }}
+          </span>
+          <span class="badge badge-nivel badge-{{ exercicio.nivel }} fs-6 px-3 py-2">
+            <i class="bi bi-bar-chart-steps me-1"></i>{{ exercicio.nivel_nome }}
+          </span>
+          <span class="badge bg-light text-dark border fs-6 px-3 py-2">
+            <i class="bi bi-clock me-1 text-ocean"></i>{{ exercicio.duracao_minutos }} minutos
+          </span>
+          {% if exercicio.num_participantes %}
+            <span class="badge bg-light text-dark border fs-6 px-3 py-2">
+              <i class="bi bi-people me-1 text-ocean"></i>{{ exercicio.num_participantes }}
+            </span>
+          {% endif %}
+          {% if not exercicio.ativo %}
+            <span class="badge bg-secondary fs-6 px-3 py-2">Inativo</span>
+          {% endif %}
+        </div>
+
+        <!-- Mídias (Vídeo ou Imagem) -->
+        <div class="row g-4 mb-4">
+          {% if youtube_id %}
+            <div class="col-12 col-md-{{ '7' if exercicio.imagem else '12' }}">
+              <div class="ratio ratio-16x9 rounded-bt overflow-hidden shadow-sm border">
+                <iframe src="https://www.youtube.com/embed/{{ youtube_id }}" title="Vídeo Demonstrativo" allowfullscreen></iframe>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if exercicio.imagem %}
+            <div class="col-12 col-md-{{ '5' if youtube_id else '12' }}">
+              <div class="rounded-bt overflow-hidden border shadow-sm text-center bg-light">
+                <img src="{{ url_for('static', filename='uploads/' + exercicio.imagem) }}" alt="{{ exercicio.titulo }}" style="max-height: 350px; width: 100%; object-fit: contain;">
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Blocos de Conteúdo Metodológico -->
+        <div class="row g-4">
+          <!-- Passo a Passo -->
+          <div class="col-12">
+            <div class="border rounded p-3 bg-light">
+              <h5 class="fw-bold text-ocean mb-2">
+                <i class="bi bi-list-ol me-2"></i>Passo a Passo da Dinâmica
+              </h5>
+              <div style="white-space: pre-line; line-height: 1.7; font-size: 0.95rem;">
+                {{ exercicio.descricao }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Objetivo Técnico -->
+          {% if exercicio.objetivo_tecnico %}
+          <div class="col-md-6">
+            <div class="border rounded p-3 h-100 bg-white">
+              <h6 class="fw-bold text-ocean mb-2">
+                <i class="bi bi-bullseye me-2"></i>Objetivo Técnico / Tático
+              </h6>
+              <div style="white-space: pre-line; font-size: 0.9rem; line-height: 1.6;">
+                {{ exercicio.objetivo_tecnico }}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Materiais -->
+          {% if exercicio.materiais %}
+          <div class="col-md-{{ '6' if exercicio.objetivo_tecnico else '12' }}">
+            <div class="border rounded p-3 h-100 bg-white">
+              <h6 class="fw-bold text-ocean mb-2">
+                <i class="bi bi-box-seam me-2"></i>Materiais Necessários
+              </h6>
+              <div style="white-space: pre-line; font-size: 0.9rem; line-height: 1.6;">
+                {{ exercicio.materiais }}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Variações -->
+          {% if exercicio.variacoes %}
+          <div class="col-md-6">
+            <div class="border rounded p-3 h-100 bg-white">
+              <h6 class="fw-bold text-laranja mb-2">
+                <i class="bi bi-arrow-left-right me-2"></i>Variações e Progressões
+              </h6>
+              <div style="white-space: pre-line; font-size: 0.9rem; line-height: 1.6;">
+                {{ exercicio.variacoes }}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Erros Comuns -->
+          {% if exercicio.erros_comuns %}
+          <div class="col-md-{{ '6' if exercicio.variacoes else '12' }}">
+            <div class="border rounded p-3 h-100 bg-white">
+              <h6 class="fw-bold text-danger mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>Erros Comuns e Correções
+              </h6>
+              <div style="white-space: pre-line; font-size: 0.9rem; line-height: 1.6;">
+                {{ exercicio.erros_comuns }}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Rodapé de Ações -->
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+          <a href="{{ url_for('admin.exercicios_lista') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+          </a>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.exercicio_editar', id=exercicio.id) }}" class="btn btn-ocean">
+              <i class="bi bi-pencil me-1"></i>Editar Exercício
+            </a>
+            <form method="POST" action="{{ url_for('admin.exercicio_excluir', id=exercicio.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline-danger btn-confirm-delete" data-msg="Excluir definitivamente o exercício '{{ exercicio.titulo }}'?">
+                <i class="bi bi-trash me-1"></i>Excluir
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,64 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if aula else 'Nova' }} Aula — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Aula' if aula else 'Agendar Aula Avulsa' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-calendar-plus me-2"></i>
+        <span>{{ 'Editar Aula' if aula else 'Agendar Aula Avulsa' }}</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label" for="turma_id">Turma da Aula *</label>
+            {{ form.turma_id(class="form-select" + (" is-invalid" if form.turma_id.errors else ""), id="turma_id") }}
+            {% for e in form.turma_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-sm-7">
+              <label class="form-label" for="data_hora">Data e Horário *</label>
+              {{ form.data_hora(class="form-control" + (" is-invalid" if form.data_hora.errors else ""), id="data_hora") }}
+              {% for e in form.data_hora.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-sm-5">
+              <label class="form-label" for="duracao_minutos">Duração (minutos) *</label>
+              {{ form.duracao_minutos(class="form-control" + (" is-invalid" if form.duracao_minutos.errors else ""), id="duracao_minutos", type="number", min="15") }}
+              {% for e in form.duracao_minutos.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="objetivo">Objetivo Principal da Aula</label>
+            {{ form.objetivo(class="form-control", id="objetivo", rows=3, placeholder="Ex: Treino de voleio na rede com foco em antecipação e transição...") }}
+            <div class="form-text">Este objetivo ficará visível para os alunos no painel deles.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label" for="observacoes">Observações Internas do Professor</label>
+            {{ form.observacoes(class="form-control", id="observacoes", rows=2, placeholder="Anotações para o professor, materiais a levar, condições da quadra...") }}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ocean px-4">
+              <i class="bi bi-check-lg me-1"></i> {{ 'Salvar Alterações' if aula else 'Agendar Aula' }}
+            </button>
+            <a href="{{ url_for('admin.aulas_lista') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg me-1"></i> Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

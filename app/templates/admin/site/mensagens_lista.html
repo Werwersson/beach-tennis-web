@@ -1,0 +1,105 @@
+{% extends 'base_admin.html' %}
+{% block title %}Mensagens de Contato — Beach Tennis{% endblock %}
+{% block page_title %}Mensagens Recebidas pelo Site{% endblock %}
+
+{% block content %}
+<div class="card-bt">
+  <div class="card-header-bt d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <i class="bi bi-envelope-fill me-2 text-ocean"></i>
+      <span>Formulário de Contato da Página Pública</span>
+      {% if total_nao_lidas > 0 %}
+        <span class="badge bg-danger ms-2">{{ total_nao_lidas }} nova(s)</span>
+      {% endif %}
+    </div>
+    <div class="btn-group btn-group-sm">
+      <a href="{{ url_for('admin.mensagens_lista', filtro='todas') }}" class="btn {{ 'btn-ocean' if filtro == 'todas' else 'btn-outline-secondary' }}">Todas</a>
+      <a href="{{ url_for('admin.mensagens_lista', filtro='nao_lidas') }}" class="btn {{ 'btn-ocean' if filtro == 'nao_lidas' else 'btn-outline-secondary' }}">Não Lidas</a>
+      <a href="{{ url_for('admin.mensagens_lista', filtro='lidas') }}" class="btn {{ 'btn-ocean' if filtro == 'lidas' else 'btn-outline-secondary' }}">Lidas</a>
+      <a href="{{ url_for('admin.mensagens_lista', filtro='respondidas') }}" class="btn {{ 'btn-ocean' if filtro == 'respondidas' else 'btn-outline-secondary' }}">Respondidas</a>
+    </div>
+  </div>
+
+  <div class="p-3">
+    {% if mensagens %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 140px;">Data / Hora</th>
+              <th>Nome / Telefone</th>
+              <th>Mensagem</th>
+              <th style="width: 160px;" class="text-center">Status</th>
+              <th style="width: 160px;" class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in mensagens %}
+              <tr class="{{ 'table-light fw-semibold' if not m.lida else '' }}">
+                <td class="small text-muted">
+                  {{ m.criado_em.strftime('%d/%m/%Y') }}<br>
+                  {{ m.criado_em.strftime('%H:%M') }}
+                </td>
+                <td>
+                  <strong>{{ m.nome }}</strong>
+                  <div>
+                    <a href="https://wa.me/55{{ m.telefone|somente_numeros }}?text={{ ('Olá ' ~ m.nome ~ ', vi sua mensagem no site de Beach Tennis!')|urlencode }}" target="_blank" class="small text-success text-decoration-none fw-bold">
+                      <i class="bi bi-whatsapp me-1"></i> {{ m.telefone }}
+                    </a>
+                  </div>
+                  {% if m.ip %}
+                    <span class="badge bg-light text-muted border" style="font-size:0.65rem;">IP: {{ m.ip }}</span>
+                  {% endif %}
+                </td>
+                <td style="max-width: 320px;">
+                  <div class="text-break">{{ m.mensagem }}</div>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex flex-column gap-1 align-items-center">
+                    {% if m.respondida %}
+                      <span class="badge bg-success"><i class="bi bi-check2-all me-1"></i> Respondida</span>
+                    {% elif m.lida %}
+                      <span class="badge bg-secondary"><i class="bi bi-eye me-1"></i> Lida</span>
+                    {% else %}
+                      <span class="badge bg-danger"><i class="bi bi-envelope-exclamation me-1"></i> Nova</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <form method="POST" action="{{ url_for('admin.mensagem_marcar_lida', id=m.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-outline-secondary" title="{{ 'Marcar como não lida' if m.lida else 'Marcar como lida' }}">
+                        <i class="bi {{ 'bi-envelope' if m.lida else 'bi-envelope-open' }}"></i>
+                      </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin.mensagem_marcar_respondida', id=m.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn {{ 'btn-success' if m.respondida else 'btn-outline-success' }}" title="{{ 'Desmarcar resposta' if m.respondida else 'Marcar como respondida' }}">
+                        <i class="bi bi-check2-circle"></i>
+                      </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin.mensagem_excluir', id=m.id) }}" class="d-inline" onsubmit="return confirm('Excluir esta mensagem de contato?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-outline-danger" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox display-4 d-block mb-3 text-secondary"></i>
+        <h5>Nenhuma mensagem encontrada</h5>
+        <p>As mensagens enviadas pelo formulário de contato do site público aparecerão aqui.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

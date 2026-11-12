@@ -1,0 +1,148 @@
+{% extends 'base_admin.html' %}
+{% block title %}Alunos — Beach Tennis Admin{% endblock %}
+{% block page_title %}Alunos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <span class="text-muted" style="font-size:0.85rem;">{{ total }} aluno(s) encontrado(s)</span>
+  </div>
+  <a href="{{ url_for('admin.aluno_novo') }}" class="btn btn-laranja">
+    <i class="bi bi-person-plus-fill me-1"></i> Novo Aluno
+  </a>
+</div>
+
+<!-- Filtros -->
+<div class="card-bt p-3 mb-3">
+  <form method="GET" class="row g-2 align-items-end">
+    <div class="col-12 col-sm-4 col-md-3">
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nome ou e-mail...">
+    </div>
+    <div class="col-6 col-sm-3 col-md-2">
+      <select name="nivel" class="form-select">
+        <option value="">Nível</option>
+        <option value="iniciante" {% if nivel=='iniciante' %}selected{% endif %}>Iniciante</option>
+        <option value="intermediario" {% if nivel=='intermediario' %}selected{% endif %}>Intermediário</option>
+        <option value="avancado" {% if nivel=='avancado' %}selected{% endif %}>Avançado</option>
+      </select>
+    </div>
+    <div class="col-6 col-sm-3 col-md-2">
+      <select name="categoria" class="form-select">
+        <option value="">Categoria</option>
+        {% for sigla, label in categorias %}
+          <option value="{{ sigla }}" {% if categoria==sigla %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-sm-3 col-md-2">
+      <select name="status" class="form-select">
+        <option value="">Status</option>
+        <option value="ativo" {% if status=='ativo' %}selected{% endif %}>Ativo</option>
+        <option value="inativo" {% if status=='inativo' %}selected{% endif %}>Inativo</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-3 d-flex gap-2">
+      <button type="submit" class="btn btn-ocean flex-grow-1">
+        <i class="bi bi-search me-1"></i> Filtrar
+      </button>
+      <a href="{{ url_for('admin.alunos_lista') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+{% if alunos %}
+<div class="table-bt">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Aluno</th>
+          <th class="d-none d-md-table-cell">Nível</th>
+          <th class="d-none d-md-table-cell">Categoria</th>
+          <th class="d-none d-sm-table-cell">Turma(s)</th>
+          <th class="d-none d-md-table-cell">Objetivo</th>
+          <th>Status</th>
+          <th class="text-end">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for aluno in alunos %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              {% if aluno.foto %}
+                <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" alt="{{ aluno.nome }}" class="avatar-circle">
+              {% else %}
+                <div class="avatar-circle">{{ aluno.nome[0].upper() }}</div>
+              {% endif %}
+              <div>
+                <div class="fw-600" style="font-size:0.9rem;">{{ aluno.nome }}</div>
+                {% if aluno.usuario %}<div class="text-muted" style="font-size:0.75rem;">{{ aluno.usuario.email }}</div>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="d-none d-md-table-cell">
+            <span class="badge badge-nivel badge-{{ aluno.nivel }}">{{ aluno.nivel|capitalize }}</span>
+          </td>
+          <td class="d-none d-md-table-cell">
+            <span class="badge bg-ocean" title="Peso de dificuldade da categoria">{{ aluno.categoria_label }}</span>
+          </td>
+          <td class="d-none d-sm-table-cell">
+            {% for ta in aluno.turmas if ta.ativo %}
+              <span class="badge bg-light text-dark border me-1">{{ ta.turma.nome }}</span>
+            {% else %}
+              <span class="text-muted" style="font-size:0.8rem;">—</span>
+            {% endfor %}
+          </td>
+          <td class="d-none d-md-table-cell">
+            <span class="text-muted" style="font-size:0.82rem;">
+              {% if aluno.objetivo == 'lazer' %}🎾 Lazer
+              {% elif aluno.objetivo == 'competicao' %}🏆 Competição
+              {% else %}💪 Condicionamento{% endif %}
+            </span>
+          </td>
+          <td>
+            {% if aluno.ativo %}
+              <span class="badge bg-success">Ativo</span>
+            {% else %}
+              <span class="badge bg-secondary">Inativo</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="d-flex justify-content-end gap-1">
+              <a href="{{ url_for('admin.aluno_perfil', id=aluno.id) }}" class="btn btn-sm btn-outline-ocean" title="Ver perfil">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{{ url_for('admin.aluno_editar', id=aluno.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="{{ url_for('admin.aluno_excluir', id=aluno.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger btn-confirm-delete" data-msg="Excluir {{ aluno.nome }}?">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card-bt">
+  <div class="empty-state">
+    <i class="bi bi-people"></i>
+    <h5>Nenhum aluno encontrado</h5>
+    <p>{% if q or nivel or categoria or status %}Tente outros filtros ou{% endif %} cadastre o primeiro aluno!</p>
+    <a href="{{ url_for('admin.aluno_novo') }}" class="btn btn-laranja mt-2">
+      <i class="bi bi-person-plus-fill me-1"></i> Cadastrar Aluno
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,113 @@
+{% extends 'base_admin.html' %}
+{% block title %}Turmas & Horários — Beach Tennis Admin{% endblock %}
+{% block page_title %}Turmas & Horários{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <span class="text-muted" style="font-size:0.85rem;">{{ turmas|length }} turma(s) cadastrada(s)</span>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.aulas_recorrentes') }}" class="btn btn-outline-ocean">
+      <i class="bi bi-calendar2-range me-1"></i> Gerar Grade Recorrente
+    </a>
+    <a href="{{ url_for('admin.turma_nova') }}" class="btn btn-laranja">
+      <i class="bi bi-people-fill me-1"></i> Nova Turma
+    </a>
+  </div>
+</div>
+
+{% if turmas %}
+<div class="row g-3">
+  {% for turma in turmas %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card-bt h-100 d-flex flex-column">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <span class="fw-bold">{{ turma.nome }}</span>
+        <span class="badge badge-nivel badge-{{ turma.nivel }}">{{ turma.nivel|capitalize }}</span>
+      </div>
+
+      <div class="p-3 flex-grow-1 d-flex flex-column">
+        <div class="mb-3">
+          <div class="d-flex align-items-center gap-2 mb-1" style="font-size: 0.9rem;">
+            <i class="bi bi-calendar-week text-ocean"></i>
+            <strong>{{ turma.dias_semana_texto }}</strong>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-1 text-muted" style="font-size: 0.85rem;">
+            <i class="bi bi-clock text-ocean"></i>
+            {{ turma.horario_inicio.strftime('%H:%M') }} às {{ turma.horario_fim.strftime('%H:%M') }}
+          </div>
+          <div class="d-flex align-items-center gap-2 text-muted" style="font-size: 0.85rem;">
+            <i class="bi bi-geo-alt text-ocean"></i>
+            {{ turma.local }}
+          </div>
+        </div>
+
+        <!-- Barra de Vagas e Alunos -->
+        {% set matriculados = turma.alunos|selectattr('ativo')|list|length %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.8rem;">
+            <span>Vagas: <strong>{{ matriculados }} / {{ turma.vagas }}</strong></span>
+            {% if turma.vagas_disponiveis > 0 %}
+              <span class="text-success fw-bold">{{ turma.vagas_disponiveis }} livres</span>
+            {% else %}
+              <span class="text-danger fw-bold">Lotada</span>
+            {% endif %}
+          </div>
+          <div class="progress" style="height: 6px;">
+            {% set pct = (matriculados / turma.vagas * 100) if turma.vagas > 0 else 0 %}
+            <div class="progress-bar {% if pct >= 100 %}bg-danger{% elif pct >= 75 %}bg-warning{% else %}bg-ocean{% endif %}" style="width: {{ pct }}%;"></div>
+          </div>
+        </div>
+
+        <!-- Alunos Matriculados (Badges) -->
+        <div class="mb-3 flex-grow-1">
+          <div class="text-muted mb-1" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Alunos na turma:</div>
+          <div class="d-flex flex-wrap gap-1">
+            {% for ta in turma.alunos if ta.ativo %}
+              <span class="badge bg-light text-dark border" style="font-size: 0.75rem;">
+                {{ ta.aluno.nome }}
+              </span>
+            {% else %}
+              <span class="text-muted" style="font-size: 0.8rem;">Nenhum aluno matriculado ainda.</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Ações no rodapé do card -->
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+          <a href="{{ url_for('admin.aulas_lista', turma_id=turma.id) }}" class="btn btn-sm btn-outline-ocean">
+            <i class="bi bi-calendar-event me-1"></i>Ver Aulas
+          </a>
+          <div class="d-flex gap-1">
+            <a href="{{ url_for('admin.turma_editar', id=turma.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar Turma / Matrículas">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="POST" action="{{ url_for('admin.turma_excluir', id=turma.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger btn-confirm-delete" data-msg="Excluir a turma '{{ turma.nome }}'? As aulas e vínculos serão removidos.">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card-bt">
+  <div class="empty-state py-5">
+    <i class="bi bi-people"></i>
+    <h5>Nenhuma turma cadastrada</h5>
+    <p class="text-muted">Crie turmas para organizar horários, quadras e vincular seus alunos.</p>
+    <a href="{{ url_for('admin.turma_nova') }}" class="btn btn-laranja mt-2">
+      <i class="bi bi-plus-lg me-1"></i> Cadastrar Turma
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+

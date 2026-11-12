@@ -1,0 +1,313 @@
+{% extends 'base_admin.html' %}
+{% block title %}Avaliação de Desempenho — {{ avaliacao.aluno.nome }} ({{ avaliacao.data.strftime('%d/%m/%Y') }}){% endblock %}
+{% block page_title %}Relatório de Avaliação Periódica{% endblock %}
+
+{% block extra_css %}
+<style>
+  .criterio-card-detalhe {
+    background: #FFFFFF;
+    border: 1px solid #E8E2D9;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .barra-progresso-criterio {
+    height: 10px;
+    border-radius: 6px;
+    background-color: #ECE7DE;
+    overflow: hidden;
+  }
+  .badge-delta {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+  }
+  .feedback-box {
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: 100%;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11">
+
+    <!-- Cabeçalho do Atleta e da Avaliação -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+               style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%); font-size: 1.25rem; flex-shrink: 0;">
+            {% if avaliacao.aluno.foto %}
+              <img src="{{ url_for('static', filename='uploads/' ~ avaliacao.aluno.foto) }}" alt="{{ avaliacao.aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+            {% else %}
+              {{ avaliacao.aluno.nome[:2].upper() }}
+            {% endif %}
+          </div>
+          <div>
+            <div class="fs-5 fw-bold mb-0 text-white">
+              {{ avaliacao.aluno.nome }}
+              <span class="badge bg-white text-ocean fw-bold ms-2" style="font-size:0.72rem;">{{ avaliacao.categoria_label }}</span>
+            </div>
+            <div class="text-white-50" style="font-size:0.85rem;">
+              {{ avaliacao.aluno.nivel|capitalize }} · {{ avaliacao.aluno.lado_dominante|capitalize }} · Objetivo: {{ avaliacao.aluno.objetivo or 'Desenvolvimento geral' }}
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <a href="{{ url_for('admin.avaliacao_editar', id=avaliacao.id) }}" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-pencil me-1"></i>Editar
+          </a>
+          <a href="{{ url_for('admin.aluno_perfil', id=avaliacao.aluno_id) }}" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-person me-1"></i>Perfil do Aluno
+          </a>
+          <a href="{{ url_for('admin.avaliacoes_lista') }}" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+          </a>
+        </div>
+      </div>
+
+      <!-- Sumário de Notas e Comparativo -->
+      <div class="p-4 bg-light border-bottom">
+        <div class="row g-3 align-items-center">
+          
+          <div class="col-md-4 text-center text-md-start">
+            <div class="text-muted text-uppercase fw-bold" style="font-size:0.75rem;">Data da Avaliação</div>
+            <div class="fs-5 fw-bold text-dark mt-1">
+              <i class="bi bi-calendar3 text-ocean me-1"></i>{{ avaliacao.data.strftime('%d de %B de %Y') }}
+            </div>
+          </div>
+
+          <div class="col-md-4 text-center">
+            <div class="text-muted text-uppercase fw-bold" style="font-size:0.75rem;">Nota Média na Categoria ({{ avaliacao.categoria_curta }})</div>
+            <div class="d-flex align-items-baseline justify-content-center gap-2 mt-1">
+              <span class="fs-1 fw-bold text-ocean">{{ "%.1f"|format(avaliacao.media) }}</span>
+              <span class="text-muted">/ 10.0</span>
+              {% if diff_media is not none %}
+                {% if diff_media > 0 %}
+                  <span class="badge-delta bg-success text-white" title="Evolução em relação à avaliação anterior">
+                    <i class="bi bi-arrow-up-short"></i>+{{ diff_media }}
+                  </span>
+                {% elif diff_media < 0 %}
+                  <span class="badge-delta bg-danger text-white" title="Queda em relação à avaliação anterior">
+                    <i class="bi bi-arrow-down-short"></i>{{ diff_media }}
+                  </span>
+                {% else %}
+                  <span class="badge-delta bg-secondary text-white" title="Média estável">
+                    = 0.0
+                  </span>
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="text-muted mt-1" style="font-size:0.78rem;">
+              Índice Técnico: <strong class="text-laranja">{{ "%.1f"|format(avaliacao.indice_tecnico) }}</strong>/100
+              {% if diff_indice is not none %}
+                <span class="badge {% if diff_indice > 0 %}bg-success{% elif diff_indice < 0 %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size:0.65rem;">
+                  {% if diff_indice > 0 %}+{% endif %}{{ "%.1f"|format(diff_indice) }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="col-md-4 text-center text-md-end">
+            {% if avaliacao_anterior %}
+              <div class="text-muted text-uppercase fw-bold" style="font-size:0.75rem;">Avaliação Anterior</div>
+              <div class="text-dark fw-bold mt-1" style="font-size:0.9rem;">
+                {{ avaliacao_anterior.data.strftime('%d/%m/%Y') }} ({{ avaliacao_anterior.categoria_curta }} · Média {{ "%.1f"|format(avaliacao_anterior.media) }})
+              </div>
+            {% else %}
+              <div class="badge bg-info-subtle text-info border border-info p-2" style="font-size:0.8rem;">
+                <i class="bi bi-flag-fill me-1"></i>Primeira Avaliação do Atleta
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    {% if mudou_categoria %}
+      <div class="alert alert-info border-0 shadow-sm d-flex gap-2 mb-4" style="font-size:0.88rem;">
+        <i class="bi bi-arrow-up-circle-fill fs-5 text-ocean mt-1"></i>
+        <div>
+          <strong>Mudança de categoria:</strong> esta avaliação é da {{ avaliacao.categoria_label }} e a anterior era da
+          {{ avaliacao_anterior.categoria_label }}. A variação de nota bruta não é comparável entre categorias;
+          use o <strong>Índice Técnico</strong> (0–100) para ver a evolução real.
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Desdobramento dos 11 Critérios Técnicos (Sem Chart.js nesta etapa) -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart-steps me-1"></i>Desempenho por Critério Avaliado</span>
+        <span class="text-white-50" style="font-size:0.8rem;">
+          Escala de 1 a 10{% if mudou_categoria %} · índice corrigido pela categoria{% endif %}
+        </span>
+      </div>
+      <div class="p-4">
+        <div class="row g-3">
+          {% for crit_key, dados in comparativo.items() %}
+            {% set nota = dados.atual or 0 %}
+            {% set pct = (nota / 10.0) * 100 %}
+            <div class="col-md-6">
+              <div class="criterio-card-detalhe">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold text-dark" style="font-size:0.95rem;">{{ dados.label }}</span>
+                  <div class="d-flex align-items-center gap-2">
+                    {% if dados.diff is not none %}
+                      {% if dados.diff > 0 %}
+                        <span class="badge-delta bg-success-subtle text-success border border-success" title="Evolução vs ciclo anterior">
+                          <i class="bi bi-arrow-up"></i>+{{ dados.diff }}
+                        </span>
+                      {% elif dados.diff < 0 %}
+                        <span class="badge-delta bg-danger-subtle text-danger border border-danger" title="Queda vs ciclo anterior">
+                          <i class="bi bi-arrow-down"></i>{{ dados.diff }}
+                        </span>
+                      {% else %}
+                        <span class="badge-delta bg-light text-muted border" title="Nota mantida">
+                          = 0.0
+                        </span>
+                      {% endif %}
+                    {% endif %}
+                    {% if mudou_categoria and dados.diff_indice is not none %}
+                      <span class="badge bg-light text-dark border" style="font-size:0.65rem;" title="Variação do índice corrigido pela categoria">
+                        índice {% if dados.diff_indice > 0 %}+{% endif %}{{ dados.diff_indice }}
+                      </span>
+                    {% endif %}
+                    <span class="fs-6 fw-bold text-ocean">{{ "%.1f"|format(nota) }}</span>
+                  </div>
+                </div>
+
+                <!-- Barra Visual Limpa (CSS puro) -->
+                <div class="barra-progresso-criterio mb-1">
+                  <div class="h-100 {% if nota >= 8.0 %}bg-success{% elif nota >= 6.0 %}bg-primary{% elif nota >= 4.0 %}bg-warning{% else %}bg-danger{% endif %}"
+                       style="width: {{ pct }}%; transition: width 0.6s ease;"></div>
+                </div>
+
+                <div class="d-flex justify-content-between text-muted" style="font-size:0.72rem;">
+                  <span>Iniciando</span>
+                  <span>Intermediário (5.0)</span>
+                  <span>Excelente (10.0)</span>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Parecer Técnico e Metas -->
+    <div class="row g-3 mb-4">
+      
+      <!-- Pontos Fortes -->
+      <div class="col-md-6">
+        <div class="card-bt h-100">
+          <div class="p-3 bg-success-subtle border-bottom d-flex align-items-center gap-2 text-success fw-bold">
+            <i class="bi bi-award-fill fs-5"></i>Pontos Fortes Demonstrados
+          </div>
+          <div class="p-4" style="font-size:0.95rem; line-height: 1.6;">
+            {% if avaliacao.pontos_fortes %}
+              {{ avaliacao.pontos_fortes|nl2br }}
+            {% else %}
+              <span class="text-muted fst-italic">Nenhum ponto forte registrado especificamente nesta avaliação.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Pontos a Melhorar -->
+      <div class="col-md-6">
+        <div class="card-bt h-100">
+          <div class="p-3 bg-warning-subtle border-bottom d-flex align-items-center gap-2 text-warning text-dark fw-bold">
+            <i class="bi bi-lightning-fill fs-5"></i>Oportunidades de Desenvolvimento
+          </div>
+          <div class="p-4" style="font-size:0.95rem; line-height: 1.6;">
+            {% if avaliacao.pontos_melhorar %}
+              {{ avaliacao.pontos_melhorar|nl2br }}
+            {% else %}
+              <span class="text-muted fst-italic">Nenhum ponto a desenvolver especificado.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Metas do Próximo Ciclo -->
+      <div class="col-md-6">
+        <div class="card-bt h-100">
+          <div class="p-3 bg-primary-subtle border-bottom d-flex align-items-center gap-2 text-primary fw-bold">
+            <i class="bi bi-bullseye fs-5"></i>Metas para o Próximo Ciclo
+          </div>
+          <div class="p-4" style="font-size:0.95rem; line-height: 1.6;">
+            {% if avaliacao.metas_proximo_ciclo %}
+              {{ avaliacao.metas_proximo_ciclo|nl2br }}
+            {% else %}
+              <span class="text-muted fst-italic">Nenhuma meta definida para o próximo período.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Comentários do Professor -->
+      <div class="col-md-6">
+        <div class="card-bt h-100">
+          <div class="p-3 bg-secondary-subtle border-bottom d-flex align-items-center gap-2 text-secondary fw-bold">
+            <i class="bi bi-chat-left-dots-fill fs-5"></i>Observações Gerais do Professor
+          </div>
+          <div class="p-4" style="font-size:0.95rem; line-height: 1.6;">
+            {% if avaliacao.comentarios %}
+              {{ avaliacao.comentarios|nl2br }}
+            {% else %}
+              <span class="text-muted fst-italic">Sem comentários adicionais.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Análise de Movimento em Vídeo -->
+    {% if youtube_id or avaliacao.link_video_analise %}
+      <div class="card-bt mb-4">
+        <div class="card-header-bt d-flex align-items-center gap-2">
+          <i class="bi bi-youtube text-danger fs-5"></i>
+          <span>Análise Biomecânica em Vídeo</span>
+        </div>
+        <div class="p-4 text-center">
+          {% if youtube_id %}
+            <div class="ratio ratio-16x9 rounded-3 shadow-sm mx-auto" style="max-width: 800px; overflow:hidden;">
+              <iframe src="https://www.youtube.com/embed/{{ youtube_id }}" title="Análise de Vídeo" allowfullscreen></iframe>
+            </div>
+          {% else %}
+            <p class="text-muted mb-2">Link direto do vídeo fornecido:</p>
+            <a href="{{ avaliacao.link_video_analise }}" target="_blank" class="btn btn-outline-danger">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Abrir Vídeo de Análise Externa
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Barra Inferior de Ações -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-5 pt-3 border-top">
+      <div>
+        <a href="{{ url_for('admin.avaliacoes_lista') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Todas as Avaliações
+        </a>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.avaliacao_nova', aluno_id=avaliacao.aluno_id) }}" class="btn btn-outline-ocean">
+          <i class="bi bi-plus-lg me-1"></i>Nova Avaliação deste Aluno
+        </a>
+        <a href="{{ url_for('admin.avaliacao_editar', id=avaliacao.id) }}" class="btn btn-laranja fw-bold px-4">
+          <i class="bi bi-pencil me-1"></i>Editar Avaliação
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

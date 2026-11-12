@@ -1,0 +1,119 @@
+{% extends 'base_admin.html' %}
+{% block title %}Configurações do Site — Beach Tennis{% endblock %}
+{% block page_title %}Configurações do Site Público{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div>
+          <i class="bi bi-gear-fill me-2"></i>
+          <span>Personalização da Vitrine Pública</span>
+        </div>
+        <a href="{{ url_for('public.index') }}" target="_blank" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-box-arrow-up-right me-1"></i> Visualizar Site
+        </a>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+
+          <!-- HERO E APRESENTAÇÃO -->
+          <div class="form-section-title mt-0">
+            <i class="bi bi-person-badge-fill me-1"></i> Dados do Professor & Hero
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label class="form-label" for="nome_professor">Nome do Professor *</label>
+              {{ form.nome_professor(class="form-control" + (" is-invalid" if form.nome_professor.errors else ""), id="nome_professor", placeholder="Everson Vicktor Silva Silveira") }}
+              {% for e in form.nome_professor.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label" for="idade_professor">Perfil / Formação</label>
+              {{ form.idade_professor(class="form-control", id="idade_professor", placeholder="22 anos. Estudante de Sistemas de Informação") }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="subtitulo_hero">Frase de Destaque no Hero</label>
+              {{ form.subtitulo_hero(class="form-control", id="subtitulo_hero", placeholder="Líder do ranking AIBT 2026 em 3 categorias") }}
+              <div class="form-text">Exibida logo abaixo do título principal no topo da página.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="sobre_texto">Texto "Sobre o Professor" *</label>
+              {{ form.sobre_texto(class="form-control" + (" is-invalid" if form.sobre_texto.errors else ""), id="sobre_texto", rows=5, placeholder="Descreva sua trajetória competitiva, metodologia de treino...") }}
+              {% for e in form.sobre_texto.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="foto_professor">Foto do Professor</label>
+              {{ form.foto_professor(class="form-control", id="foto_professor") }}
+              {% if foto_atual %}
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <img src="{{ url_for('static', filename='uploads/' + foto_atual) }}" alt="Foto atual" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                  <span class="small text-muted">Foto atual salva</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- CONTATO E LOCALIZAÇÃO -->
+          <div class="form-section-title">
+            <i class="bi bi-geo-alt-fill me-1"></i> Contato, Quadra e Localização
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="whatsapp">WhatsApp para Contato (com DDD)</label>
+              {{ form.whatsapp(class="form-control", id="whatsapp", placeholder="Ex: 73999998888") }}
+              <div class="form-text">Apenas números ou formato padrão. Os botões de agendamento usarão este número.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="whatsapp_mensagem">Mensagem Padrão do WhatsApp</label>
+              {{ form.whatsapp_mensagem(class="form-control", id="whatsapp_mensagem", placeholder="Olá professor! Gostaria de agendar uma aula experimental de Beach Tennis.") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="instagram">Instagram</label>
+              {{ form.instagram(class="form-control", id="instagram", placeholder="@seuperfil ou link completo") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="cidade">Cidade / UF</label>
+              {{ form.cidade(class="form-control", id="cidade", placeholder="Itabuna (BA)") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="nome_quadra">Nome da Quadra / Arena</label>
+              {{ form.nome_quadra(class="form-control", id="nome_quadra", placeholder="Ex: Arena Beach Point (em breve)") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="endereco">Endereço Completo</label>
+              {{ form.endereco(class="form-control", id="endereco", placeholder="Ex: Itabuna - BA (A definir)") }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="link_google_maps">Link do Google Maps</label>
+              {{ form.link_google_maps(class="form-control", id="link_google_maps", placeholder="https://maps.google.com/...") }}
+              <div class="form-text">Link direto do Google Maps para abrir no celular do aluno.</div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <button type="submit" class="btn btn-ocean px-4">
+              <i class="bi bi-check-lg me-1"></i> Salvar Alterações
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

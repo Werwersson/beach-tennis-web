@@ -1,0 +1,78 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if item else 'Novo' }} Item da Galeria — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Item' if item else 'Adicionar Foto ou Vídeo à Galeria' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-images me-2 text-ocean"></i>
+        <span>{{ 'Editar Mídia da Galeria' if item else 'Nova Mídia para a Galeria' }}</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="titulo">Título / Descrição Curta *</label>
+              {{ form.titulo(class="form-control" + (" is-invalid" if form.titulo.errors else ""), id="titulo", placeholder="Ex: Treino de saque na quadra central") }}
+              {% for e in form.titulo.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="tipo">Tipo de Mídia</label>
+              {{ form.tipo(class="form-select", id="tipo") }}
+            </div>
+
+            <div class="col-md-6" id="div-arquivo">
+              <label class="form-label" for="arquivo">Arquivo de Imagem (JPG, PNG, WEBP)</label>
+              {{ form.arquivo(class="form-control", id="arquivo") }}
+              {% if item and item.arquivo %}
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <img src="{{ url_for('static', filename='uploads/' + item.arquivo) }}" alt="{{ item.titulo }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                  <span class="small text-muted">Imagem atual</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6" id="div-video">
+              <label class="form-label" for="url_video">Link do Vídeo (YouTube)</label>
+              {{ form.url_video(class="form-control", id="url_video", placeholder="https://www.youtube.com/watch?v=...") }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="legenda">Legenda / Texto Explicativo (opcional)</label>
+              {{ form.legenda(class="form-control", id="legenda", rows=3, placeholder="Detalhes adicionais sobre a foto ou exercício...") }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="ordem">Ordem</label>
+              {{ form.ordem(class="form-control", id="ordem", type="number") }}
+            </div>
+
+            <div class="col-12 mt-3 d-flex gap-4">
+              <div class="form-check form-switch">
+                {{ form.destaque(class="form-check-input", id="destaque") }}
+                <label class="form-check-label fw-bold" for="destaque">Destaque na vitrine</label>
+              </div>
+              <div class="form-check form-switch">
+                {{ form.ativo(class="form-check-input", id="ativo") }}
+                <label class="form-check-label fw-bold" for="ativo">Item Ativo</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{{ url_for('admin.galeria_lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-ocean px-4">Salvar Mídia</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

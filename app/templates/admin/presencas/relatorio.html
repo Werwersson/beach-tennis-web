@@ -1,0 +1,318 @@
+{% extends 'base_admin.html' %}
+{% block title %}Relatório de Frequência e Presenças{% endblock %}
+{% block page_title %}Frequência & Presenças{% endblock %}
+
+{% block content %}
+<!-- Filtros e Período -->
+<div class="card-bt mb-4">
+  <div class="p-3">
+    <form method="GET" action="{{ url_for('admin.presencas') }}" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label text-muted" style="font-size:0.8rem;">PERÍODO</label>
+        <select name="periodo" class="form-select form-select-sm">
+          <option value="todos" {{ 'selected' if periodo == 'todos' else '' }}>Todo o Histórico</option>
+          <option value="mes_atual" {{ 'selected' if periodo == 'mes_atual' else '' }}>Mês Atual</option>
+          <option value="30_dias" {{ 'selected' if periodo == '30_dias' else '' }}>Últimos 30 Dias</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label text-muted" style="font-size:0.8rem;">TURMA</label>
+        <select name="turma_id" class="form-select form-select-sm">
+          <option value="">Todas as Turmas</option>
+          {% for t in turmas %}
+            <option value="{{ t.id }}" {{ 'selected' if turma_id == t.id else '' }}>{{ t.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label text-muted" style="font-size:0.8rem;">ALUNO ESPECÍFICO</label>
+        <select name="aluno_id" class="form-select form-select-sm">
+          <option value="">Todos os Alunos</option>
+          {% for al in alunos %}
+            <option value="{{ al.id }}" {{ 'selected' if aluno_id == al.id else '' }}>{{ al.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-ocean w-100">
+          <i class="bi bi-funnel me-1"></i>Filtrar
+        </button>
+        {% if turma_id or aluno_id or periodo != 'todos' %}
+          <a href="{{ url_for('admin.presencas') }}" class="btn btn-sm btn-outline-secondary" title="Limpar Filtros">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- KPIs Rápidos -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="kpi-card text-center p-3">
+      <div class="text-muted text-uppercase" style="font-size:0.75rem; font-weight:700;">Taxa Média de Presença</div>
+      <div class="fs-2 fw-bold text-ocean mt-1">{{ taxa_geral }}%</div>
+      <div class="text-muted" style="font-size:0.8rem;">Presenças confirmadas + reposições</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="kpi-card text-center p-3">
+      <div class="text-muted text-uppercase" style="font-size:0.75rem; font-weight:700;">Total de Chamadas Registradas</div>
+      <div class="fs-2 fw-bold text-dark mt-1">{{ total_registros_geral }}</div>
+      <div class="text-muted" style="font-size:0.8rem;">Registros individuais de alunos</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="kpi-card text-center p-3">
+      <div class="text-muted text-uppercase" style="font-size:0.75rem; font-weight:700;">Alunos Monitorados</div>
+      <div class="fs-2 fw-bold text-laranja mt-1">{{ relatorio_alunos|length }}</div>
+      <div class="text-muted" style="font-size:0.8rem;">Atletas ativos no sistema</div>
+    </div>
+  </div>
+</div>
+
+<!-- Abas de Navegação -->
+<div class="card-bt">
+  <div class="card-header-bt p-0 border-bottom-0">
+    <ul class="nav nav-tabs border-0" id="presencasTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active px-4 py-3 fw-bold border-0 border-bottom border-3 border-laranja"
+                id="alunos-tab" data-bs-toggle="tab" data-bs-target="#tab-alunos" type="button" role="tab"
+                style="background:transparent; color:#fff;">
+          <i class="bi bi-person-check-fill me-1"></i>Frequência por Aluno
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link px-4 py-3 fw-bold text-white-50 border-0"
+                id="turmas-tab" data-bs-toggle="tab" data-bs-target="#tab-turmas" type="button" role="tab"
+                style="background:transparent;">
+          <i class="bi bi-collection-fill me-1"></i>Frequência por Turma
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link px-4 py-3 fw-bold text-white-50 border-0"
+                id="historico-tab" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button" role="tab"
+                style="background:transparent;">
+          <i class="bi bi-clock-history me-1"></i>Histórico Detalhado ({{ historico|length }})
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content p-3 p-md-4">
+    
+    <!-- ABA 1: POR ALUNO -->
+    <div class="tab-pane fade show active" id="tab-alunos" role="tabpanel">
+      {% if relatorio_alunos %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr style="font-size:0.8rem; text-transform:uppercase;">
+                <th>Aluno</th>
+                <th class="text-center">Aulas</th>
+                <th class="text-center">Presenças</th>
+                <th class="text-center">Faltas</th>
+                <th class="text-center">Justificadas</th>
+                <th class="text-center">Reposições</th>
+                <th style="min-width: 170px;">Taxa de Frequência</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in relatorio_alunos %}
+                {% set al = item.aluno %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                           style="width: 32px; height: 32px; background: var(--bt-ocean); font-size: 0.8rem;">
+                        {{ al.nome[:2].upper() }}
+                      </div>
+                      <div>
+                        <a href="{{ url_for('admin.aluno_perfil', id=al.id) }}" class="fw-bold text-dark text-decoration-none">
+                          {{ al.nome }}
+                        </a>
+                        <div class="text-muted" style="font-size:0.75rem;">{{ al.nivel|capitalize }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center fw-bold">{{ item.total }}</td>
+                  <td class="text-center text-success fw-bold">{{ item.presentes }}</td>
+                  <td class="text-center text-danger fw-bold">{{ item.faltas }}</td>
+                  <td class="text-center text-warning fw-bold">{{ item.justificadas }}</td>
+                  <td class="text-center text-info fw-bold">{{ item.reposicoes }}</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 8px;">
+                        <div class="progress-bar {% if item.taxa >= 80 %}bg-success{% elif item.taxa >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                             role="progressbar" style="width: {{ item.taxa }}%;" aria-valuenow="{{ item.taxa }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                      </div>
+                      <span class="fw-bold" style="font-size:0.85rem; min-width:45px;">{{ item.taxa }}%</span>
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <a href="{{ url_for('admin.aluno_perfil', id=al.id) }}" class="btn btn-sm btn-outline-ocean" title="Ver Perfil">
+                      <i class="bi bi-person-badge"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state text-center py-4">
+          <i class="bi bi-people text-muted" style="font-size:2.5rem;"></i>
+          <p class="mt-2 text-muted">Nenhum aluno encontrado para os filtros selecionados.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ABA 2: POR TURMA -->
+    <div class="tab-pane fade" id="tab-turmas" role="tabpanel">
+      {% if relatorio_turmas %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr style="font-size:0.8rem; text-transform:uppercase;">
+                <th>Turma</th>
+                <th>Dias & Horários</th>
+                <th class="text-center">Aulas Realizadas</th>
+                <th class="text-center">Registros Totais</th>
+                <th class="text-center">Presenças / Reposições</th>
+                <th class="text-center">Faltas</th>
+                <th style="min-width: 170px;">Taxa Média</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in relatorio_turmas %}
+                {% set t = it.turma %}
+                <tr>
+                  <td>
+                    <a href="{{ url_for('admin.turma_editar', id=t.id) }}" class="fw-bold text-dark text-decoration-none">
+                      {{ t.nome }}
+                    </a>
+                    <div class="text-muted" style="font-size:0.75rem;">{{ t.local }}</div>
+                  </td>
+                  <td style="font-size:0.85rem;">
+                    {{ t.dias_semana_texto }} às {{ t.horario_inicio.strftime('%H:%M') }}
+                  </td>
+                  <td class="text-center fw-bold">{{ it.aulas_realizadas }}</td>
+                  <td class="text-center">{{ it.total_registros }}</td>
+                  <td class="text-center text-success fw-bold">{{ it.presentes }}</td>
+                  <td class="text-center text-danger fw-bold">{{ it.faltas }}</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 8px;">
+                        <div class="progress-bar {% if it.taxa >= 80 %}bg-success{% elif it.taxa >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                             role="progressbar" style="width: {{ it.taxa }}%;" aria-valuenow="{{ it.taxa }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                      </div>
+                      <span class="fw-bold" style="font-size:0.85rem; min-width:45px;">{{ it.taxa }}%</span>
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <a href="{{ url_for('admin.turma_editar', id=t.id) }}" class="btn btn-sm btn-outline-ocean" title="Ver Turma">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state text-center py-4">
+          <i class="bi bi-collection text-muted" style="font-size:2.5rem;"></i>
+          <p class="mt-2 text-muted">Nenhuma turma cadastrada.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ABA 3: HISTÓRICO DETALHADO -->
+    <div class="tab-pane fade" id="tab-historico" role="tabpanel">
+      {% if historico %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr style="font-size:0.8rem; text-transform:uppercase;">
+                <th>Data da Aula</th>
+                <th>Turma</th>
+                <th>Aluno</th>
+                <th class="text-center">Status</th>
+                <th>Justificativa / Motivo</th>
+                <th class="text-end">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in historico %}
+                <tr>
+                  <td class="fw-bold" style="font-size:0.88rem;">
+                    {{ h.aula.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                  </td>
+                  <td>{{ h.aula.turma.nome }}</td>
+                  <td>
+                    <a href="{{ url_for('admin.aluno_perfil', id=h.aluno.id) }}" class="text-dark fw-bold text-decoration-none">
+                      {{ h.aluno.nome }}
+                    </a>
+                  </td>
+                  <td class="text-center">
+                    {% if h.status == 'presente' %}
+                      <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Presente</span>
+                    {% elif h.status == 'falta' %}
+                      <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>Falta</span>
+                    {% elif h.status == 'falta_justificada' %}
+                      <span class="badge bg-warning text-dark"><i class="bi bi-info-circle me-1"></i>Justificada</span>
+                    {% elif h.status == 'reposicao' %}
+                      <span class="badge bg-info text-dark"><i class="bi bi-arrow-repeat me-1"></i>Reposição</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ h.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="font-size:0.85rem;" class="text-muted">
+                    {{ h.justificativa or '—' }}
+                  </td>
+                  <td class="text-end">
+                    <a href="{{ url_for('admin.aula_chamada', id=h.aula_id) }}" class="btn btn-sm btn-outline-secondary" title="Editar Chamada da Aula">
+                      <i class="bi bi-pencil-square"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state text-center py-4">
+          <i class="bi bi-clock-history text-muted" style="font-size:2.5rem;"></i>
+          <p class="mt-2 text-muted">Nenhum registro de presença encontrado no período selecionado.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Troca de abas com estilo dinâmico
+  const tabButtons = document.querySelectorAll('#presencasTab button[data-bs-toggle="tab"]');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('shown.bs.tab', e => {
+      tabButtons.forEach(b => {
+        b.classList.remove('border-bottom', 'border-3', 'border-laranja');
+        b.classList.add('text-white-50');
+      });
+      e.target.classList.add('border-bottom', 'border-3', 'border-laranja');
+      e.target.classList.remove('text-white-50');
+    });
+  });
+</script>
+{% endblock %}

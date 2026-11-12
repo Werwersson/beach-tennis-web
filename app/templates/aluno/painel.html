@@ -1,0 +1,426 @@
+{% extends 'base_aluno.html' %}
+{% block aluno_title %}Meu Painel — {{ aluno.nome }}{% endblock %}
+
+{% block aluno_content %}
+<!-- Boas-vindas do Atleta -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">Olá, {{ aluno.nome.split()[0] }}! 🎾</h3>
+    <p class="text-muted mb-0" style="font-size:0.95rem;">
+      Bem-vindo ao seu painel de treino. Acompanhe suas aulas, evolução e metas.
+    </p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge badge-nivel badge-{{ aluno.nivel }} fs-6 px-3 py-2">
+      {{ aluno.nivel|capitalize }}
+    </span>
+    <span class="badge bg-ocean fs-6 px-3 py-2">
+      {{ analytics.categoria_atual_label if analytics.tem_avaliacoes else aluno.categoria_label }}
+    </span>
+    <span class="badge bg-light text-dark border fs-6 px-3 py-2">
+      Lado {{ aluno.lado_dominante|capitalize }}
+    </span>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- COLUNA PRINCIPAL (ESQUERDA): Próxima Aula & Treino do Dia -->
+  <div class="col-lg-8">
+    
+    <!-- CARD: PRÓXIMA AULA -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      <div class="aluno-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar2-event-fill text-laranja fs-5"></i>
+          <span>Sua Próxima Aula</span>
+        </div>
+        {% if proxima_aula %}
+          <span class="badge bg-white text-dark fw-bold">
+            {{ proxima_aula.data_hora.strftime('%d/%m (%a) às %H:%M') }}
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="p-4 bg-white">
+        {% if proxima_aula %}
+          <div class="row g-3 align-items-center mb-4">
+            <div class="col-md-7">
+              <h5 class="fw-bold text-dark mb-1">{{ proxima_aula.turma.nome }}</h5>
+              <div class="text-muted mb-2" style="font-size:0.88rem;">
+                <i class="bi bi-geo-alt-fill text-ocean me-1"></i>{{ proxima_aula.turma.local }} · Duração: {{ proxima_aula.duracao_minutos }} min
+              </div>
+              {% if proxima_aula.objetivo %}
+                <div class="p-2 px-3 rounded bg-light border-start border-3 border-ocean text-dark" style="font-size:0.85rem;">
+                  <strong>Objetivo da aula:</strong> {{ proxima_aula.objetivo }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Status de Presença e Ações -->
+            <div class="col-md-5 text-md-end">
+              <div class="mb-2">
+                {% if presenca_proxima and presenca_proxima.status == 'confirmado' %}
+                  <span class="badge bg-success fs-6 px-3 py-2">
+                    <i class="bi bi-check-circle-fill me-1"></i>Presença Confirmada!
+                  </span>
+                {% elif presenca_proxima and presenca_proxima.status == 'ausencia_avisada' %}
+                  <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Ausência Avisada
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary fs-6 px-3 py-2 border">
+                    <i class="bi bi-clock me-1"></i>Presença Pendente
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Botões de Ação do Aluno -->
+              <div class="d-flex justify-content-md-end gap-2">
+                <form method="POST" action="{{ url_for('aluno.confirmar_presenca', id=proxima_aula.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="origem" value="painel">
+                  <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-2"
+                          {{ 'disabled' if presenca_proxima and presenca_proxima.status == 'confirmado' else '' }}>
+                    <i class="bi bi-check-lg me-1"></i>Confirmar Presença
+                  </button>
+                </form>
+
+                <button type="button" class="btn btn-sm btn-outline-danger px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalAusencia">
+                  <i class="bi bi-x-lg me-1"></i>Avisar Ausência
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXERCÍCIOS PLANEJADOS PARA A AULA -->
+          <div class="border-top pt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-ocean fw-bold text-uppercase mb-0" style="font-size:0.85rem;">
+                <i class="bi bi-list-check me-1 text-laranja"></i>Exercícios Previstos no Treino ({{ exercicios_aula|length }})
+              </h6>
+              <span class="text-muted" style="font-size:0.75rem;">Consulte o que o professor preparou</span>
+            </div>
+
+            {% if exercicios_aula %}
+              <div class="list-group list-group-flush gap-2">
+                {% for ae in exercicios_aula %}
+                  <div class="border rounded-3 p-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                      <div>
+                        <span class="badge bg-ocean me-1" style="font-size:0.7rem;">#{{ ae.ordem }}</span>
+                        <strong class="text-dark">{{ ae.exercicio.titulo }}</strong>
+                        <span class="badge bg-secondary-subtle text-dark border ms-1" style="font-size:0.7rem;">
+                          {{ ae.duracao_minutos }} min
+                        </span>
+                        <span class="badge bg-light text-muted border ms-1" style="font-size:0.7rem;">
+                          {{ ae.exercicio.categoria_label }}
+                        </span>
+                      </div>
+                      {% if ae.exercicio.link_video %}
+                        <a href="{{ ae.exercicio.link_video }}" target="_blank" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem;">
+                          <i class="bi bi-youtube me-1"></i>Vídeo
+                        </a>
+                      {% endif %}
+                    </div>
+
+                    {% if ae.observacao %}
+                      <div class="mt-2 text-ocean fw-bold" style="font-size:0.82rem;">
+                        <i class="bi bi-lightbulb me-1 text-laranja"></i>Foco do Professor: {{ ae.observacao }}
+                      </div>
+                    {% endif %}
+
+                    {% if ae.exercicio.descricao %}
+                      <div class="text-muted mt-1" style="font-size:0.82rem; line-height:1.4;">
+                        {{ ae.exercicio.descricao|truncate(120) }}
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted mb-0" style="font-size:0.85rem;">
+                O professor ainda está finalizando a montagem dos exercícios específicos para esta aula.
+              </p>
+            {% endif %}
+          </div>
+
+        {% else %}
+          <div class="empty-state text-center py-4">
+            <i class="bi bi-calendar-check text-muted" style="font-size:2.5rem;"></i>
+            <h6 class="mt-2 text-dark">Nenhuma aula agendada no momento</h6>
+            <p class="text-muted mb-0" style="font-size:0.85rem;">
+              Quando o professor programar as próximas aulas da sua turma, elas aparecerão aqui automaticamente.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CARD: RESUMO DA MINHA EVOLUÇÃO (RADAR CHART.JS) -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      <div class="aluno-card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-radar text-laranja fs-5"></i>
+          <span>Minha Evolução Técnica</span>
+        </div>
+        <a href="{{ url_for('aluno.evolucao') }}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;">
+          Ver Análise Completa
+        </a>
+      </div>
+      <div class="p-4 bg-white">
+        {% if analytics.tem_avaliacoes %}
+          <div class="row align-items-center">
+            <div class="col-md-7 text-center">
+              <div style="max-width: 360px; margin: 0 auto;">
+                <canvas id="alunoRadarChart"></canvas>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <div class="p-3 border rounded-3 bg-light text-center mb-3">
+                <div class="text-muted text-uppercase" style="font-size:0.75rem; font-weight:700;">Sua Nota Média Atual (na Categoria)</div>
+                <div class="d-flex align-items-baseline justify-content-center gap-2 mt-1">
+                  <span class="fs-1 fw-bold text-ocean">{{ "%.1f"|format(analytics.media_atual) }}</span>
+                  <span class="text-muted">/ 10</span>
+                  <span class="badge fs-6 fw-bold {% if analytics.diff_geral > 0 %}bg-success{% elif analytics.diff_geral < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {% if analytics.diff_geral > 0 %}+{% endif %}{{ "%.1f"|format(analytics.diff_geral) }}
+                  </span>
+                </div>
+                <div class="d-flex align-items-center justify-content-center gap-2 border-top pt-2 mt-2">
+                  <span class="text-muted" style="font-size:0.78rem;">Índice Técnico:</span>
+                  <strong class="text-laranja">{{ "%.1f"|format(analytics.indice_atual) }}</strong>
+                  <span class="text-muted" style="font-size:0.7rem;">/ 100</span>
+                  <span class="badge {% if analytics.diff_indice > 0 %}bg-success{% elif analytics.diff_indice < 0 %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size:0.7rem;">
+                    {% if analytics.diff_indice > 0 %}+{% endif %}{{ "%.1f"|format(analytics.diff_indice) }}
+                  </span>
+                </div>
+                <div class="text-muted mt-1" style="font-size:0.72rem;">
+                  {{ analytics.categoria_atual_label }} · comparação com atletas da mesma categoria
+                </div>
+              </div>
+
+              {% if analytics.tem_multiplas_categorias %}
+                <div class="alert alert-info border-0 py-2 px-3 mb-2" style="font-size:0.76rem;">
+                  <i class="bi bi-arrow-up-circle-fill me-1"></i>
+                  Você mudou de categoria ({{ analytics.categoria_inicial_label }} → {{ analytics.categoria_atual_label }}).
+                  A nota pode ter caído na promoção, mas o índice mostra sua evolução real.
+                </div>
+              {% endif %}
+
+              {% if analytics.ultima_avaliacao.pontos_fortes %}
+                <div class="p-3 border rounded-3 bg-white mb-2" style="font-size:0.83rem;">
+                  <strong class="text-success"><i class="bi bi-star-fill me-1"></i>Ponto Forte:</strong>
+                  <div class="text-muted mt-1">{{ analytics.ultima_avaliacao.pontos_fortes|truncate(110) }}</div>
+                </div>
+              {% endif %}
+
+              <div class="text-center mt-3">
+                <a href="{{ url_for('aluno.evolucao') }}" class="btn btn-sm btn-ocean w-100 fw-bold">
+                  <i class="bi bi-graph-up me-1"></i>Ver Gráficos Detalhados
+                </a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-4">
+            <i class="bi bi-graph-up text-muted" style="font-size:2.5rem;"></i>
+            <h6 class="mt-2 text-dark">Nenhuma avaliação realizada ainda</h6>
+            <p class="text-muted mb-0" style="font-size:0.85rem;">
+              O professor registrará suas notas periódicas de saque, forehand, voleio, smash e mobilidade.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COLUNA LATERAL (DIREITA): Metas, Frequência e Treinos -->
+  <div class="col-lg-4">
+    
+    <!-- CARD: FREQUÊNCIA E PRESENÇAS -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      <div class="aluno-card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-check2-square text-laranja fs-5"></i>
+          <span>Minha Frequência</span>
+        </div>
+        <a href="{{ url_for('aluno.aulas') }}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;">Histórico</a>
+      </div>
+      <div class="p-3 bg-white">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted" style="font-size:0.85rem;">Assiduidade Geral:</span>
+          <span class="fs-5 fw-bold text-success">{{ taxa_frequencia }}%</span>
+        </div>
+        <div class="progress mb-3" style="height: 8px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ taxa_frequencia }}%;"></div>
+        </div>
+
+        <div class="text-muted mb-2 fw-bold" style="font-size:0.78rem; text-transform:uppercase;">Últimas Aulas:</div>
+        {% if presencas_recentes %}
+          <div class="d-flex flex-wrap gap-2 mb-2">
+            {% for p in presencas_recentes %}
+              <span class="badge px-2 py-1 {% if p.status in ('presente', 'reposicao') %}bg-success{% elif p.status == 'falta' %}bg-danger{% elif p.status == 'falta_justificada' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}"
+                    title="{{ p.aula.data_hora.strftime('%d/%m/%Y') }} — {{ p.status|replace('_',' ')|capitalize }}">
+                {{ p.aula.data_hora.strftime('%d/%m') }} · {{ '✓' if p.status in ('presente', 'reposicao') else '✗' if p.status == 'falta' else '~' }}
+              </span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted mb-0" style="font-size:0.82rem;">Sem histórico de aulas ainda.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CARD: METAS DEFINIDAS PELO PROFESSOR -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      <div class="aluno-card-header">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-bullseye text-laranja fs-5"></i>
+          <span>Metas para o Próximo Ciclo</span>
+        </div>
+      </div>
+      <div class="p-3 bg-white">
+        {% if metas %}
+          <div class="list-group list-group-flush gap-2">
+            {% for m in metas %}
+              <div class="d-flex align-items-start gap-2 p-2 rounded" style="background:#FAF8F5;">
+                <i class="bi bi-{{ 'check-circle-fill text-success' if m.concluida else 'circle text-ocean' }} mt-1 fs-5"></i>
+                <div>
+                  <div style="font-size:0.88rem;" class="{{ 'text-decoration-line-through text-muted' if m.concluida else 'fw-bold text-dark' }}">
+                    {{ m.descricao }}
+                  </div>
+                  {% if m.prazo %}
+                    <div class="text-muted" style="font-size:0.75rem;">
+                      <i class="bi bi-clock me-1"></i>Prazo: {{ m.prazo.strftime('%d/%m/%Y') }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state text-center py-3">
+            <i class="bi bi-bullseye text-muted" style="font-size:2rem;"></i>
+            <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">O professor definirá suas próximas metas de evolução técnica na próxima avaliação.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CARD: ATALHO PARA EXERCÍCIOS / LIÇÃO DE CASA -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #005F8E 0%, #0077B6 100%); color:#fff;">
+      <div class="p-4 text-center">
+        <i class="bi bi-play-circle-fill fs-1 text-laranja mb-2 d-inline-block"></i>
+        <h5 class="fw-bold mb-1">Treinos em Casa & Vídeos</h5>
+        <p class="opacity-75 mb-3" style="font-size:0.85rem;">
+          Acesse a biblioteca de exercícios recomendados pelo professor com vídeos para praticar fora da quadra.
+        </p>
+        <a href="{{ url_for('aluno.exercicios') }}" class="btn btn-laranja fw-bold px-4 py-2 shadow-sm">
+          Acessar Biblioteca
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: AVISAR AUSÊNCIA -->
+{% if proxima_aula %}
+<div class="modal fade" id="modalAusencia" tabindex="-1" aria-labelledby="modalAusenciaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('aluno.avisar_ausencia', id=proxima_aula.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="origem" value="painel">
+        
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAusenciaLabel">
+            <i class="bi bi-calendar-x text-warning me-2"></i>Avisar Ausência na Aula
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        
+        <div class="modal-body">
+          <p style="font-size:0.9rem;">
+            Você está informando que não poderá comparecer à aula de <strong>{{ proxima_aula.data_hora.strftime('%d/%m/%Y às %H:%M') }}</strong> ({{ proxima_aula.turma.nome }}).
+          </p>
+          
+          <div class="mb-3">
+            <label for="motivoAusencia" class="form-label fw-bold" style="font-size:0.85rem;">
+              Motivo da Ausência (opcional):
+            </label>
+            <textarea name="motivo" id="motivoAusencia" rows="3" class="form-control"
+                      placeholder="Ex: Viagem de trabalho, compromisso pessoal, consulta médica..."></textarea>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+          <button type="submit" class="btn btn-warning text-dark fw-bold">
+            <i class="bi bi-send me-1"></i>Confirmar Aviso de Ausência
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block aluno_js %}
+{% if analytics.tem_avaliacoes %}
+<script>
+  const labelsCriterios = {{ analytics.criterios_labels_json | safe }};
+  const scoresPrimeira = {{ analytics.primeira_scores_json | safe }};
+  const scoresUltima = {{ analytics.ultima_scores_json | safe }};
+
+  const ctxRadar = document.getElementById('alunoRadarChart').getContext('2d');
+  new Chart(ctxRadar, {
+    type: 'radar',
+    data: {
+      labels: labelsCriterios,
+      datasets: [
+        {
+          label: 'Atual ({{ analytics.categoria_atual_label }})',
+          data: scoresUltima,
+          borderColor: '#0077B6',
+          backgroundColor: 'rgba(0, 119, 182, 0.25)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#0077B6',
+          pointRadius: 3
+        },
+        {
+          label: 'Inicial ({{ analytics.categoria_inicial_label }})',
+          data: scoresPrimeira,
+          borderColor: '#F77F00',
+          backgroundColor: 'rgba(247, 127, 0, 0.15)',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointBackgroundColor: '#F77F00',
+          pointRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 10,
+          ticks: { stepSize: 2, font: { size: 9 } },
+          pointLabels: { font: { size: 9.5, weight: 'bold' }, color: '#333' }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 10.5, weight: '600' }, boxWidth: 12 }
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
+

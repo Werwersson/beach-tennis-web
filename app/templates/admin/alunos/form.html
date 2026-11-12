@@ -1,0 +1,121 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if aluno else 'Novo' }} Aluno — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Aluno' if aluno else 'Cadastrar Novo Aluno' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-person-fill me-2"></i>
+        {{ 'Editar Aluno' if aluno else 'Cadastrar Novo Aluno' }}
+      </div>
+      <div class="p-4">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+
+          <!-- Foto -->
+          <div class="text-center mb-4">
+            {% if aluno and aluno.foto %}
+              <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" id="fotoPreview" class="foto-preview mb-2" alt="Foto do aluno">
+            {% else %}
+              <div class="avatar-circle avatar-lg mx-auto mb-2" id="fotoAvatar">
+                {{ aluno.nome[0].upper() if aluno else '?' }}
+              </div>
+              <img src="" id="fotoPreview" class="foto-preview mb-2 d-none" alt="Preview">
+            {% endif %}
+            <div>
+              <label for="foto" class="btn btn-sm btn-outline-ocean">
+                <i class="bi bi-camera me-1"></i> {{ 'Trocar foto' if (aluno and aluno.foto) else 'Adicionar foto' }}
+              </label>
+              {{ form.foto(id="foto", class="d-none", accept="image/*") }}
+            </div>
+            {% for error in form.foto.errors %}
+              <div class="text-danger" style="font-size:0.8rem;">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-section-title">Dados Pessoais & Acesso</div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="nome">Nome completo *</label>
+              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome", placeholder="Nome do aluno") }}
+              {% for e in form.nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="email">E-mail *</label>
+              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="email@exemplo.com") }}
+              {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="telefone">Telefone / WhatsApp</label>
+              {{ form.telefone(class="form-control mask-phone" + (" is-invalid" if form.telefone.errors else ""), id="telefone", placeholder="(99) 99999-9999") }}
+              {% for e in form.telefone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="data_nascimento">Data de Nascimento</label>
+              {{ form.data_nascimento(class="form-control" + (" is-invalid" if form.data_nascimento.errors else ""), id="data_nascimento") }}
+              {% for e in form.data_nascimento.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="senha">
+                {{ 'Nova Senha (opcional)' if aluno else 'Senha de Acesso do Aluno' }}
+              </label>
+              {{ form.senha(class="form-control" + (" is-invalid" if form.senha.errors else ""), id="senha", placeholder="••••••••" if aluno else "Ex: beach123 (mínimo 6 chars)") }}
+              {% for e in form.senha.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+              <div class="form-text" style="font-size:0.75rem;">
+                {{ 'Deixe em branco para manter a senha atual.' if aluno else 'Caso deixe em branco, será definida a senha padrão "beach123".' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-title">Perfil Esportivo</div>
+          <div class="row g-3">
+            <div class="col-sm-3">
+              <label class="form-label" for="nivel">Nível</label>
+              {{ form.nivel(class="form-select", id="nivel") }}
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label" for="categoria">Categoria</label>
+              {{ form.categoria(class="form-select", id="categoria") }}
+              <div class="form-text" style="font-size:0.72rem;">Padrão nas avaliações; a mais recente atualiza este campo.</div>
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label" for="lado_dominante">Lado Dominante</label>
+              {{ form.lado_dominante(class="form-select", id="lado_dominante") }}
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label" for="objetivo">Objetivo</label>
+              {{ form.objetivo(class="form-select", id="objetivo") }}
+            </div>
+          </div>
+
+          <div class="form-section-title">Observações</div>
+          <div class="mb-3">
+            <label class="form-label" for="observacoes">Observações do professor</label>
+            {{ form.observacoes(class="form-control", id="observacoes", rows=3, placeholder="Lesões, restrições, pontos de atenção...") }}
+          </div>
+
+          {% if aluno %}
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              {{ form.ativo(class="form-check-input", id="ativo", role="switch") }}
+              <label class="form-check-label" for="ativo">Aluno ativo</label>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-ocean px-4">
+              <i class="bi bi-check-lg me-1"></i> {{ 'Salvar alterações' if aluno else 'Cadastrar aluno' }}
+            </button>
+            <a href="{{ url_for('admin.alunos_lista') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg me-1"></i> Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

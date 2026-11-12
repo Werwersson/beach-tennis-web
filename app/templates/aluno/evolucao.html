@@ -1,0 +1,438 @@
+{% extends 'base_aluno.html' %}
+{% block aluno_title %}Minha Evolução Técnica — {{ aluno.nome }}{% endblock %}
+
+{% block aluno_content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">Minha Evolução Técnica 📈</h3>
+    <p class="text-muted mb-0" style="font-size:0.95rem;">
+      Acompanhe o seu progresso nos 11 critérios de fundamentos, rede, defesa e tática.
+    </p>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    {% if analytics.tem_avaliacoes %}
+      <span class="badge bg-ocean fs-6 px-3 py-2">
+        {{ analytics.categoria_atual_label }}
+      </span>
+      <span class="badge bg-light text-dark border fs-6 px-3 py-2">
+        {{ analytics.total_avaliacoes }} ciclo(s) avaliado(s)
+      </span>
+      <a href="{{ url_for('aluno.relatorio_pdf') }}" class="btn btn-outline-danger btn-sm fw-bold shadow-sm d-flex align-items-center gap-1" target="_blank">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        <span>Exportar Relatório em PDF</span>
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+{% if analytics.tem_avaliacoes %}
+  {% if analytics.tem_multiplas_categorias %}
+    <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex gap-3 mb-4">
+      <i class="bi bi-arrow-up-circle-fill fs-4 text-ocean mt-1"></i>
+      <div style="font-size:0.9rem;">
+        <strong>Você mudou de categoria ({{ analytics.categoria_inicial_label }} → {{ analytics.categoria_atual_label }}).</strong>
+        A <strong>nota na categoria</strong> pode cair na promoção porque agora você é comparado com atletas mais fortes.
+        A <strong>curva de aprendizado</strong> usa o Índice Técnico (0–100), que desconta o peso da categoria e mostra o seu ganho real.
+      </div>
+    </div>
+  {% endif %}
+
+  {% if analytics.promocoes %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      <div class="aluno-card-header">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-signpost-split-fill text-laranja fs-5"></i>
+          <span>Sua Trajetória de Categoria</span>
+        </div>
+      </div>
+      <div class="p-3 p-md-4 bg-white">
+        <div class="d-flex flex-wrap gap-2">
+          {% for p in analytics.promocoes %}
+            <div class="d-flex align-items-center gap-2 border rounded-3 p-2 px-3" style="background:#FAF8F5;">
+              <span class="badge bg-light text-dark border">{{ p.de_label }}</span>
+              <i class="bi bi-arrow-right text-laranja fw-bold"></i>
+              <span class="badge bg-ocean">{{ p.para_label }}</span>
+              <span class="text-muted" style="font-size:0.78rem;">{{ p.data.strftime('%d/%m/%Y') }}</span>
+              <span class="badge {% if p.delta_indice > 0 %}bg-success{% elif p.delta_indice < 0 %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size:0.7rem;">
+                índice {% if p.delta_indice > 0 %}+{% endif %}{{ "%.1f"|format(p.delta_indice) }}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="row g-4 mb-4">
+    <!-- GRÁFICO RADAR (PRIMEIRA VS ÚLTIMA AVALIAÇÃO) -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+        <div class="aluno-card-header d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-radar text-laranja fs-5"></i>
+            <span>Radar de Habilidades (Inicial vs Atual)</span>
+          </div>
+        </div>
+        <div class="p-4 bg-white text-center">
+          <div style="position: relative; max-width: 460px; margin: 0 auto;">
+            <canvas id="radarEvolucaoChart"></canvas>
+          </div>
+          <div class="text-muted mt-2" style="font-size:0.75rem;">
+            Notas dadas dentro de cada categoria — cada eixo vai de 0 a 10.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALTO DE MÉDIA & DESTAQUES -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+        <div class="aluno-card-header">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-trophy-fill text-laranja fs-5"></i>
+            <span>Resumo do Seu Desenvolvimento</span>
+          </div>
+        </div>
+        <div class="p-4 bg-white d-flex flex-column justify-content-between">
+          <div class="p-3 border rounded-3 bg-light text-center mb-3">
+            <div class="text-muted text-uppercase" style="font-size:0.75rem; font-weight:700;">Nota Média Atual na Categoria</div>
+            <div class="d-flex align-items-baseline justify-content-center gap-2 mt-2">
+              <span class="fs-1 fw-bold text-ocean">{{ "%.1f"|format(analytics.media_atual) }}</span>
+              <span class="text-muted">/ 10</span>
+              <span class="badge fs-6 fw-bold {% if analytics.diff_geral > 0 %}bg-success{% elif analytics.diff_geral < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                {% if analytics.diff_geral > 0 %}+{% endif %}{{ "%.1f"|format(analytics.diff_geral) }}
+              </span>
+            </div>
+            <div class="text-muted mt-1" style="font-size:0.8rem;">
+              Primeira avaliação: {{ "%.1f"|format(analytics.media_inicial) }} ({{ analytics.categoria_inicial_label }}, {{ analytics.primeira_avaliacao.data.strftime('%d/%m/%Y') }})
+            </div>
+            <div class="d-flex align-items-center justify-content-center gap-2 border-top pt-2 mt-2">
+              <span class="text-muted" style="font-size:0.78rem;">Índice Técnico:</span>
+              <strong class="text-laranja fs-5">{{ "%.1f"|format(analytics.indice_atual) }}</strong>
+              <span class="text-muted" style="font-size:0.72rem;">/ 100</span>
+              <span class="badge {% if analytics.diff_indice > 0 %}bg-success{% elif analytics.diff_indice < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                {% if analytics.diff_indice > 0 %}+{% endif %}{{ "%.1f"|format(analytics.diff_indice) }}
+              </span>
+            </div>
+            <div class="text-muted mt-1" style="font-size:0.7rem;">
+              Peso da categoria atual: {{ (analytics.ultima_avaliacao.peso_categoria * 100)|round|int }}%
+            </div>
+          </div>
+
+          <!-- Feedbacks do Professor -->
+          <div class="border rounded-3 p-3 bg-white mb-3">
+            <div class="mb-3" style="font-size:0.85rem;">
+              <strong class="text-success"><i class="bi bi-star-fill me-1"></i>Seus Pontos Fortes:</strong>
+              <div class="text-muted mt-1" style="line-height:1.5;">
+                {{ analytics.ultima_avaliacao.pontos_fortes or 'Consulte as anotações do professor.' }}
+              </div>
+            </div>
+            <div class="mb-3" style="font-size:0.85rem;">
+              <strong class="text-warning text-dark"><i class="bi bi-lightning-fill me-1"></i>Oportunidades de Melhoria:</strong>
+              <div class="text-muted mt-1" style="line-height:1.5;">
+                {{ analytics.ultima_avaliacao.pontos_melhorar or 'Consulte as orientações.' }}
+              </div>
+            </div>
+            <div style="font-size:0.85rem;">
+              <strong class="text-primary"><i class="bi bi-bullseye me-1"></i>Metas para o Próximo Ciclo:</strong>
+              <div class="text-muted mt-1" style="line-height:1.5;">
+                {{ analytics.ultima_avaliacao.metas_proximo_ciclo or 'Consulte suas metas.' }}
+              </div>
+            </div>
+          </div>
+
+          {% if analytics.ultima_avaliacao.link_video_analise %}
+            <a href="{{ analytics.ultima_avaliacao.link_video_analise }}" target="_blank" class="btn btn-outline-danger w-100 fw-bold">
+              <i class="bi bi-youtube me-2"></i>Assistir Vídeo de Análise Técnica
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELA COMPARATIVA DE EVOLUÇÃO (↑ ↓ =) -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="aluno-card-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-down-up text-laranja fs-5"></i>
+        <span>Comparativo por Critério (Inicial ➔ Atual)</span>
+      </div>
+      <span class="badge bg-white text-dark" style="font-size:0.75rem;">11 Critérios Oficiais</span>
+    </div>
+    <div class="p-3 p-md-4 bg-white">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size:0.9rem;">
+          <thead class="table-light">
+            <tr style="font-size:0.75rem; text-transform:uppercase;">
+              <th>Critério</th>
+              <th class="text-center">1ª Avaliação<br><span class="text-muted" style="font-size:0.65rem;">{{ analytics.categoria_inicial_label }}</span></th>
+              <th class="text-center">Atual<br><span class="text-muted" style="font-size:0.65rem;">{{ analytics.categoria_atual_label }}</span></th>
+              <th class="text-center">Evolução</th>
+              {% if analytics.tem_multiplas_categorias %}
+                <th class="text-center">Índice Atual</th>
+              {% endif %}
+              <th style="min-width: 150px;">Progresso</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in analytics.comparativo_criterios %}
+              <tr>
+                <td class="fw-bold text-dark">{{ c.label }}</td>
+                <td class="text-center text-muted">{{ "%.1f"|format(c.nota_inicial) }}</td>
+                <td class="text-center fw-bold text-ocean fs-6">{{ "%.1f"|format(c.nota_atual) }}</td>
+                <td class="text-center">
+                  <span class="badge {{ c.badge_bg }} fw-bold fs-6">
+                    {{ c.simbolo }} {{ c.sinal }}
+                  </span>
+                  {% if analytics.tem_multiplas_categorias %}
+                    <div class="mt-1">
+                      <span class="badge {{ c.badge_bg_indice }}" style="font-size:0.65rem;" title="Corrigido pela categoria">
+                        índice {{ c.simbolo_indice }} {{ c.sinal_indice }}
+                      </span>
+                    </div>
+                  {% endif %}
+                </td>
+                {% if analytics.tem_multiplas_categorias %}
+                  <td class="text-center">
+                    <span class="fw-bold text-laranja">{{ "%.1f"|format(c.indice_atual) }}</span>
+                  </td>
+                {% endif %}
+                <td>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar {% if c.nota_atual >= 8 %}bg-success{% elif c.nota_atual >= 6 %}bg-primary{% elif c.nota_atual >= 4 %}bg-warning{% else %}bg-danger{% endif %}"
+                         role="progressbar" style="width: {{ (c.nota_atual / 10) * 100 }}%;"></div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="text-muted mt-3" style="font-size:0.78rem;">
+        <i class="bi bi-info-circle me-1"></i>
+        A nota é atribuída dentro da categoria do ciclo. Quando há promoção, use o
+        <strong>Índice Técnico</strong> (0–100) para comparar o seu nível real entre categorias.
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO DE LINHA: NOTA NA CATEGORIA + CURVA DE APRENDIZADO -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="aluno-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-graph-up text-laranja fs-5"></i>
+        <span>Nota na Categoria x Curva de Aprendizado</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label for="selectCriterioAluno" class="text-white opacity-75" style="font-size:0.8rem;">Filtrar Critério:</label>
+        <select id="selectCriterioAluno" class="form-select form-select-sm" style="width: auto;">
+          <option value="media">Média Geral</option>
+          {% for c in analytics.comparativo_criterios %}
+            <option value="{{ c.chave }}">{{ c.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="p-3 p-md-4 bg-white">
+      <div style="height: 300px;">
+        <canvas id="alunoLinhaChart"></canvas>
+      </div>
+      <div class="text-muted mt-3" style="font-size:0.78rem;">
+        <span class="fw-bold text-ocean">Linha cheia:</span> nota que o professor atribuiu dentro da categoria.
+        <span class="fw-bold text-laranja">Linha tracejada:</span> Índice Técnico (0–100) corrigido pela dificuldade da categoria (100 = nota 10,0 em Open).
+      </div>
+    </div>
+  </div>
+
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+    <i class="bi bi-radar text-muted" style="font-size:3.5rem;"></i>
+    <h4 class="mt-3 text-dark">Nenhuma avaliação realizada ainda</h4>
+    <p class="text-muted" style="max-width:500px; margin:0 auto;">
+      Assim que o professor realizar sua primeira avaliação periódica de desempenho, seus gráficos de radar, evolução temporal e comparativos com deltas estarão disponíveis aqui.
+    </p>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block aluno_js %}
+{% if analytics.tem_avaliacoes %}
+<script>
+  const labelsCriterios = {{ analytics.criterios_labels_json | safe }};
+  const scoresPrimeira = {{ analytics.primeira_scores_json | safe }};
+  const scoresUltima = {{ analytics.ultima_scores_json | safe }};
+
+  const linhaLabels = {{ analytics.linha_labels_json | safe }};
+  const linhaMedias = {{ analytics.linha_medias_json | safe }};
+  const linhaIndices = {{ analytics.linha_indices_json | safe }};
+  const criteriosTimeline = {{ analytics.criterios_timeline_json | safe }};
+  const criteriosTimelineIndice = {{ analytics.criterios_timeline_indice_json | safe }};
+  const promocoes = {{ analytics.promocoes_json | safe }};
+
+  // Plugin que marca as promoções de categoria na linha do tempo
+  const marcadoresCategoria = {
+    id: 'marcadoresCategoria',
+    afterDatasetsDraw(chart) {
+      if (!promocoes.length) return;
+      const { ctx, chartArea, scales: { x } } = chart;
+      promocoes.forEach(p => {
+        const px = x.getPixelForValue(p.indice);
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = 'rgba(230, 81, 0, 0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(px, chartArea.top);
+        ctx.lineTo(px, chartArea.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#E65100';
+        ctx.font = 'bold 10px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${p.de} → ${p.para}`, px, chartArea.top + 10);
+        ctx.restore();
+      });
+    }
+  };
+
+  // 1. RADAR CHART
+  const ctxRadar = document.getElementById('radarEvolucaoChart').getContext('2d');
+  new Chart(ctxRadar, {
+    type: 'radar',
+    data: {
+      labels: labelsCriterios,
+      datasets: [
+        {
+          label: 'Atual ({{ analytics.categoria_atual_label }})',
+          data: scoresUltima,
+          borderColor: '#0077B6',
+          backgroundColor: 'rgba(0, 119, 182, 0.25)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#0077B6',
+          pointRadius: 4
+        },
+        {
+          label: 'Inicial ({{ analytics.categoria_inicial_label }})',
+          data: scoresPrimeira,
+          borderColor: '#F77F00',
+          backgroundColor: 'rgba(247, 127, 0, 0.15)',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointBackgroundColor: '#F77F00',
+          pointRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 10,
+          ticks: { stepSize: 2, font: { size: 10 } },
+          pointLabels: { font: { size: 10.5, weight: 'bold' }, color: '#333' }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11, weight: '600' }, boxWidth: 14 }
+        }
+      }
+    }
+  });
+
+  // 2. NOTA NA CATEGORIA + CURVA DE APRENDIZADO
+  const ctxLinha = document.getElementById('alunoLinhaChart').getContext('2d');
+  const linhaChart = new Chart(ctxLinha, {
+    type: 'line',
+    data: {
+      labels: linhaLabels,
+      datasets: [
+        {
+          label: 'Nota na Categoria (0–10)',
+          data: linhaMedias,
+          borderColor: '#005F8E',
+          backgroundColor: 'rgba(0, 95, 142, 0.12)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+          pointBackgroundColor: '#F77F00',
+          yAxisID: 'y'
+        },
+        {
+          label: 'Curva de Aprendizado — Índice (0–100)',
+          data: linhaIndices,
+          borderColor: '#E65100',
+          backgroundColor: 'rgba(230, 81, 0, 0.08)',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#E65100',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: {
+          min: 0,
+          max: 10,
+          ticks: { stepSize: 2 },
+          title: { display: true, text: 'Nota na categoria (0–10)' }
+        },
+        y1: {
+          position: 'right',
+          min: 0,
+          max: 100,
+          ticks: { stepSize: 20 },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'Índice técnico (0–100)' }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 10.5 }, boxWidth: 14 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (item) => item.dataset.yAxisID === 'y1'
+              ? `${item.dataset.label}: ${item.parsed.y.toFixed(1)}/100`
+              : `${item.dataset.label}: ${item.parsed.y.toFixed(1)}/10`
+          }
+        }
+      }
+    },
+    plugins: [marcadoresCategoria]
+  });
+
+  document.getElementById('selectCriterioAluno').addEventListener('change', function() {
+    const val = this.value;
+    const nomeCrit = this.options[this.selectedIndex].text;
+    if (val === 'media') {
+      linhaChart.data.datasets[0].label = 'Nota na Categoria (0–10)';
+      linhaChart.data.datasets[0].data = linhaMedias;
+      linhaChart.data.datasets[0].borderColor = '#005F8E';
+      linhaChart.data.datasets[1].label = 'Curva de Aprendizado — Índice (0–100)';
+      linhaChart.data.datasets[1].data = linhaIndices;
+    } else {
+      linhaChart.data.datasets[0].label = `${nomeCrit} — nota (0–10)`;
+      linhaChart.data.datasets[0].data = criteriosTimeline[val] || [];
+      linhaChart.data.datasets[0].borderColor = '#0077B6';
+      linhaChart.data.datasets[1].label = `${nomeCrit} — índice (0–100)`;
+      linhaChart.data.datasets[1].data = criteriosTimelineIndice[val] || [];
+    }
+    linhaChart.update();
+  });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}{% block aluno_title %}Área do Aluno — Beach Tennis{% endblock %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #F8F6F2;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .aluno-navbar {
+    background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%);
+    box-shadow: 0 4px 15px rgba(0, 95, 142, 0.15);
+  }
+  .aluno-nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .aluno-nav-link:hover, .aluno-nav-link.active {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .aluno-nav-link.active {
+    background: var(--bt-laranja);
+    color: #FFFFFF;
+  }
+  .aluno-main-container {
+    flex: 1;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+  }
+  .aluno-card-header {
+    background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%);
+    color: #FFFFFF;
+    font-weight: 700;
+    padding: 0.85rem 1.25rem;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  .aluno-footer {
+    background: #FFFFFF;
+    border-top: 1px solid #E5E0D8;
+    color: #777;
+    font-size: 0.85rem;
+    padding: 1.5rem 0;
+    margin-top: auto;
+  }
+</style>
+{% block aluno_css %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+<!-- Barra Superior do Aluno (Exclusiva, sem acesso admin) -->
+<nav class="navbar navbar-expand-lg aluno-navbar sticky-top">
+  <div class="container">
+    <a class="navbar-brand text-white fw-bold d-flex align-items-center gap-2" href="{{ url_for('aluno.painel') }}">
+      <i class="bi bi-tsunami text-laranja fs-4"></i>
+      <span>Beach<span class="text-laranja">Tennis</span> <span class="badge bg-white text-dark ms-1" style="font-size:0.7rem;">Aluno</span></span>
+    </a>
+
+    <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#alunoNav" aria-controls="alunoNav" aria-expanded="false" aria-label="Menu">
+      <i class="bi bi-list fs-2 text-white"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="alunoNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1">
+        <li class="nav-item">
+          <a class="aluno-nav-link {{ 'active' if request.endpoint == 'aluno.painel' else '' }}" href="{{ url_for('aluno.painel') }}">
+            <i class="bi bi-speedometer2"></i> Meu Painel
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="aluno-nav-link {{ 'active' if request.endpoint == 'aluno.aulas' else '' }}" href="{{ url_for('aluno.aulas') }}">
+            <i class="bi bi-calendar-check"></i> Minhas Aulas
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="aluno-nav-link {{ 'active' if request.endpoint == 'aluno.evolucao' else '' }}" href="{{ url_for('aluno.evolucao') }}">
+            <i class="bi bi-graph-up-arrow"></i> Minha Evolução
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="aluno-nav-link {{ 'active' if request.endpoint == 'aluno.exercicios' else '' }}" href="{{ url_for('aluno.exercicios') }}">
+            <i class="bi bi-collection-play"></i> Treinos & Vídeos
+          </a>
+        </li>
+      </ul>
+
+      <!-- Perfil do Aluno e Sair -->
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2 text-white">
+          <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+               style="width: 36px; height: 36px; background: var(--bt-laranja); font-size: 0.85rem;">
+            {% if current_user.aluno and current_user.aluno.foto %}
+              <img src="{{ url_for('static', filename='uploads/' ~ current_user.aluno.foto) }}" alt="{{ current_user.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
+            {% else %}
+              {{ current_user.nome[:2].upper() }}
+            {% endif %}
+          </div>
+          <div class="d-none d-sm-block text-start">
+            <div class="fw-bold" style="font-size:0.88rem; line-height: 1.2;">{{ current_user.nome }}</div>
+            <div class="opacity-75" style="font-size:0.75rem;">
+              {{ current_user.aluno.nivel|capitalize if current_user.aluno else 'Aluno' }}
+            </div>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="Sair da Conta">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-md-inline">Sair</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Mensagens Flash -->
+<div class="container mt-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show auto-dismiss mb-2 shadow-sm" role="alert">
+          {% if category == 'success' %}<i class="bi bi-check-circle-fill me-1"></i>
+          {% elif category == 'danger' %}<i class="bi bi-x-circle-fill me-1"></i>
+          {% elif category == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-1"></i>
+          {% else %}<i class="bi bi-info-circle-fill me-1"></i>{% endif %}
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+<!-- Conteúdo Principal da Área do Aluno -->
+<main class="aluno-main-container">
+  <div class="container">
+    {% block aluno_content %}{% endblock %}
+  </div>
+</main>
+
+<footer class="aluno-footer text-center">
+  <div class="container">
+    <p class="mb-1 fw-bold text-ocean">Beach Tennis — Plataforma Oficial de Aulas</p>
+    <p class="mb-0 text-muted" style="font-size:0.8rem;">Acompanhe seus treinos, presença e evolução periódica.</p>
+  </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+{% block aluno_js %}{% endblock %}
+{% endblock %}
+

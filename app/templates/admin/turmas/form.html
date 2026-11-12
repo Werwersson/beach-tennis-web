@@ -1,0 +1,137 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if turma else 'Nova' }} Turma — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Turma' if turma else 'Cadastrar Nova Turma' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9 col-xl-8">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-people-fill me-2"></i>
+        <span>{{ 'Editar Turma e Matrículas' if turma else 'Nova Turma' }}</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="form-section-title mt-0">
+            <i class="bi bi-info-circle me-1"></i> Informações da Turma
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-8">
+              <label class="form-label" for="nome">Nome da Turma *</label>
+              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome", placeholder="Ex: Terça & Quinta Noite - Intermediário") }}
+              {% for e in form.nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="nivel">Nível da Turma</label>
+              {{ form.nivel(class="form-select", id="nivel") }}
+            </div>
+
+            <div class="col-12 col-md-8">
+              <label class="form-label" for="local">Local / Quadra *</label>
+              {{ form.local(class="form-control" + (" is-invalid" if form.local.errors else ""), id="local", placeholder="Ex: Arena Beach Point - Quadra Central") }}
+              {% for e in form.local.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="vagas">Capacidade de Vagas *</label>
+              {{ form.vagas(class="form-control" + (" is-invalid" if form.vagas.errors else ""), id="vagas", type="number", min="1") }}
+              {% for e in form.vagas.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <!-- DIAS E HORÁRIOS -->
+          <div class="form-section-title">
+            <i class="bi bi-calendar2-week me-1"></i> Dias e Horários de Treino
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label d-block">Dias da Semana *</label>
+            <div class="d-flex flex-wrap gap-2">
+              {% for val, label in form.dias_semana.choices %}
+                <div class="form-check form-check-inline border rounded px-3 py-2 bg-light">
+                  <input class="form-check-input" type="checkbox" name="dias_semana" id="dia_{{ val }}" value="{{ val }}"
+                    {% if form.dias_semana.data and (val in form.dias_semana.data or val|int in form.dias_semana.data) %}checked{% endif %}>
+                  <label class="form-check-label fw-600" for="dia_{{ val }}">{{ label }}</label>
+                </div>
+              {% endfor %}
+            </div>
+            {% for e in form.dias_semana.errors %}
+              <div class="text-danger mt-1" style="font-size:0.8rem;">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-6 col-md-4">
+              <label class="form-label" for="horario_inicio">Horário de Início *</label>
+              {{ form.horario_inicio(class="form-control" + (" is-invalid" if form.horario_inicio.errors else ""), id="horario_inicio") }}
+              {% for e in form.horario_inicio.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-6 col-md-4">
+              <label class="form-label" for="horario_fim">Horário de Término *</label>
+              {{ form.horario_fim(class="form-control" + (" is-invalid" if form.horario_fim.errors else ""), id="horario_fim") }}
+              {% for e in form.horario_fim.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <!-- ALUNOS MATRICULADOS -->
+          <div class="form-section-title">
+            <i class="bi bi-person-check me-1"></i> Alunos Matriculados
+          </div>
+
+          <div class="mb-3">
+            <p class="text-muted" style="font-size: 0.85rem;">
+              Marque os alunos que farão parte desta turma. Você também poderá alterar matrículas a qualquer momento.
+            </p>
+            {% if form.alunos_ids.choices %}
+              <div class="border rounded p-3 bg-light" style="max-height: 220px; overflow-y: auto;">
+                <div class="row g-2">
+                  {% for aluno_id, aluno_label in form.alunos_ids.choices %}
+                    <div class="col-12 col-sm-6">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="alunos_ids" id="aluno_{{ aluno_id }}" value="{{ aluno_id }}"
+                          {% if form.alunos_ids.data and (aluno_id in form.alunos_ids.data or aluno_id|string in form.alunos_ids.data) %}checked{% endif %}>
+                        <label class="form-check-label" for="aluno_{{ aluno_id }}">
+                          {{ aluno_label }}
+                        </label>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-info py-2" style="font-size: 0.85rem;">
+                <i class="bi bi-info-circle me-1"></i>Nenhum aluno ativo cadastrado no momento. Você pode criar a turma agora e matricular os alunos depois.
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- ATIVA -->
+          <div class="mb-4">
+            <div class="form-check form-switch">
+              {{ form.ativa(class="form-check-input", id="ativa", role="switch") }}
+              <label class="form-check-label fw-bold" for="ativa">Turma Ativa</label>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ocean px-4">
+              <i class="bi bi-check-lg me-1"></i> {{ 'Salvar Alterações' if turma else 'Criar Turma' }}
+            </button>
+            <a href="{{ url_for('admin.turmas_lista') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg me-1"></i> Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,276 @@
+import re
+from datetime import datetime, date, timedelta
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, Response
+from flask_login import current_user
+from app.extensions import db
+from app.models import Aluno, Turma, TurmaAluno, Aula, AulaExercicio, Presenca, Avaliacao, MetaAluno, Exercicio
+from app.models.exercicio import CATEGORIAS_EXERCICIO, NIVEIS_EXERCICIO
+from app.utils.decorators import aluno_required
+from app.utils.analytics import get_aluno_analytics
+from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
+
+aluno_bp = Blueprint('aluno', __name__)
+
+
+def get_current_aluno():
+    aluno = current_user.aluno
+    if not aluno or not aluno.ativo:
+        flash('Perfil de aluno não encontrado ou inativo.', 'warning')
+        abort(403)
+    return aluno
+
+
+@aluno_bp.route('/painel')
+@aluno_required
+def painel():
+    """
+    Painel Principal do Aluno:
+    Próxima aula com exercícios planejados, presença, metas, evolução rápida e feedbacks.
+    """
+    aluno = get_current_aluno()
+    
+    # Turmas ativas do aluno
+    turma_ids = [ta.turma_id for ta in aluno.turmas if ta.ativo]
+    
+    # Próxima aula programada
+    agora = datetime.now()
+    proxima_aula = None
+    presenca_proxima = None
+    exercicios_aula = []
+    
+    if turma_ids:
+        proxima_aula = (Aula.query
+                        .filter(Aula.turma_id.in_(turma_ids),
+                                Aula.data_hora >= agora,
+                                Aula.status == 'agendada')
+                        .order_by(Aula.data_hora.asc())
+                        .first())
+        if proxima_aula:
+            presenca_proxima = Presenca.query.filter_by(aula_id=proxima_aula.id, aluno_id=aluno.id).first()
+            exercicios_aula = (AulaExercicio.query
+                               .filter_by(aula_id=proxima_aula.id)
+                               .order_by(AulaExercicio.ordem.asc())
+                               .all())
+
+    # Presenças recentes
+    presencas_recentes = (Presenca.query.filter_by(aluno_id=aluno.id)
+                          .join(Aula)
+                          .order_by(Aula.data_hora.desc())
+                          .limit(5)
+                          .all())
+    
+    # Cálculo rápido de frequência geral
+    total_chamadas = Presenca.query.filter_by(aluno_id=aluno.id).count()
+    total_presentes = Presenca.query.filter_by(aluno_id=aluno.id).filter(Presenca.status.in_(['presente', 'reposicao'])).count()
+    taxa_frequencia = round((total_presentes / total_chamadas * 100), 1) if total_chamadas > 0 else 100.0
+
+    # Metas e Analytics
+    metas = aluno.metas[:4]
+    analytics = get_aluno_analytics(aluno)
+
+    return render_template('aluno/painel.html',
+        aluno=aluno,
+        proxima_aula=proxima_aula,
+        presenca_proxima=presenca_proxima,
+        exercicios_aula=exercicios_aula,
+        presencas_recentes=presencas_recentes,
+        taxa_frequencia=taxa_frequencia,
+        total_chamadas=total_chamadas,
+        total_presentes=total_presentes,
+        metas=metas,
+        analytics=analytics
+    )
+
+
+@aluno_bp.route('/aulas')
+@aluno_required
+def aulas():
+    """
+    Minhas Aulas: Próximas aulas com confirmação de presença e histórico completo.
+    """
+    aluno = get_current_aluno()
+    turma_ids = [ta.turma_id for ta in aluno.turmas if ta.ativo]
+    agora = datetime.now()
+
+    aulas_futuras = []
+    if turma_ids:
+        aulas_query = (Aula.query
+                       .filter(Aula.turma_id.in_(turma_ids),
+                               Aula.data_hora >= agora,
+                               Aula.status != 'cancelada')
+                       .order_by(Aula.data_hora.asc())
+                       .limit(10)
+                       .all())
+        
+        # Mapeia presenças existentes para aulas futuras
+        for af in aulas_query:
+            p = Presenca.query.filter_by(aula_id=af.id, aluno_id=aluno.id).first()
+            aulas_futuras.append({
+                'aula': af,
+                'presenca': p
+            })
+
+    # Histórico de aulas passadas
+    historico = (Presenca.query.filter_by(aluno_id=aluno.id)
+                 .join(Aula)
+                 .order_by(Aula.data_hora.desc())
+                 .limit(50)
+                 .all())
+
+    analytics = get_aluno_analytics(aluno)
+
+    return render_template('aluno/aulas.html',
+        aluno=aluno,
+        aulas_futuras=aulas_futuras,
+        historico=historico,
+        analytics=analytics
+    )
+
+
+@aluno_bp.route('/aulas/<int:id>/confirmar', methods=['POST'])
+@aluno_required
+def confirmar_presenca(id):
+    """
+    O aluno confirma presença com antecedência para uma aula futura.
+    """
+    aluno = get_current_aluno()
+    aula = db.get_or_404(Aula, id)
+
+    # Verifica se aluno pertence à turma
+    matriculado = any(ta.turma_id == aula.turma_id and ta.ativo for ta in aluno.turmas)
+    if not matriculado:
+        flash('Você não está matriculado na turma desta aula.', 'danger')
+        return redirect(url_for('aluno.painel'))
+
+    presenca = Presenca.query.filter_by(aula_id=aula.id, aluno_id=aluno.id).first()
+    if presenca:
+        presenca.status = 'confirmado'
+        presenca.justificativa = None
+        presenca.registrado_em = datetime.utcnow()
+    else:
+        presenca = Presenca(
+            aula_id=aula.id,
+            aluno_id=aluno.id,
+            status='confirmado',
+            registrado_em=datetime.utcnow()
+        )
+        db.session.add(presenca)
+
+    db.session.commit()
+    data_fmt = aula.data_hora.strftime('%d/%m às %H:%M')
+    flash(f'Presença confirmada para a aula de {data_fmt}! O professor já foi notificado.', 'success')
+    
+    origem = request.form.get('origem', 'painel')
+    if origem == 'aulas':
+        return redirect(url_for('aluno.aulas'))
+    return redirect(url_for('aluno.painel'))
+
+
+@aluno_bp.route('/aulas/<int:id>/avisar-ausencia', methods=['POST'])
+@aluno_required
+def avisar_ausencia(id):
+    """
+    O aluno avisa ausência informando o motivo para o professor.
+    """
+    aluno = get_current_aluno()
+    aula = db.get_or_404(Aula, id)
+    motivo = request.form.get('motivo', '').strip()
+
+    matriculado = any(ta.turma_id == aula.turma_id and ta.ativo for ta in aluno.turmas)
+    if not matriculado:
+        flash('Você não está matriculado na turma desta aula.', 'danger')
+        return redirect(url_for('aluno.painel'))
+
+    presenca = Presenca.query.filter_by(aula_id=aula.id, aluno_id=aluno.id).first()
+    if presenca:
+        presenca.status = 'ausencia_avisada'
+        presenca.justificativa = motivo or 'Ausência avisada pelo aluno'
+        presenca.registrado_em = datetime.utcnow()
+    else:
+        presenca = Presenca(
+            aula_id=aula.id,
+            aluno_id=aluno.id,
+            status='ausencia_avisada',
+            justificativa=motivo or 'Ausência avisada pelo aluno',
+            registrado_em=datetime.utcnow()
+        )
+        db.session.add(presenca)
+
+    db.session.commit()
+    data_fmt = aula.data_hora.strftime('%d/%m às %H:%M')
+    flash(f'Aviso de ausência na aula de {data_fmt} registrado. Obrigado por avisar!', 'info')
+    
+    origem = request.form.get('origem', 'painel')
+    if origem == 'aulas':
+        return redirect(url_for('aluno.aulas'))
+    return redirect(url_for('aluno.painel'))
+
+
+@aluno_bp.route('/evolucao')
+@aluno_required
+def evolucao():
+    """
+    Tela Completa de Evolução do Aluno:
+    Gráficos radar, linha do tempo por critério, tabela comparativa com setas, pareceres e vídeos.
+    """
+    aluno = get_current_aluno()
+    analytics = get_aluno_analytics(aluno)
+    
+    return render_template('aluno/evolucao.html',
+        aluno=aluno,
+        analytics=analytics
+    )
+
+
+@aluno_bp.route('/exercicios')
+@aluno_required
+def exercicios():
+    """
+    Biblioteca de Exercícios Liberados para Treino em Casa / Complementar.
+    """
+    aluno = get_current_aluno()
+    categoria = request.args.get('categoria', '').strip()
+    nivel = request.args.get('nivel', '').strip()
+    busca = request.args.get('busca', '').strip()
+
+    query = Exercicio.query.filter_by(ativo=True)
+    if categoria:
+        query = query.filter_by(categoria=categoria)
+    if nivel:
+        query = query.filter_by(nivel=nivel)
+    if busca:
+        query = query.filter(db.or_(
+            Exercicio.titulo.ilike(f'%{busca}%'),
+            Exercicio.objetivo_tecnico.ilike(f'%{busca}%'),
+            Exercicio.descricao.ilike(f'%{busca}%')
+        ))
+
+    exercicios_lista = query.order_by(Exercicio.titulo.asc()).all()
+
+    return render_template('aluno/exercicios.html',
+        aluno=aluno,
+        exercicios=exercicios_lista,
+        categorias=CATEGORIAS_EXERCICIO,
+        niveis=NIVEIS_EXERCICIO,
+        categoria_sel=categoria,
+        nivel_sel=nivel,
+        busca=busca
+    )
+
+
+@aluno_bp.route('/relatorio-pdf')
+@aluno_required
+def relatorio_pdf():
+    """O aluno exporta seu próprio relatório completo de progresso em PDF."""
+    aluno = get_current_aluno()
+    analytics = get_aluno_analytics(aluno)
+    pdf_bytes = gerar_relatorio_pdf_aluno(aluno, analytics)
+
+    nome_slug = re.sub(r'[^a-zA-Z0-9]+', '_', aluno.nome.lower()).strip('_')
+    nome_arquivo = f"relatorio_{nome_slug}_{date.today().strftime('%Y-%m-%d')}.pdf"
+
+    return Response(
+        pdf_bytes,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{nome_arquivo}"'}
+    )

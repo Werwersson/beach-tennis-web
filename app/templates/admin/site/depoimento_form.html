@@ -1,0 +1,69 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if depoimento else 'Novo' }} Depoimento — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Depoimento' if depoimento else 'Cadastrar Depoimento' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-chat-quote-fill me-2 text-ocean"></i>
+        <span>{{ 'Editar Depoimento' if depoimento else 'Novo Depoimento de Aluno' }}</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="nome">Nome do Aluno *</label>
+              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome", placeholder="Ex: Camila Rocha (exemplo)") }}
+              {% for e in form.nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="ordem">Ordem</label>
+              {{ form.ordem(class="form-control", id="ordem", type="number") }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="texto">Depoimento *</label>
+              {{ form.texto(class="form-control" + (" is-invalid" if form.texto.errors else ""), id="texto", rows=4, placeholder="O que o aluno disse sobre a metodologia, a evolução ou o clima das aulas...") }}
+              {% for e in form.texto.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label" for="foto">Foto do Aluno (opcional)</label>
+              {{ form.foto(class="form-control", id="foto") }}
+              {% if depoimento and depoimento.foto %}
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <img src="{{ url_for('static', filename='uploads/' + depoimento.foto) }}" alt="{{ depoimento.nome }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                  <span class="small text-muted">Foto atual salva</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="col-12 mt-3 d-flex gap-4">
+              <div class="form-check form-switch">
+                {{ form.aprovado(class="form-check-input", id="aprovado") }}
+                <label class="form-check-label fw-bold" for="aprovado">Aprovado para exibição pública</label>
+              </div>
+              <div class="form-check form-switch">
+                {{ form.destaque(class="form-check-input", id="destaque") }}
+                <label class="form-check-label fw-bold" for="destaque">Destaque</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{{ url_for('admin.depoimentos') }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-ocean px-4">Salvar Depoimento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

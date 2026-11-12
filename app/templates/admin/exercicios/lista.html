@@ -1,0 +1,137 @@
+{% extends 'base_admin.html' %}
+{% block title %}Biblioteca de Exercícios — Beach Tennis Admin{% endblock %}
+{% block page_title %}Biblioteca de Exercícios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <span class="text-muted" style="font-size:0.85rem;">{{ total }} exercício(s) encontrado(s)</span>
+  </div>
+  <a href="{{ url_for('admin.exercicio_novo') }}" class="btn btn-laranja">
+    <i class="bi bi-clipboard2-plus-fill me-1"></i> Novo Exercício
+  </a>
+</div>
+
+<!-- Filtros de Busca -->
+<div class="card-bt p-3 mb-4">
+  <form method="GET" class="row g-2 align-items-end">
+    <div class="col-12 col-md-5">
+      <label class="form-label" style="font-size:0.8rem;">Buscar por texto</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Título, passo a passo, objetivo técnico...">
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label" style="font-size:0.8rem;">Categoria</label>
+      <select name="categoria" class="form-select">
+        <option value="">Todas as Categorias</option>
+        {% for cat_key, cat_nome in categorias %}
+          <option value="{{ cat_key }}" {% if categoria == cat_key %}selected{% endif %}>{{ cat_nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label" style="font-size:0.8rem;">Nível</label>
+      <select name="nivel" class="form-select">
+        <option value="">Todos os Níveis</option>
+        {% for niv_key, niv_nome in niveis %}
+          <option value="{{ niv_key }}" {% if nivel == niv_key %}selected{% endif %}>{{ niv_nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-ocean flex-grow-1">
+        <i class="bi bi-search me-1"></i> Filtrar
+      </button>
+      {% if q or categoria or nivel %}
+        <a href="{{ url_for('admin.exercicios_lista') }}" class="btn btn-outline-secondary" title="Limpar Filtros">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Lista em Grid de Cards -->
+{% if exercicios %}
+<div class="row g-3">
+  {% for ex in exercicios %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card-bt h-100 d-flex flex-column">
+      <!-- Imagem ou Placeholder no topo do Card -->
+      <div style="height: 160px; background: linear-gradient(135deg, var(--bt-ocean-dk) 0%, var(--bt-ocean) 100%); position: relative; overflow: hidden;" class="d-flex align-items-center justify-content-center text-white">
+        {% if ex.imagem %}
+          <img src="{{ url_for('static', filename='uploads/' + ex.imagem) }}" alt="{{ ex.titulo }}" style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+          <i class="bi bi-trophy fs-1 opacity-50"></i>
+        {% endif %}
+        
+        <!-- Badges sobrepostas -->
+        <span class="badge bg-ocean position-absolute top-0 start-0 m-2 shadow-sm">
+          {{ ex.categoria_nome }}
+        </span>
+        <span class="badge badge-nivel badge-{{ ex.nivel }} position-absolute top-0 end-0 m-2 shadow-sm">
+          {{ ex.nivel_nome }}
+        </span>
+      </div>
+
+      <div class="p-3 flex-grow-1 d-flex flex-column">
+        <h5 class="fw-bold mb-1" style="font-size: 1.05rem;">
+          <a href="{{ url_for('admin.exercicio_detalhe', id=ex.id) }}" class="text-dark">
+            {{ ex.titulo }}
+          </a>
+        </h5>
+
+        <div class="d-flex align-items-center gap-3 text-muted mb-2" style="font-size: 0.8rem;">
+          <span><i class="bi bi-clock me-1 text-ocean"></i>{{ ex.duracao_minutos }} min</span>
+          {% if ex.num_participantes %}
+            <span><i class="bi bi-people me-1 text-ocean"></i>{{ ex.num_participantes }}</span>
+          {% endif %}
+          {% if ex.link_video %}
+            <span class="text-danger"><i class="bi bi-youtube me-1"></i>Vídeo</span>
+          {% endif %}
+        </div>
+
+        <p class="text-muted flex-grow-1 mb-3" style="font-size: 0.85rem; line-height: 1.4;">
+          {{ ex.objetivo_tecnico or ex.descricao|truncate(110) }}
+        </p>
+
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+          <a href="{{ url_for('admin.exercicio_detalhe', id=ex.id) }}" class="btn btn-sm btn-outline-ocean">
+            <i class="bi bi-eye me-1"></i>Ver Detalhes
+          </a>
+          <div class="d-flex gap-1">
+            <a href="{{ url_for('admin.exercicio_editar', id=ex.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="POST" action="{{ url_for('admin.exercicio_excluir', id=ex.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger btn-confirm-delete" data-msg="Tem certeza que deseja excluir o exercício '{{ ex.titulo }}'?">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card-bt">
+  <div class="empty-state py-5">
+    <i class="bi bi-clipboard2-x"></i>
+    <h5>Nenhum exercício encontrado</h5>
+    <p class="text-muted">
+      {% if q or categoria or nivel %}
+        Tente ajustar os filtros da busca ou limpe os campos para ver todos.
+      {% else %}
+        Cadastre o primeiro exercício para enriquecer a biblioteca de treinos!
+      {% endif %}
+    </p>
+    <a href="{{ url_for('admin.exercicio_novo') }}" class="btn btn-laranja mt-2">
+      <i class="bi bi-plus-lg me-1"></i> Cadastrar Exercício
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+

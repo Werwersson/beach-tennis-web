@@ -1,0 +1,211 @@
+{% extends 'base_admin.html' %}
+{% block title %}Agenda de Aulas & Calendário — Beach Tennis Admin{% endblock %}
+{% block page_title %}Agenda de Aulas & Calendário{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS via CDN -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<style>
+  .fc .fc-toolbar-title { font-size: 1.2rem; font-weight: 700; color: #1A1A2E; }
+  .fc .fc-button-primary { background-color: var(--bt-ocean); border-color: var(--bt-ocean); font-weight: 500; font-size: 0.85rem; }
+  .fc .fc-button-primary:hover { background-color: var(--bt-ocean-dk); border-color: var(--bt-ocean-dk); }
+  .fc .fc-button-active { background-color: var(--bt-ocean-dk) !important; border-color: var(--bt-ocean-dk) !important; }
+  .fc-event { cursor: pointer; padding: 2px 4px; font-size: 0.8rem; border-radius: 4px; }
+  .fc-day-today { background-color: rgba(0, 119, 182, 0.05) !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div class="btn-group" role="group">
+    <a href="{{ url_for('admin.aulas_lista', view='calendario', turma_id=turma_id) }}" class="btn btn-sm {% if view == 'calendario' %}btn-ocean{% else %}btn-outline-ocean{% endif %}">
+      <i class="bi bi-calendar3 me-1"></i> Visualização Calendário
+    </a>
+    <a href="{{ url_for('admin.aulas_lista', view='lista', turma_id=turma_id) }}" class="btn btn-sm {% if view == 'lista' %}btn-ocean{% else %}btn-outline-ocean{% endif %}">
+      <i class="bi bi-list-ul me-1"></i> Visualização Lista
+    </a>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.aulas_recorrentes') }}" class="btn btn-outline-ocean">
+      <i class="bi bi-arrow-repeat me-1"></i> Gerar Aulas Recorrentes
+    </a>
+    <a href="{{ url_for('admin.aula_nova') }}" class="btn btn-laranja">
+      <i class="bi bi-plus-lg me-1"></i> Nova Aula Avulsa
+    </a>
+  </div>
+</div>
+
+<!-- Filtros de Turma e Status -->
+<div class="card-bt p-3 mb-4">
+  <form method="GET" class="row g-2 align-items-center">
+    <input type="hidden" name="view" value="{{ view }}">
+    <div class="col-12 col-sm-6 col-md-4">
+      <select name="turma_id" class="form-select" onchange="this.form.submit()">
+        <option value="">Todas as Turmas</option>
+        {% for t in turmas %}
+          <option value="{{ t.id }}" {% if turma_id == t.id %}selected{% endif %}>{{ t.nome }} ({{ t.dias_semana_texto }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if view == 'lista' %}
+    <div class="col-6 col-md-3">
+      <select name="status" class="form-select" onchange="this.form.submit()">
+        <option value="">Todos os Status</option>
+        <option value="agendada" {% if status == 'agendada' %}selected{% endif %}>Agendada</option>
+        <option value="realizada" {% if status == 'realizada' %}selected{% endif %}>Realizada</option>
+        <option value="cancelada" {% if status == 'cancelada' %}selected{% endif %}>Cancelada</option>
+        <option value="remarcada" {% if status == 'remarcada' %}selected{% endif %}>Remarcada</option>
+      </select>
+    </div>
+    {% endif %}
+    {% if turma_id or status %}
+      <div class="col-auto">
+        <a href="{{ url_for('admin.aulas_lista', view=view) }}" class="btn btn-outline-secondary btn-sm" title="Limpar Filtro">
+          <i class="bi bi-x-lg me-1"></i>Limpar Filtros
+        </a>
+      </div>
+    {% endif %}
+  </form>
+</div>
+
+{% if view == 'calendario' %}
+  <!-- VISUALIZAÇÃO CALENDÁRIO COM FULLCALENDAR -->
+  <div class="card-bt p-3">
+    <div id="calendar"></div>
+  </div>
+{% else %}
+  <!-- VISUALIZAÇÃO EM TABELA / LISTA -->
+  {% if aulas %}
+  <div class="table-bt">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>Data & Horário</th>
+            <th>Turma</th>
+            <th>Local</th>
+            <th>Duração</th>
+            <th>Plano de Aula</th>
+            <th>Status</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in aulas %}
+          <tr>
+            <td>
+              <strong>{{ a.data_hora.strftime('%d/%m/%Y') }}</strong>
+              <div class="text-muted" style="font-size:0.8rem;">
+                <i class="bi bi-clock me-1"></i>{{ a.data_hora.strftime('%H:%M') }}
+              </div>
+            </td>
+            <td>
+              <span class="fw-bold">{{ a.turma.nome }}</span>
+              <span class="badge badge-nivel badge-{{ a.turma.nivel }} ms-1">{{ a.turma.nivel|capitalize }}</span>
+            </td>
+            <td><span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-geo-alt me-1"></i>{{ a.turma.local }}</span></td>
+            <td>{{ a.duracao_minutos }} min</td>
+            <td>
+              {% if a.exercicios %}
+                <span class="badge bg-ocean"><i class="bi bi-clipboard2-check me-1"></i>{{ a.exercicios|length }} exercícios</span>
+              {% else %}
+                <span class="badge bg-light text-muted border">Sem exercícios</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if a.status == 'agendada' %}
+                <span class="badge bg-primary">Agendada</span>
+              {% elif a.status == 'realizada' %}
+                <span class="badge bg-success">Realizada</span>
+              {% elif a.status == 'cancelada' %}
+                <span class="badge bg-danger" data-bs-toggle="tooltip" title="{{ a.aviso_cancelamento }}">Cancelada</span>
+              {% elif a.status == 'remarcada' %}
+                <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="{{ a.aviso_cancelamento }}">Remarcada</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ a.status|capitalize }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-1">
+                <a href="{{ url_for('admin.aula_modo_quadra', id=a.id) }}" class="btn btn-sm btn-laranja" title="Modo Quadra (Mobile)">
+                  <i class="bi bi-tablet-landscape"></i>
+                </a>
+                <a href="{{ url_for('admin.aula_detalhe', id=a.id) }}" class="btn btn-sm btn-outline-ocean" title="Ver Plano / Detalhes">
+                  <i class="bi bi-journal-text"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+    <div class="card-bt">
+      <div class="empty-state py-5">
+        <i class="bi bi-calendar2-x"></i>
+        <h5>Nenhuma aula encontrada para os filtros selecionados</h5>
+        <p class="text-muted">Gere a grade recorrente da turma ou adicione uma aula avulsa.</p>
+        <div class="d-flex justify-content-center gap-2 mt-2">
+          <a href="{{ url_for('admin.aulas_recorrentes') }}" class="btn btn-outline-ocean">Gerar Recorrentes</a>
+          <a href="{{ url_for('admin.aula_nova') }}" class="btn btn-laranja">Nova Aula Avulsa</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if view == 'calendario' %}
+<!-- FullCalendar JS via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var calendarEl = document.getElementById('calendar');
+  if (!calendarEl) return;
+
+  var turmaId = '{{ turma_id or "" }}';
+  var eventsUrl = '{{ url_for("admin.aulas_api_eventos") }}';
+  if (turmaId) eventsUrl += '?turma_id=' + turmaId;
+
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
+    locale: 'pt-br',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    buttonText: {
+      today: 'Hoje',
+      month: 'Mês',
+      week: 'Semana',
+      day: 'Dia'
+    },
+    allDaySlot: false,
+    slotMinTime: '06:00:00',
+    slotMaxTime: '23:00:00',
+    events: eventsUrl,
+    eventClick: function(info) {
+      if (info.event.url) {
+        info.jsEvent.preventDefault();
+        window.location.href = info.event.url;
+      }
+    }
+  });
+
+  calendar.render();
+
+  window.addEventListener('resize', function () {
+    if (window.innerWidth < 768 && calendar.view.type === 'timeGridWeek') {
+      calendar.changeView('timeGridDay');
+    }
+  });
+});
+</script>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,324 @@
+{% extends 'base_admin.html' %}
+{% block title %}Dashboard — Painel do Professor{% endblock %}
+{% block page_title %}Dashboard Geral{% endblock %}
+
+{% block content %}
+<!-- Cards de Estatísticas / Métricas de Estrutura -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-ocean">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value text-ocean">{{ total_alunos|default(0) }}</div>
+        <div class="stat-label">Alunos Ativos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-laranja">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value text-laranja">{{ aulas_hoje|length if aulas_hoje is defined else 0 }}</div>
+        <div class="stat-label">Aulas Hoje</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-verde">
+        <i class="bi bi-percent"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" style="color: #2E7D32;">{{ taxa_presenca|default(0) }}%</div>
+        <div class="stat-label">Presença no Mês</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-roxo">
+        <i class="bi bi-calendar-week-fill"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value" style="color: #7B1FA2;">{{ aulas_semana|length if aulas_semana is defined else 0 }}</div>
+        <div class="stat-label">Aulas na Semana</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Grid Principal do Dashboard -->
+<div class="row g-4">
+  
+  <!-- 1. Aulas de Hoje -->
+  <div class="col-12 col-lg-6">
+    <div class="card-bt h-100">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-day-fill"></i>
+          <span>Aulas de Hoje ({{ aulas_hoje|length }})</span>
+        </div>
+        <a href="{{ url_for('admin.aulas_lista') }}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;">Ver Agenda</a>
+      </div>
+      <div class="p-3">
+        {% if aulas_hoje %}
+          <div class="list-group list-group-flush gap-2">
+            {% for aula in aulas_hoje %}
+              <div class="border rounded-3 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#FAF8F5;">
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fs-5 fw-bold text-ocean">{{ aula.data_hora.strftime('%H:%M') }}</span>
+                    <span class="badge bg-secondary" style="font-size:0.7rem;">{{ aula.duracao_minutos }} min</span>
+                    <span class="badge bg-{{ 'success' if aula.status == 'realizada' else 'warning text-dark' }}" style="font-size:0.7rem;">
+                      {{ aula.status|capitalize }}
+                    </span>
+                  </div>
+                  <div class="fw-bold text-dark mt-1">{{ aula.turma.nome }}</div>
+                  <div class="text-muted" style="font-size:0.8rem;">
+                    <i class="bi bi-geo-alt me-1"></i>{{ aula.turma.local }} · {{ aula.turma.alunos|selectattr('ativo')|list|length }} aluno(s)
+                  </div>
+                </div>
+                <div class="d-flex gap-1">
+                  <a href="{{ url_for('admin.aula_chamada', id=aula.id) }}" class="btn btn-sm btn-success fw-bold" title="Fazer Chamada">
+                    <i class="bi bi-check2-square me-1"></i>Chamada
+                  </a>
+                  <a href="{{ url_for('admin.aula_modo_quadra', id=aula.id) }}" class="btn btn-sm btn-laranja fw-bold" title="Modo Quadra">
+                    <i class="bi bi-tablet-landscape"></i>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state py-4 text-center">
+            <i class="bi bi-calendar-x text-muted" style="font-size:2.5rem;"></i>
+            <h6 class="mt-2 text-dark">Nenhuma aula agendada para hoje</h6>
+            <p class="text-muted mb-3" style="font-size:0.85rem;">Consulte as aulas programadas da semana ou crie uma aula avulsa.</p>
+            <a href="{{ url_for('admin.aula_nova') }}" class="btn btn-sm btn-ocean">
+              <i class="bi bi-plus-lg me-1"></i>Agendar Aula
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Alunos sem avaliação há mais de 30 dias -->
+  <div class="col-12 col-lg-6">
+    <div class="card-bt h-100">
+      <div class="card-header-bt d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #E65100 0%, #BF360C 100%);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Sem Avaliação há +30 dias ({{ alunos_sem_avaliacao|length }})</span>
+        </div>
+        <a href="{{ url_for('admin.avaliacoes_lista') }}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;">Avaliações</a>
+      </div>
+      <div class="p-3">
+        {% if alunos_sem_avaliacao %}
+          <div class="list-group list-group-flush gap-2">
+            {% for aluno in alunos_sem_avaliacao %}
+              <div class="d-flex align-items-center justify-content-between p-2 rounded border" style="background:#FFF9F0;">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                       style="width: 32px; height: 32px; background: var(--bt-ocean); font-size: 0.8rem;">
+                    {{ aluno.nome[:2].upper() }}
+                  </div>
+                  <div>
+                    <a href="{{ url_for('admin.aluno_perfil', id=aluno.id) }}" class="fw-bold text-dark text-decoration-none" style="font-size:0.9rem;">
+                      {{ aluno.nome }}
+                    </a>
+                    <div class="text-muted" style="font-size:0.75rem;">
+                      {% if aluno.ultima_avaliacao %}
+                        Última: {{ aluno.ultima_avaliacao.strftime('%d/%m/%Y') }} ({{ aluno.dias_sem_avaliacao }} dias atrás)
+                      {% else %}
+                        <span class="text-danger fw-bold">Nunca avaliado</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <a href="{{ url_for('admin.avaliacao_nova', aluno_id=aluno.id) }}" class="btn btn-sm btn-laranja fw-bold" style="font-size:0.8rem;">
+                  <i class="bi bi-plus-lg me-1"></i>Avaliar
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state py-4 text-center">
+            <i class="bi bi-patch-check-fill text-success" style="font-size:2.5rem; opacity: 0.7;"></i>
+            <h6 class="mt-2 text-dark">Todos os alunos em dia!</h6>
+            <p class="text-muted mb-0" style="font-size:0.85rem;">Todos os atletas ativos possuem avaliações realizadas nos últimos 30 dias.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Programação da Semana -->
+  <div class="col-12 col-lg-7">
+    <div class="card-bt h-100">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-week-fill"></i>
+          <span>Programação das Aulas da Semana ({{ aulas_semana|length }})</span>
+        </div>
+        <a href="{{ url_for('admin.aulas_lista') }}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;">Calendário Completo</a>
+      </div>
+      <div class="p-3">
+        {% if aulas_semana %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:0.88rem;">
+              <thead class="table-light">
+                <tr style="font-size:0.75rem; text-transform:uppercase;">
+                  <th>Data & Hora</th>
+                  <th>Turma</th>
+                  <th>Local</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-end">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for aula in aulas_semana %}
+                  <tr>
+                    <td class="fw-bold" style="white-space:nowrap;">
+                      {{ aula.data_hora.strftime('%d/%m (%a) %H:%M') }}
+                    </td>
+                    <td>
+                      <a href="{{ url_for('admin.aula_detalhe', id=aula.id) }}" class="text-dark fw-bold text-decoration-none">
+                        {{ aula.turma.nome }}
+                      </a>
+                    </td>
+                    <td class="text-muted" style="font-size:0.8rem;">{{ aula.turma.local }}</td>
+                    <td class="text-center">
+                      {% if aula.status == 'realizada' %}
+                        <span class="badge bg-success">Realizada</span>
+                      {% elif aula.status == 'agendada' %}
+                        <span class="badge bg-primary">Agendada</span>
+                      {% elif aula.status == 'cancelada' %}
+                        <span class="badge bg-danger">Cancelada</span>
+                      {% else %}
+                        <span class="badge bg-warning text-dark">{{ aula.status|capitalize }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end" style="white-space:nowrap;">
+                      <a href="{{ url_for('admin.aula_chamada', id=aula.id) }}" class="btn btn-sm btn-outline-success" title="Chamada">
+                        <i class="bi bi-check2-square"></i>
+                      </a>
+                      <a href="{{ url_for('admin.aula_detalhe', id=aula.id) }}" class="btn btn-sm btn-outline-ocean" title="Ver Plano">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state py-4 text-center">
+            <i class="bi bi-calendar2-range text-muted" style="font-size:2.5rem;"></i>
+            <h6 class="mt-2 text-dark">Nenhuma aula programada para esta semana</h6>
+            <p class="text-muted mb-0" style="font-size:0.85rem;">Gere a grade semanal de aulas ou adicione novas aulas avulsas.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Alunos com Maior Evolução Técnica & Detalhe de Presença -->
+  <div class="col-12 col-lg-5">
+    
+    <!-- Maior Evolução -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-trophy-fill"></i>
+          <span>Maior Evolução Técnica (Índice)</span>
+        </div>
+        <span class="badge bg-light text-dark" style="font-size:0.7rem;">Top Atletas</span>
+      </div>
+      <div class="p-3">
+        {% if alunos_evolucao %}
+          <div class="list-group list-group-flush gap-2">
+            {% for item in alunos_evolucao %}
+              <div class="d-flex align-items-center justify-content-between p-2 rounded border" style="background:#F4FBF4;">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fs-5">
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}⭐{% endif %}
+                  </span>
+                  <div>
+                    <a href="{{ url_for('admin.aluno_perfil', id=item.aluno.id) }}" class="fw-bold text-dark text-decoration-none">
+                      {{ item.aluno.nome }}
+                    </a>
+                    <div class="text-muted" style="font-size:0.75rem;">
+                      Índice: {{ item.primeira_categoria }} {{ "%.1f"|format(item.primeira_indice) }} ➔ {{ item.ultima_categoria }} {{ "%.1f"|format(item.ultima_indice) }}
+                    </div>
+                  </div>
+                </div>
+                <span class="badge {% if item.diff >= 0 %}bg-success{% else %}bg-danger{% endif %} fs-6 fw-bold" title="Evolução do Índice Técnico">
+                  {% if item.diff > 0 %}+{% endif %}{{ "%.1f"|format(item.diff) }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state py-3 text-center">
+            <i class="bi bi-graph-up-arrow text-muted" style="font-size:2rem;"></i>
+            <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;">Conforme os alunos tiverem mais de 1 avaliação registrada, o ranking de progresso aparecerá aqui.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Resumo de Frequência do Mês -->
+    <div class="card-bt">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-pie-chart-fill"></i>
+          <span>Frequência do Mês Atual</span>
+        </div>
+        <a href="{{ url_for('admin.presencas') }}" class="btn btn-sm btn-outline-light py-0 px-2" style="font-size:0.75rem;">Relatórios</a>
+      </div>
+      <div class="p-3">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="fw-bold">Taxa Geral de Assiduidade:</span>
+          <span class="fs-5 fw-bold text-success">{{ taxa_presenca }}%</span>
+        </div>
+        <div class="progress mb-3" style="height: 10px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ taxa_presenca }}%;"></div>
+        </div>
+        <div class="row g-2 text-center" style="font-size:0.8rem;">
+          <div class="col-4">
+            <div class="p-2 border rounded bg-light">
+              <div class="text-muted">Presentes</div>
+              <div class="fw-bold text-success fs-6">{{ presentes_mes|default(0) }}</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 border rounded bg-light">
+              <div class="text-muted">Faltas</div>
+              <div class="fw-bold text-danger fs-6">{{ faltas_mes|default(0) }}</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 border rounded bg-light">
+              <div class="text-muted">Reposições</div>
+              <div class="fw-bold text-info fs-6">{{ reposicoes_mes|default(0) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if plano else 'Novo' }} Plano — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Plano' if plano else 'Novo Plano e Preço' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-credit-card-fill me-2 text-ocean"></i>
+        <span>{{ 'Editar Plano' if plano else 'Cadastrar Plano' }}</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="nome">Nome do Plano *</label>
+              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome", placeholder="Ex: Mensal 2x na Semana (exemplo)") }}
+              {% for e in form.nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="preco">Preço (R$) *</label>
+              {{ form.preco(class="form-control" + (" is-invalid" if form.preco.errors else ""), id="preco", type="number", step="0.01", placeholder="250.00") }}
+              {% for e in form.preco.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="periodo">Periodicidade</label>
+              {{ form.periodo(class="form-select", id="periodo") }}
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label" for="aulas_por_semana">Aulas por Semana</label>
+              {{ form.aulas_por_semana(class="form-control", id="aulas_por_semana", type="number", min="1", max="7", placeholder="2") }}
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label" for="ordem">Ordem</label>
+              {{ form.ordem(class="form-control", id="ordem", type="number") }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="descricao">Benefícios / Itens Inclusos</label>
+              {{ form.descricao(class="form-control", id="descricao", rows=4, placeholder="Digite um benefício por linha. Ex:&#10;2 aulas na semana (60 min)&#10;Bolinhas e raquetes inclusas&#10;Acompanhamento na plataforma") }}
+              <div class="form-text">Cada linha será exibida como um item com checkmark no card de preços.</div>
+            </div>
+
+            <div class="col-12 mt-3 d-flex gap-4">
+              <div class="form-check form-switch">
+                {{ form.destaque(class="form-check-input", id="destaque") }}
+                <label class="form-check-label fw-bold" for="destaque">Destacar como Mais Popular</label>
+              </div>
+              <div class="form-check form-switch">
+                {{ form.ativo(class="form-check-input", id="ativo") }}
+                <label class="form-check-label fw-bold" for="ativo">Plano Ativo</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{{ url_for('admin.planos_lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-ocean px-4">Salvar Plano</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

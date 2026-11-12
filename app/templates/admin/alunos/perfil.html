@@ -1,0 +1,596 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ aluno.nome }} — Perfil do Atleta{% endblock %}
+{% block page_title %}Perfil do Atleta{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Coluna da esquerda: Dados e Metas -->
+  <div class="col-lg-4">
+    <!-- Card Perfil -->
+    <div class="card-bt mb-4 text-center">
+      <div class="p-4">
+        <div class="avatar-circle mx-auto mb-3 shadow" style="width:90px;height:90px;font-size:2.2rem;background:linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%);">
+          {% if aluno.foto %}
+            <img src="{{ url_for('static', filename='uploads/' ~ aluno.foto) }}" alt="{{ aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
+          {% else %}
+            {{ aluno.nome[:2].upper() }}
+          {% endif %}
+        </div>
+        <h4 class="mb-1 text-dark fw-bold">{{ aluno.nome }}</h4>
+        <div class="mb-3">
+          <span class="badge badge-nivel badge-{{ aluno.nivel }}">{{ aluno.nivel|capitalize }}</span>
+          <span class="badge bg-ocean ms-1">{{ aluno.categoria_label }}</span>
+          {% if aluno.ativo %}
+            <span class="badge bg-success ms-1">Ativo</span>
+          {% else %}
+            <span class="badge bg-danger ms-1">Inativo</span>
+          {% endif %}
+        </div>
+        <div class="text-muted mb-2" style="font-size:0.78rem;">
+          Peso da categoria no Índice Técnico: <strong>{{ (aluno.peso_categoria * 100)|round|int }}%</strong>
+        </div>
+
+        <div class="d-flex justify-content-center flex-wrap gap-2 mb-3">
+          <a href="{{ url_for('admin.aluno_editar', id=aluno.id) }}" class="btn btn-sm btn-outline-ocean">
+            <i class="bi bi-pencil me-1"></i>Editar
+          </a>
+          <a href="{{ url_for('admin.avaliacao_nova', aluno_id=aluno.id) }}" class="btn btn-sm btn-laranja fw-bold">
+            <i class="bi bi-plus-lg me-1"></i>Avaliar
+          </a>
+          <a href="{{ url_for('admin.aluno_relatorio_pdf', id=aluno.id) }}" class="btn btn-sm btn-outline-danger fw-bold" target="_blank" title="Baixar relatório oficial em PDF">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar PDF
+          </a>
+        </div>
+
+        <div class="text-start border-top pt-3" style="font-size:0.88rem;">
+          <div class="mb-2"><i class="bi bi-envelope text-ocean me-2"></i>{{ aluno.usuario.email if aluno.usuario else '—' }}</div>
+          {% if aluno.telefone %}
+            <div class="mb-2">
+              <i class="bi bi-whatsapp text-success me-2"></i>
+              <a href="https://wa.me/55{{ aluno.telefone|somente_numeros }}" target="_blank" class="text-dark text-decoration-none">
+                {{ aluno.telefone }}
+              </a>
+            </div>
+          {% endif %}
+          <div class="mb-2"><i class="bi bi-hand-index-thumb text-ocean me-2"></i>Lado: <strong>{{ aluno.lado_dominante|capitalize }}</strong></div>
+          <div class="mb-2"><i class="bi bi-trophy text-ocean me-2"></i>Foco: <strong>{{ aluno.objetivo|capitalize }}</strong></div>
+          {% if aluno.data_nascimento %}
+            <div class="mb-2"><i class="bi bi-cake2 text-ocean me-2"></i>Nascimento: {{ aluno.data_nascimento.strftime('%d/%m/%Y') }}</div>
+          {% endif %}
+        </div>
+
+        {% if aluno.observacoes %}
+          <div class="alert alert-light text-start border mt-3 mb-0" style="font-size:0.83rem;">
+            <i class="bi bi-sticky text-ocean me-1"></i><strong>Observações:</strong> {{ aluno.observacoes }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Card Turmas -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt"><i class="bi bi-people-fill me-1"></i>Turmas Matriculadas</div>
+      <div class="p-3">
+        {% for ta in aluno.turmas if ta.ativo %}
+          <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:#FAF8F5;">
+            <i class="bi bi-calendar2-week text-ocean fs-5"></i>
+            <div>
+              <div class="fw-bold" style="font-size:0.9rem;">{{ ta.turma.nome }}</div>
+              <div class="text-muted" style="font-size:0.78rem;">
+                {{ ta.turma.dias_semana_texto }} · {{ ta.turma.horario_inicio.strftime('%H:%M') }} ({{ ta.turma.local }})
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0" style="font-size:0.85rem;">Não matriculado em nenhuma turma no momento.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Card Metas -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bullseye me-1"></i>Metas do Atleta</span>
+        <a href="{{ url_for('admin.meta_nova', aluno_id=aluno.id) }}" class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem;">+ Meta</a>
+      </div>
+      <div class="p-3">
+        {% for meta in aluno.metas %}
+          <div class="d-flex align-items-start gap-2 mb-3 pb-2 border-bottom">
+            <form method="POST" action="{{ url_for('admin.meta_concluir', id=meta.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent mt-1" title="Alternar status">
+                <i class="bi bi-{{ 'check-circle-fill text-success fs-5' if meta.concluida else 'circle text-muted fs-5' }}"></i>
+              </button>
+            </form>
+            <div>
+              <div style="font-size:0.88rem;" class="{{ 'text-decoration-line-through text-muted' if meta.concluida else 'fw-bold text-dark' }}">
+                {{ meta.descricao }}
+              </div>
+              {% if meta.prazo %}
+                <div class="text-muted" style="font-size:0.75rem;">
+                  <i class="bi bi-clock me-1"></i>Prazo: {{ meta.prazo.strftime('%d/%m/%Y') }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0" style="font-size:0.85rem;">Nenhuma meta cadastrada para este aluno.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Coluna da direita: Análise de Desempenho e Gráficos -->
+  <div class="col-lg-8">
+    
+    <!-- CARD PRINCIPAL: ANÁLISE DE EVOLUÇÃO E RADAR -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-radar text-laranja fs-5"></i>
+          <span class="fw-bold">Evolução Técnica & Comparativo</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          {% if analytics.tem_avaliacoes %}
+            <span class="badge bg-light text-dark fw-bold">
+              {{ analytics.total_avaliacoes }} ciclo(s) avaliado(s)
+            </span>
+          {% endif %}
+          <a href="{{ url_for('admin.avaliacao_nova', aluno_id=aluno.id) }}" class="btn btn-sm btn-laranja fw-bold">
+            <i class="bi bi-plus-lg me-1"></i>Nova Avaliação
+          </a>
+        </div>
+      </div>
+
+      <div class="p-3 p-md-4">
+        {% if analytics.tem_avaliacoes %}
+          <div class="row g-4 align-items-center mb-4">
+            
+            <!-- Gráfico Radar (Primeira vs Última) -->
+            <div class="col-md-7 text-center">
+              <h6 class="text-ocean fw-bold mb-3" style="font-size:0.85rem; text-transform:uppercase;">
+                Gráfico Radar: Inicial vs Atual
+              </h6>
+              <div style="position: relative; max-width: 440px; margin: 0 auto;">
+                <canvas id="radarChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Resumo e Delta de Média Geral -->
+            <div class="col-md-5">
+              <div class="p-3 border rounded-3 bg-light text-center mb-3">
+                <div class="text-muted text-uppercase" style="font-size:0.75rem; font-weight:700;">Nota Média Atual na Categoria</div>
+                <div class="d-flex align-items-baseline justify-content-center gap-2 mt-2">
+                  <span class="fs-1 fw-bold text-ocean">{{ "%.1f"|format(analytics.media_atual) }}</span>
+                  <span class="text-muted">/ 10</span>
+                  <span class="badge fs-6 fw-bold {% if analytics.diff_geral > 0 %}bg-success{% elif analytics.diff_geral < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                    {% if analytics.diff_geral > 0 %}+{% endif %}{{ "%.1f"|format(analytics.diff_geral) }}
+                  </span>
+                </div>
+                <div class="text-muted mt-1" style="font-size:0.8rem;">
+                  Inicial: {{ "%.1f"|format(analytics.media_inicial) }} ({{ analytics.categoria_inicial_label }})
+                </div>
+                <div class="d-flex align-items-center justify-content-center gap-2 border-top pt-2 mt-2">
+                  <span class="text-muted" style="font-size:0.78rem;">Índice Técnico:</span>
+                  <strong class="text-laranja">{{ "%.1f"|format(analytics.indice_atual) }}</strong>
+                  <span class="text-muted" style="font-size:0.72rem;">/ 100</span>
+                  <span class="badge {% if analytics.diff_indice > 0 %}bg-success{% elif analytics.diff_indice < 0 %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size:0.7rem;">
+                    {% if analytics.diff_indice > 0 %}+{% endif %}{{ "%.1f"|format(analytics.diff_indice) }}
+                  </span>
+                </div>
+              </div>
+
+              {% if analytics.tem_multiplas_categorias %}
+                <div class="alert alert-info border-0 py-2 px-3 mb-3" style="font-size:0.78rem;">
+                  <i class="bi bi-arrow-up-circle-fill me-1"></i>
+                  O atleta mudou de categoria ({{ analytics.categoria_inicial_label }} → {{ analytics.categoria_atual_label }}).
+                  A nota bruta pode cair porque a comparação agora é com atletas da nova categoria;
+                  a curva de aprendizado usa o índice corrigido.
+                </div>
+              {% endif %}
+
+              <!-- Indicadores de Destaque -->
+              <div class="border rounded-3 p-3 bg-white">
+                <div class="fw-bold mb-2 text-dark" style="font-size:0.85rem;">Destaques do Ciclo:</div>
+                <div class="mb-2" style="font-size:0.82rem;">
+                  <span class="text-success fw-bold"><i class="bi bi-star-fill me-1"></i>Pontos Fortes:</span>
+                  <div class="text-muted text-truncate">{{ analytics.ultima_avaliacao.pontos_fortes or 'Consulte o parecer completo.' }}</div>
+                </div>
+                <div style="font-size:0.82rem;">
+                  <span class="text-primary fw-bold"><i class="bi bi-bullseye me-1"></i>Foco do Ciclo:</span>
+                  <div class="text-muted text-truncate">{{ analytics.ultima_avaliacao.metas_proximo_ciclo or 'Consulte as metas.' }}</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TABELA COMPARATIVA DE EVOLUÇÃO (↑ ↓ =) -->
+          <div class="border-top pt-4 mb-4">
+            <h6 class="text-ocean fw-bold text-uppercase mb-3" style="font-size:0.85rem;">
+              <i class="bi bi-arrow-down-up me-1 text-laranja"></i>Comparativo por Critério (Inicial ➔ Atual)
+            </h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.88rem;">
+                <thead class="table-light">
+                  <tr style="font-size:0.75rem; text-transform:uppercase;">
+                    <th>Critério Técnico</th>
+                    <th class="text-center">1ª Avaliação<br><span class="text-muted" style="font-size:0.65rem;">{{ analytics.categoria_inicial_label }}</span></th>
+                    <th class="text-center">Atual<br><span class="text-muted" style="font-size:0.65rem;">{{ analytics.categoria_atual_label }}</span></th>
+                    <th class="text-center">Evolução</th>
+                    {% if analytics.tem_multiplas_categorias %}
+                      <th class="text-center">Índice Atual</th>
+                    {% endif %}
+                    <th style="min-width: 120px;">Nível Atual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in analytics.comparativo_criterios %}
+                    <tr>
+                      <td class="fw-bold text-dark">{{ c.label }}</td>
+                      <td class="text-center text-muted">{{ "%.1f"|format(c.nota_inicial) }}</td>
+                      <td class="text-center fw-bold text-ocean">{{ "%.1f"|format(c.nota_atual) }}</td>
+                      <td class="text-center">
+                        <span class="badge {{ c.badge_bg }} fw-bold" style="font-size:0.8rem;">
+                          {{ c.simbolo }} {{ c.sinal }}
+                        </span>
+                      </td>
+                      {% if analytics.tem_multiplas_categorias %}
+                        <td class="text-center">
+                          <span class="fw-bold text-ocean">{{ "%.1f"|format(c.indice_atual) }}</span>
+                          <span class="badge {{ c.badge_bg_indice }}" style="font-size:0.65rem;" title="Índice corrigido pela categoria">
+                            {{ c.simbolo_indice }} {{ c.sinal_indice }}
+                          </span>
+                        </td>
+                      {% endif %}
+                      <td>
+                        <div class="progress" style="height: 6px;">
+                          <div class="progress-bar {% if c.nota_atual >= 8 %}bg-success{% elif c.nota_atual >= 6 %}bg-primary{% elif c.nota_atual >= 4 %}bg-warning{% else %}bg-danger{% endif %}"
+                               role="progressbar" style="width: {{ (c.nota_atual / 10) * 100 }}%;"></div>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- GRÁFICO DE LINHA: EVOLUÇÃO NO TEMPO -->
+          <div class="border-top pt-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+              <h6 class="text-ocean fw-bold text-uppercase mb-0" style="font-size:0.85rem;">
+                <i class="bi bi-graph-up me-1 text-laranja"></i>Evolução por Categoria (Nota + Curva de Aprendizado)
+              </h6>
+              <div class="d-flex align-items-center gap-2">
+                <label for="selectCriterioLinha" class="text-muted" style="font-size:0.8rem;">Ver Critério:</label>
+                <select id="selectCriterioLinha" class="form-select form-select-sm" style="width: auto;">
+                  <option value="media">Média Geral</option>
+                  {% for c in analytics.comparativo_criterios %}
+                    <option value="{{ c.chave }}">{{ c.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div style="height: 250px;">
+              <canvas id="linhaEvolucaoChart"></canvas>
+            </div>
+            <div class="text-muted mt-2" style="font-size:0.75rem;">
+              <span class="fw-bold text-ocean">Linha cheia:</span> nota atribuída dentro da categoria (pode cair na promoção).
+              <span class="fw-bold text-laranja">Linha tracejada:</span> Índice Técnico corrigido (0–100; 100 = nota 10,0 em Open), que mostra o aprendizado real.
+            </div>
+          </div>
+
+        {% else %}
+          <div class="empty-state text-center py-5">
+            <i class="bi bi-radar text-muted" style="font-size:3rem;"></i>
+            <h5 class="mt-3">Sem avaliações registradas</h5>
+            <p class="text-muted">Cadastre a primeira avaliação periódica para liberar os gráficos de radar, evolução e comparativos.</p>
+            <a href="{{ url_for('admin.avaliacao_nova', aluno_id=aluno.id) }}" class="btn btn-laranja">
+              <i class="bi bi-plus-lg me-1"></i>Realizar Primeira Avaliação
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- CARD: FREQUÊNCIA MENSAL (BARRAS CHART.JS) -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-bar-chart-fill text-verde fs-5"></i>
+          <span class="fw-bold">Frequência Mensal (Últimos 6 meses)</span>
+        </div>
+        <span class="badge bg-light text-dark" style="font-size:0.75rem;">Presenças vs Faltas</span>
+      </div>
+      <div class="p-3 p-md-4">
+        <div style="height: 230px;">
+          <canvas id="frequenciaMensalChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD: HISTÓRICO DE AVALIAÇÕES (CICLOS) -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-journal-check me-1"></i>Ciclos de Avaliação Registrados</span>
+        <a href="{{ url_for('admin.avaliacao_nova', aluno_id=aluno.id) }}" class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem;">+ Nova</a>
+      </div>
+      <div class="p-3">
+        {% if aluno.avaliacoes %}
+          <div class="list-group list-group-flush gap-2">
+            {% for aval in aluno.avaliacoes %}
+              <div class="border rounded-3 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background:#FAF8F5;">
+                <div>
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="fw-bold fs-6 text-dark">{{ aval.data.strftime('%d/%m/%Y') }}</span>
+                    <span class="badge bg-ocean">{{ aval.categoria_label }}</span>
+                    <span class="badge bg-light text-dark border">Média: {{ "%.1f"|format(aval.media) }}</span>
+                    <span class="badge bg-light text-dark border">Índice: {{ "%.1f"|format(aval.indice_tecnico) }}</span>
+                    {% if aval.link_video_analise %}
+                      <span class="badge bg-danger-subtle text-danger"><i class="bi bi-youtube me-1"></i>Vídeo</span>
+                    {% endif %}
+                  </div>
+                  {% if aval.pontos_fortes %}
+                    <div class="text-muted mt-1" style="font-size:0.8rem;">
+                      <i class="bi bi-check-circle text-success me-1"></i>{{ aval.pontos_fortes|truncate(80) }}
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="d-flex gap-1">
+                  <a href="{{ url_for('admin.avaliacao_detalhe', id=aval.id) }}" class="btn btn-sm btn-outline-ocean" title="Ver Detalhes">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{{ url_for('admin.avaliacao_editar', id=aval.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted mb-0" style="font-size:0.85rem;">Nenhuma avaliação cadastrada ainda.</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if analytics.tem_avaliacoes %}
+<script>
+  // 1. DADOS DOS GRÁFICOS
+  const labelsCriterios = {{ analytics.criterios_labels_json | safe }};
+  const scoresPrimeira = {{ analytics.primeira_scores_json | safe }};
+  const scoresUltima = {{ analytics.ultima_scores_json | safe }};
+
+  const linhaLabels = {{ analytics.linha_labels_json | safe }};
+  const linhaMedias = {{ analytics.linha_medias_json | safe }};
+  const linhaIndices = {{ analytics.linha_indices_json | safe }};
+  const criteriosTimeline = {{ analytics.criterios_timeline_json | safe }};
+  const criteriosTimelineIndice = {{ analytics.criterios_timeline_indice_json | safe }};
+  const promocoes = {{ analytics.promocoes_json | safe }};
+
+  const freqLabels = {{ analytics.frequencia_labels_json | safe }};
+  const freqPresentes = {{ analytics.frequencia_presentes_json | safe }};
+  const freqFaltas = {{ analytics.frequencia_faltas_json | safe }};
+  const freqJustificadas = {{ analytics.frequencia_justificadas_json | safe }};
+
+  // Plugin que marca as promoções de categoria na linha do tempo
+  const marcadoresCategoria = {
+    id: 'marcadoresCategoria',
+    afterDatasetsDraw(chart) {
+      if (!promocoes.length) return;
+      const { ctx, chartArea, scales: { x } } = chart;
+      promocoes.forEach(p => {
+        const px = x.getPixelForValue(p.indice);
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = 'rgba(230, 81, 0, 0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(px, chartArea.top);
+        ctx.lineTo(px, chartArea.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#E65100';
+        ctx.font = 'bold 10px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${p.de} → ${p.para}`, px, chartArea.top + 10);
+        ctx.restore();
+      });
+    }
+  };
+
+  // 2. GRÁFICO RADAR (PRIMEIRA VS ÚLTIMA AVALIAÇÃO)
+  const ctxRadar = document.getElementById('radarChart').getContext('2d');
+  new Chart(ctxRadar, {
+    type: 'radar',
+    data: {
+      labels: labelsCriterios,
+      datasets: [
+        {
+          label: 'Atual ({{ analytics.categoria_atual_label }})',
+          data: scoresUltima,
+          borderColor: '#0077B6',
+          backgroundColor: 'rgba(0, 119, 182, 0.25)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#0077B6',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Inicial ({{ analytics.categoria_inicial_label }})',
+          data: scoresPrimeira,
+          borderColor: '#F77F00',
+          backgroundColor: 'rgba(247, 127, 0, 0.15)',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointBackgroundColor: '#F77F00',
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 10,
+          ticks: { stepSize: 2, font: { size: 10 } },
+          pointLabels: { font: { size: 10.5, weight: 'bold' }, color: '#333' },
+          grid: { color: 'rgba(0,0,0,0.08)' },
+          angleLines: { color: 'rgba(0,0,0,0.08)' }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11, weight: '600' }, boxWidth: 14 }
+        }
+      }
+    }
+  });
+
+  // 3. GRÁFICO DE LINHA: NOTA NA CATEGORIA + CURVA DE APRENDIZADO
+  const ctxLinha = document.getElementById('linhaEvolucaoChart').getContext('2d');
+  const linhaChart = new Chart(ctxLinha, {
+    type: 'line',
+    data: {
+      labels: linhaLabels,
+      datasets: [
+        {
+          label: 'Nota na Categoria (0–10)',
+          data: linhaMedias,
+          borderColor: '#005F8E',
+          backgroundColor: 'rgba(0, 95, 142, 0.10)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+          pointBackgroundColor: '#F77F00',
+          yAxisID: 'y'
+        },
+        {
+          label: 'Curva de Aprendizado — Índice (0–100)',
+          data: linhaIndices,
+          borderColor: '#E65100',
+          backgroundColor: 'rgba(230, 81, 0, 0.08)',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          fill: false,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#E65100',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y: {
+          min: 0,
+          max: 10,
+          ticks: { stepSize: 2 },
+          title: { display: true, text: 'Nota na categoria (0–10)' }
+        },
+        y1: {
+          position: 'right',
+          min: 0,
+          max: 100,
+          ticks: { stepSize: 20 },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'Índice técnico (0–100)' }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 10.5 }, boxWidth: 14 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (item) => item.dataset.yAxisID === 'y1'
+              ? `${item.dataset.label}: ${item.parsed.y.toFixed(1)}/100`
+              : `${item.dataset.label}: ${item.parsed.y.toFixed(1)}/10`
+          }
+        }
+      }
+    },
+    plugins: [marcadoresCategoria]
+  });
+
+  // Interatividade: Troca de critério na linha do tempo
+  document.getElementById('selectCriterioLinha').addEventListener('change', function() {
+    const val = this.value;
+    const nomeCrit = this.options[this.selectedIndex].text;
+    if (val === 'media') {
+      linhaChart.data.datasets[0].label = 'Nota na Categoria (0–10)';
+      linhaChart.data.datasets[0].data = linhaMedias;
+      linhaChart.data.datasets[0].borderColor = '#005F8E';
+      linhaChart.data.datasets[1].label = 'Curva de Aprendizado — Índice (0–100)';
+      linhaChart.data.datasets[1].data = linhaIndices;
+    } else {
+      linhaChart.data.datasets[0].label = `${nomeCrit} — nota (0–10)`;
+      linhaChart.data.datasets[0].data = criteriosTimeline[val] || [];
+      linhaChart.data.datasets[0].borderColor = '#0077B6';
+      linhaChart.data.datasets[1].label = `${nomeCrit} — índice (0–100)`;
+      linhaChart.data.datasets[1].data = criteriosTimelineIndice[val] || [];
+    }
+    linhaChart.update();
+  });
+
+  // 4. GRÁFICO DE BARRAS: FREQUÊNCIA MENSAL
+  const ctxFreq = document.getElementById('frequenciaMensalChart').getContext('2d');
+  new Chart(ctxFreq, {
+    type: 'bar',
+    data: {
+      labels: freqLabels,
+      datasets: [
+        {
+          label: 'Presenças',
+          data: freqPresentes,
+          backgroundColor: '#2E7D32',
+          borderRadius: 6
+        },
+        {
+          label: 'Faltas',
+          data: freqFaltas,
+          backgroundColor: '#C62828',
+          borderRadius: 6
+        },
+        {
+          label: 'Justificadas',
+          data: freqJustificadas,
+          backgroundColor: '#F57C00',
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, precision: 0 }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11 }, boxWidth: 12 }
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

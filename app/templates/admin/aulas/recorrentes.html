@@ -1,0 +1,69 @@
+{% extends 'base_admin.html' %}
+{% block title %}Gerar Grade de Aulas Recorrentes — Beach Tennis{% endblock %}
+{% block page_title %}Gerar Aulas Recorrentes{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-arrow-repeat me-2"></i>
+        <span>Gerar Grade de Aulas Recorrentes</span>
+      </div>
+
+      <div class="p-4">
+        <p class="text-muted" style="font-size: 0.9rem;">
+          Selecione a turma e o intervalo de datas. O sistema irá criar automaticamente todas as aulas nos dias da semana e horários cadastrados na turma (sem duplicar aulas já existentes).
+        </p>
+
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label" for="turma_id">Turma *</label>
+            {{ form.turma_id(class="form-select" + (" is-invalid" if form.turma_id.errors else ""), id="turma_id") }}
+            {% for e in form.turma_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label" for="data_inicio">Data Inicial *</label>
+              {{ form.data_inicio(class="form-control" + (" is-invalid" if form.data_inicio.errors else ""), id="data_inicio", type="date") }}
+              {% for e in form.data_inicio.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-sm-6">
+              <label class="form-label" for="data_fim">Data Final *</label>
+              {{ form.data_fim(class="form-control" + (" is-invalid" if form.data_fim.errors else ""), id="data_fim", type="date") }}
+              {% for e in form.data_fim.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="duracao_minutos">Duração de cada Aula (minutos)</label>
+            {{ form.duracao_minutos(class="form-control" + (" is-invalid" if form.duracao_minutos.errors else ""), id="duracao_minutos", type="number", min="15") }}
+            {% for e in form.duracao_minutos.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label" for="objetivo_padrao">Objetivo Padrão das Aulas (opcional)</label>
+            {{ form.objetivo_padrao(class="form-control", id="objetivo_padrao", placeholder="Ex: Treino técnico e tático semanal") }}
+            <div class="form-text">Você poderá editar o plano e exercícios de cada aula individualmente depois.</div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ocean px-4">
+              <i class="bi bi-magic me-1"></i> Gerar Aulas
+            </button>
+            <a href="{{ url_for('admin.aulas_lista') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg me-1"></i> Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

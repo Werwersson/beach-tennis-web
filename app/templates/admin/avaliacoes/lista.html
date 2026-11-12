@@ -1,0 +1,177 @@
+{% extends 'base_admin.html' %}
+{% block title %}Avaliações de Desempenho{% endblock %}
+{% block page_title %}Avaliações de Desempenho{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div class="text-muted" style="font-size:0.9rem;">
+    Acompanhe o desenvolvimento técnico, tático e físico dos seus atletas.
+  </div>
+  <a href="{{ url_for('admin.avaliacao_nova') }}" class="btn btn-laranja fw-bold shadow-sm d-flex align-items-center gap-2">
+    <i class="bi bi-plus-circle-fill"></i>
+    <span>Nova Avaliação</span>
+  </a>
+</div>
+
+<!-- Filtros de Busca -->
+<div class="card-bt mb-4">
+  <div class="p-3">
+    <form method="GET" action="{{ url_for('admin.avaliacoes_lista') }}" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="busca" class="form-control" placeholder="Buscar por nome do atleta..." value="{{ busca }}">
+        </div>
+      </div>
+      <div class="col-md-5">
+        <select name="aluno_id" class="form-select form-select-sm">
+          <option value="">Todos os Atletas</option>
+          {% for al in alunos %}
+            <option value="{{ al.id }}" {{ 'selected' if aluno_id == al.id else '' }}>{{ al.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-ocean w-100">
+          <i class="bi bi-funnel me-1"></i>Filtrar
+        </button>
+        {% if busca or aluno_id %}
+          <a href="{{ url_for('admin.avaliacoes_lista') }}" class="btn btn-sm btn-outline-secondary" title="Limpar">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Lista de Avaliações -->
+<div class="card-bt">
+  <div class="card-header-bt d-flex justify-content-between align-items-center">
+    <span class="fw-bold"><i class="bi bi-clipboard-data-fill me-1"></i>Histórico de Avaliações ({{ avaliacoes|length }})</span>
+  </div>
+  
+  <div class="p-0">
+    {% if avaliacoes %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr style="font-size:0.8rem; text-transform:uppercase;">
+              <th>Data</th>
+              <th>Atleta</th>
+              <th class="text-center">Categoria</th>
+              <th class="text-center">Média / Índice</th>
+              <th>Pontos Fortes / Resumo</th>
+              <th class="text-center">Vídeo</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for aval in avaliacoes %}
+              <tr>
+                <td class="fw-bold" style="font-size:0.88rem; white-space:nowrap;">
+                  {{ aval.data.strftime('%d/%m/%Y') }}
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                         style="width: 34px; height: 34px; background: var(--bt-ocean); font-size: 0.85rem; flex-shrink: 0;">
+                      {% if aval.aluno.foto %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ aval.aluno.foto) }}" alt="{{ aval.aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                      {% else %}
+                        {{ aval.aluno.nome[:2].upper() }}
+                      {% endif %}
+                    </div>
+                    <div>
+                      <a href="{{ url_for('admin.aluno_perfil', id=aval.aluno.id) }}" class="fw-bold text-dark text-decoration-none">
+                        {{ aval.aluno.nome }}
+                      </a>
+                      <div class="text-muted" style="font-size:0.75rem;">{{ aval.aluno.nivel|capitalize }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-ocean">{{ aval.categoria_label }}</span>
+                  <div class="text-muted" style="font-size:0.7rem;">peso {{ (aval.peso_categoria * 100)|round|int }}%</div>
+                </td>
+                <td class="text-center">
+                  <span class="badge fs-6 px-3 py-2 rounded-pill {% if aval.media >= 8.0 %}bg-success{% elif aval.media >= 6.0 %}bg-primary{% elif aval.media >= 4.0 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                    {{ aval.media }}
+                  </span>
+                  <div class="text-muted mt-1" style="font-size:0.72rem;">Índice: {{ aval.indice_tecnico }}</div>
+                </td>
+                <td style="max-width: 320px;">
+                  {% if aval.pontos_fortes %}
+                    <div class="text-truncate" style="font-size: 0.85rem;">
+                      <i class="bi bi-star-fill text-warning me-1"></i>{{ aval.pontos_fortes }}
+                    </div>
+                  {% elif aval.comentarios %}
+                    <div class="text-truncate text-muted" style="font-size: 0.85rem;">
+                      {{ aval.comentarios }}
+                    </div>
+                  {% else %}
+                    <span class="text-muted" style="font-size: 0.82rem;">Sem anotações descritivas.</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if aval.link_video_analise %}
+                    <span class="badge bg-danger-subtle text-danger" title="Vídeo anexado para análise">
+                      <i class="bi bi-youtube fs-6"></i>
+                    </span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end" style="white-space: nowrap;">
+                  <a href="{{ url_for('admin.avaliacao_detalhe', id=aval.id) }}" class="btn btn-sm btn-outline-ocean me-1" title="Ver Detalhes da Avaliação">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{{ url_for('admin.avaliacao_editar', id=aval.id) }}" class="btn btn-sm btn-outline-secondary me-1" title="Editar Avaliação">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-danger" title="Excluir"
+                          data-bs-toggle="modal" data-bs-target="#modalExcluir{{ aval.id }}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+
+                  <!-- Modal de Confirmação de Exclusão -->
+                  <div class="modal fade" id="modalExcluir{{ aval.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content text-start">
+                        <div class="modal-header">
+                          <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Excluir Avaliação</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                          Tem certeza de que deseja excluir a avaliação de <strong>{{ aval.aluno.nome }}</strong> realizada em <strong>{{ aval.data.strftime('%d/%m/%Y') }}</strong>?
+                          <p class="text-muted mt-2" style="font-size: 0.85rem;">Esta ação removerá todas as 11 notas e os pareceres registrados.</p>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                          <form method="POST" action="{{ url_for('admin.avaliacao_excluir', id=aval.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state text-center py-5">
+        <i class="bi bi-clipboard2-check text-muted" style="font-size: 3rem;"></i>
+        <h5 class="mt-3">Nenhuma avaliação encontrada</h5>
+        <p class="text-muted">Crie a primeira avaliação periódica de desempenho para seus alunos.</p>
+        <a href="{{ url_for('admin.avaliacao_nova') }}" class="btn btn-laranja">
+          <i class="bi bi-plus-lg me-1"></i>Criar Primeira Avaliação
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

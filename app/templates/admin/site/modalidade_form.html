@@ -1,0 +1,74 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if modalidade else 'Nova' }} Modalidade — Beach Tennis{% endblock %}
+{% block page_title %}{{ 'Editar Modalidade' if modalidade else 'Nova Modalidade' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt">
+        <i class="bi bi-award-fill me-2 text-ocean"></i>
+        <span>{{ 'Editar Modalidade' if modalidade else 'Cadastrar Modalidade' }}</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label" for="nome">Nome da Modalidade *</label>
+              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome", placeholder="Ex: Individual, Dupla, Turma, Kids") }}
+              {% for e in form.nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="icone">Ícone Bootstrap</label>
+              {{ form.icone(class="form-control", id="icone", placeholder="bi-person-fill") }}
+              <div class="form-text">Ex: bi-person-fill, bi-people-fill, bi-trophy</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="descricao">Descrição dos Treinos *</label>
+              {{ form.descricao(class="form-control" + (" is-invalid" if form.descricao.errors else ""), id="descricao", rows=3, placeholder="Detalhes de como funciona a modalidade...") }}
+              {% for e in form.descricao.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="publico_alvo">Público-alvo / Nível Indicado</label>
+              {{ form.publico_alvo(class="form-control", id="publico_alvo", placeholder="Ex: Iniciantes ao Avançado, Crianças 6-12 anos") }}
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label" for="duracao_estimada">Duração Típica</label>
+              {{ form.duracao_estimada(class="form-control", id="duracao_estimada", placeholder="60 min") }}
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label" for="ordem">Ordem</label>
+              {{ form.ordem(class="form-control", id="ordem", type="number") }}
+            </div>
+
+            <div class="col-12 mt-3 d-flex gap-4">
+              <div class="form-check form-switch">
+                {{ form.destaque(class="form-check-input", id="destaque") }}
+                <label class="form-check-label fw-bold" for="destaque">Destacar Card</label>
+              </div>
+              <div class="form-check form-switch">
+                {{ form.ativo(class="form-check-input", id="ativo") }}
+                <label class="form-check-label fw-bold" for="ativo">Modalidade Ativa</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{{ url_for('admin.modalidades_lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-ocean px-4">Salvar Modalidade</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,86 @@
+{% extends 'base_admin.html' %}
+{% block title %}Depoimentos — Beach Tennis{% endblock %}
+{% block page_title %}Depoimentos de Alunos{% endblock %}
+
+{% block content %}
+<div class="card-bt">
+  <div class="card-header-bt d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-chat-quote-fill me-2 text-ocean"></i>
+      <span>Depoimentos dos Alunos (Apenas aprovados aparecem no site)</span>
+    </div>
+    <a href="{{ url_for('admin.depoimento_novo') }}" class="btn btn-sm btn-ocean">
+      <i class="bi bi-plus-lg me-1"></i> Novo Depoimento
+    </a>
+  </div>
+
+  <div class="p-3">
+    {% if depoimentos %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 50px;">Foto</th>
+              <th>Aluno</th>
+              <th>Depoimento</th>
+              <th style="width: 120px;" class="text-center">Aprovação</th>
+              <th style="width: 140px;" class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in depoimentos %}
+              <tr>
+                <td>
+                  {% if d.foto %}
+                    <img src="{{ url_for('static', filename='uploads/' + d.foto) }}" alt="{{ d.nome }}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                  {% else %}
+                    <div class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.8rem;">
+                      {{ d.nome[0].upper() }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ d.nome }}</strong>
+                  {% if d.destaque %}<span class="badge bg-warning text-dark ms-1">Destaque</span>{% endif %}
+                  <div class="small text-muted">{{ d.criado_em.strftime('%d/%m/%Y') }}</div>
+                </td>
+                <td class="text-muted">"{{ d.texto[:120] }}{% if d.texto|length > 120 %}...{% endif %}"</td>
+                <td class="text-center">
+                  <form method="POST" action="{{ url_for('admin.depoimento_toggle_aprovado', id=d.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {{ 'btn-success' if d.aprovado else 'btn-outline-secondary' }}" title="Clique para alternar aprovação">
+                      <i class="bi {{ 'bi-check-circle-fill' if d.aprovado else 'bi-hourglass-split' }} me-1"></i>
+                      {{ 'Aprovado' if d.aprovado else 'Pendente' }}
+                    </button>
+                  </form>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('admin.depoimento_editar', id=d.id) }}" class="btn btn-outline-secondary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.depoimento_excluir', id=d.id) }}" class="d-inline" onsubmit="return confirm('Excluir este depoimento?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-outline-danger" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-chat-quote display-4 d-block mb-3 text-secondary"></i>
+        <h5>Nenhum depoimento cadastrado</h5>
+        <p>A seção de depoimentos ficará oculta no site até que haja pelo menos um depoimento aprovado.</p>
+        <a href="{{ url_for('admin.depoimento_novo') }}" class="btn btn-ocean">Cadastrar Depoimento</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+

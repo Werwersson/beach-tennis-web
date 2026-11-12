@@ -1,0 +1,84 @@
+{% extends 'base_admin.html' %}
+{% block title %}Conquistas e Títulos — Beach Tennis{% endblock %}
+{% block page_title %}Conquistas e Títulos do Professor{% endblock %}
+
+{% block content %}
+<div class="card-bt">
+  <div class="card-header-bt d-flex justify-content-between align-items-center">
+    <div>
+      <i class="bi bi-trophy-fill me-2 text-warning"></i>
+      <span>Histórico Competitivo (Alimenta os contadores do site)</span>
+    </div>
+    <a href="{{ url_for('admin.conquista_nova') }}" class="btn btn-sm btn-ocean">
+      <i class="bi bi-plus-lg me-1"></i> Nova Conquista
+    </a>
+  </div>
+
+  <div class="p-3">
+    {% if conquistas %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 80px;">Ano</th>
+              <th style="width: 140px;">Colocação</th>
+              <th>Título / Categoria</th>
+              <th>Torneio</th>
+              <th style="width: 100px;" class="text-center">Destaque</th>
+              <th style="width: 120px;" class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in conquistas %}
+              <tr>
+                <td><span class="badge bg-dark">{{ c.ano }}</span></td>
+                <td>
+                  <span class="badge {{ c.badge_class }}">
+                    <i class="bi {{ c.icone }} me-1"></i>
+                    {% if c.colocacao == 'campeao' %}Campeão
+                    {% elif c.colocacao == 'vice' %}Vice-campeão
+                    {% else %}3º Lugar{% endif %}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ c.titulo }}</strong>
+                  <div class="small text-muted">Categoria: {{ c.categoria }}</div>
+                </td>
+                <td class="text-muted">{{ c.torneio or 'Circuito AIBT' }}</td>
+                <td class="text-center">
+                  {% if c.destaque %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Sim</span>
+                  {% else %}
+                    <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('admin.conquista_editar', id=c.id) }}" class="btn btn-outline-secondary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.conquista_excluir', id=c.id) }}" class="d-inline" onsubmit="return confirm('Excluir esta conquista?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-outline-danger" title="Excluir">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-trophy display-4 d-block mb-3 text-secondary"></i>
+        <h5>Nenhuma conquista cadastrada ainda</h5>
+        <p>Cadastre os títulos e medalhas para alimentar a linha do tempo do site público.</p>
+        <a href="{{ url_for('admin.conquista_nova') }}" class="btn btn-ocean">Cadastrar Conquista</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
