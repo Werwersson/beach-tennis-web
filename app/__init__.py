@@ -1,6 +1,7 @@
 import os
 import re
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 from .extensions import db, login_manager, migrate, csrf
 from config import config
 
@@ -22,8 +23,11 @@ def create_app(config_name=None):
         if not app.config.get('SQLALCHEMY_DATABASE_URI'):
             raise RuntimeError(
                 'DATABASE_URL não definida. Configure a string de conexão do PostgreSQL '
-                '(Neon, Supabase ou Railway) antes de iniciar em produção.'
+                '(Neon/Vercel, Supabase ou Railway) antes de iniciar em produção.'
             )
+        # Vercel/Render terminam o TLS no proxy; confia em um proxy para
+        # reconstruir o esquema/host corretos (cookies Secure, url_for externo).
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     # Inicializa extensões
     db.init_app(app)
@@ -115,6 +119,16 @@ def create_app(config_name=None):
             return ''
         from markupsafe import Markup, escape
         return Markup('<br>'.join(escape(s).splitlines()))
+
+    @app.template_global()
+    def upload_url(valor):
+        """URL de uma imagem: aceita nome local ou URL completa (Vercel Blob/S3)."""
+        if not valor:
+            return ''
+        valor = str(valor)
+        if valor.startswith(('http://', 'https://')):
+            return valor
+        return url_for('static', filename=f'uploads/{valor}')
 
     # Handlers de Erro
     @app.errorhandler(404)

@@ -1,0 +1,47 @@
+name: Inicializar banco online
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Criar admin e conteúdo inicial"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Aplicar migrações
+        env:
+          FLASK_ENV: production
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m flask --app wsgi db upgrade
+
+      - name: Criar admin e conteúdo inicial
+        if: ${{ inputs.seed }}
+        env:
+          FLASK_ENV: production
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ADMIN_EMAIL: professor@beachtennis.com
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SEED_DEMO: "0"
+        run: python -m flask --app wsgi seed

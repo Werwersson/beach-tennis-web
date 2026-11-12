@@ -73,7 +73,7 @@
           <td>
             <div class="d-flex align-items-center gap-2">
               {% if aluno.foto %}
-                <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" alt="{{ aluno.nome }}" class="avatar-circle">
+                <img src="{{ upload_url(aluno.foto) }}" alt="{{ aluno.nome }}" class="avatar-circle">
               {% else %}
                 <div class="avatar-circle">{{ aluno.nome[0].upper() }}</div>
               {% endif %}

@@ -66,7 +66,7 @@
                       <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
                            style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%); font-size: 1.1rem; flex-shrink: 0;">
                         {% if aluno.foto %}
-                          <img src="{{ url_for('static', filename='uploads/' ~ aluno.foto) }}" alt="{{ aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                          <img src="{{ upload_url(aluno.foto) }}" alt="{{ aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
                         {% else %}
                           {{ aluno.nome[:2].upper() }}
                         {% endif %}

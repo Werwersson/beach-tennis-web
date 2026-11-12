@@ -10,7 +10,7 @@ público e relatórios em PDF.
 - SQLAlchemy / Flask-Migrate (SQLite no desenvolvimento, PostgreSQL em produção)
 - Chart.js para os gráficos de evolução
 - ReportLab para os relatórios em PDF
-- Gunicorn para servir em produção
+- Gunicorn no Render ou Vercel Functions no Vercel
 
 ## Rodando localmente
 
@@ -148,7 +148,93 @@ git push -u origin main
 O `.gitignore` já protege `.env`, bancos SQLite, `instance/`, uploads e
 `__pycache__`. **Nunca** comite o `.env` nem o banco local.
 
-## Deploy no Render + Neon
+## Deploy no Vercel
+
+O projeto está preparado para o Vercel:
+
+- `wsgi.py` é o entrypoint detectado pelo runtime Python (Flask).
+- `vercel.json` define `maxDuration` e roda `scripts/build_vercel.py`, que copia
+  `app/static` para `public/static` (o Vercel não serve o `static_folder` do
+  Flask).
+- `.python-version` fixa Python 3.12.
+- Uploads usam **Vercel Blob** quando `BLOB_STORE_ID`/`BLOB_READ_WRITE_TOKEN`
+  estão presentes; localmente/Render continuam salvando em disco.
+- Não há start command: as migrações e o seed são executados à parte (workflow
+  `Inicializar banco online` ou comandos locais).
+
+> O plano **Hobby do Vercel é restrito a uso não comercial**. Como este site
+> divulga aulas e planos, o uso comercial exige o plano **Pro** (ou outro host,
+> como o Render). O deploy técnico abaixo funciona nos dois planos.
+
+### 1. Importar o projeto
+
+1. Acesse https://vercel.com/new e importe o repositório
+   `Werwersson/beach-tennis-web`.
+2. Framework preset: **Flask** (ou deixe o Vercel detectar `wsgi.py`).
+3. Ainda não faça o deploy final; primeiro crie o banco e o storage.
+
+### 2. Banco PostgreSQL (Neon pelo Vercel)
+
+1. No projeto do Vercel, abra **Storage → Create Database → Neon**.
+2. Escolha a região e o plano gratuito.
+3. Conecte o banco ao projeto nas environments **Production** e **Preview**.
+   O Vercel injeta `DATABASE_URL` (pooler) e `DATABASE_URL_UNPOOLED` (direto).
+
+A aplicação usa `DATABASE_URL`. Para migrações, use a URL **unpooled**.
+
+### 3. Uploads (Vercel Blob)
+
+1. **Storage → Create Database/Store → Blob**.
+2. Escolha acesso **Public** (as imagens do site são públicas).
+3. Conecte o store ao projeto. O Vercel injeta `BLOB_STORE_ID` e o token OIDC;
+   o SDK `vercel-blob` cuida da autenticação em produção.
+
+### 4. Variáveis de ambiente
+
+Em **Settings → Environment Variables**, configure:
+
+```env
+FLASK_ENV=production
+SECRET_KEY=<gere com python -c "import secrets; print(secrets.token_hex(32))">
+ADMIN_EMAIL=professor@beachtennis.com
+SEED_DEMO=0
+```
+
+`DATABASE_URL` e as variáveis do Blob são injetadas pelos Storage integrations.
+`ADMIN_PASSWORD` não é necessária em runtime; ela é usada só na inicialização.
+
+### 5. Inicializar o banco
+
+O Vercel não executa `flask db upgrade`/`seed` sozinho. Use o workflow do GitHub:
+
+1. Em **GitHub → Settings → Secrets and variables → Actions**, crie:
+   - `DATABASE_URL`: a URL **unpooled** do banco
+   - `SECRET_KEY`: a mesma chave do Vercel
+   - `ADMIN_PASSWORD`: senha forte do primeiro admin
+2. Vá em **Actions → Inicializar banco online → Run workflow**.
+3. O workflow aplica as migrações e, se marcado, cria o admin e o conteúdo
+   inicial (`SEED_DEMO=0`, sem aluno de demonstração).
+
+Alternativa: rode localmente com a URL unpooled:
+
+```bash
+export FLASK_ENV=production
+export SECRET_KEY="..."
+export DATABASE_URL="postgresql://..."
+export ADMIN_EMAIL="professor@beachtennis.com"
+export ADMIN_PASSWORD="senha-forte"
+export SEED_DEMO=0
+python -m flask --app wsgi db upgrade
+python -m flask --app wsgi seed
+```
+
+### 6. Deploy
+
+Faça o deploy/redeploy no Vercel. A URL será algo como
+`https://beach-tennis-web.vercel.app`. Entre com `ADMIN_EMAIL` /
+`ADMIN_PASSWORD` definidos na inicialização.
+
+## Alternativa: Render + Neon
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Werwersson/beach-tennis-web)
 

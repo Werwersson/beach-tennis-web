@@ -32,7 +32,7 @@
               <tr>
                 <td>
                   {% if d.foto %}
-                    <img src="{{ url_for('static', filename='uploads/' + d.foto) }}" alt="{{ d.nome }}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                    <img src="{{ upload_url(d.foto) }}" alt="{{ d.nome }}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
                   {% else %}
                     <div class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.8rem;">
                       {{ d.nome[0].upper() }}

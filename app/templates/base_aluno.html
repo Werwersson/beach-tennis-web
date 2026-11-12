@@ -101,7 +101,7 @@
           <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
                style="width: 36px; height: 36px; background: var(--bt-laranja); font-size: 0.85rem;">
             {% if current_user.aluno and current_user.aluno.foto %}
-              <img src="{{ url_for('static', filename='uploads/' ~ current_user.aluno.foto) }}" alt="{{ current_user.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
+              <img src="{{ upload_url(current_user.aluno.foto) }}" alt="{{ current_user.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
             {% else %}
               {{ current_user.nome[:2].upper() }}
             {% endif %}

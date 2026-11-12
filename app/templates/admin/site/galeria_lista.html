@@ -22,7 +22,7 @@
             <div class="card h-100 border shadow-sm">
               <div style="height: 160px; background-color: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
                 {% if item.tipo == 'imagem' and item.arquivo %}
-                  <img src="{{ url_for('static', filename='uploads/' + item.arquivo) }}" alt="{{ item.titulo }}" style="width: 100%; height: 100%; object-fit: cover;">
+                  <img src="{{ upload_url(item.arquivo) }}" alt="{{ item.titulo }}" style="width: 100%; height: 100%; object-fit: cover;">
                 {% elif item.tipo == 'video' %}
                   <div class="text-center p-3">
                     <i class="bi bi-youtube text-danger display-4"></i>

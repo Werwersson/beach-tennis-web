@@ -32,7 +32,7 @@
               {{ form.arquivo(class="form-control", id="arquivo") }}
               {% if item and item.arquivo %}
                 <div class="mt-2 d-flex align-items-center gap-2">
-                  <img src="{{ url_for('static', filename='uploads/' + item.arquivo) }}" alt="{{ item.titulo }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                  <img src="{{ upload_url(item.arquivo) }}" alt="{{ item.titulo }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
                   <span class="small text-muted">Imagem atual</span>
                 </div>
               {% endif %}

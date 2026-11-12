@@ -54,7 +54,7 @@
               {{ form.foto_professor(class="form-control", id="foto_professor") }}
               {% if foto_atual %}
                 <div class="mt-2 d-flex align-items-center gap-2">
-                  <img src="{{ url_for('static', filename='uploads/' + foto_atual) }}" alt="Foto atual" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                  <img src="{{ upload_url(foto_atual) }}" alt="Foto atual" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
                   <span class="small text-muted">Foto atual salva</span>
                 </div>
               {% endif %}

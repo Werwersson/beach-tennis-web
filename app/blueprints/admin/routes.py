@@ -43,6 +43,11 @@ def sincronizar_categoria_aluno(aluno):
 
 
 # ── Utilitários ────────────────────────────────────────────────────────────
+def _usar_vercel_blob():
+    """Vercel Blob é usado quando o store está conectado (Vercel) ou há token."""
+    return bool(os.environ.get('BLOB_STORE_ID') or os.environ.get('BLOB_READ_WRITE_TOKEN'))
+
+
 def salvar_imagem(arquivo, prefixo='upload'):
     if not arquivo or not arquivo.filename:
         return None
@@ -51,9 +56,46 @@ def salvar_imagem(arquivo, prefixo='upload'):
     if ext not in allowed:
         return None
     nome_seguro = secure_filename(f"{prefixo}_{int(datetime.utcnow().timestamp())}_{arquivo.filename}")
+    conteudo = arquivo.read()
+
+    if _usar_vercel_blob():
+        # Vercel Blob: necessário porque o filesystem da função é somente leitura.
+        from vercel.blob import sync as blob
+        resultado = blob.put_blob(
+            f'beach-tennis/{nome_seguro}',
+            conteudo,
+            access='public',
+            add_random_suffix=True,
+            content_type=getattr(arquivo, 'mimetype', None),
+        )
+        return resultado.url
+
     caminho = os.path.join(current_app.config['UPLOAD_FOLDER'], nome_seguro)
-    arquivo.save(caminho)
+    with open(caminho, 'wb') as destino:
+        destino.write(conteudo)
     return nome_seguro
+
+
+def remover_imagem(valor):
+    """Remove uma imagem local ou do Vercel Blob, ignorando URLs externas."""
+    if not valor:
+        return
+    valor = str(valor)
+    if valor.startswith(('http://', 'https://')):
+        if _usar_vercel_blob():
+            try:
+                from vercel.blob import sync as blob
+                blob.delete_blob(valor)
+            except Exception as erro:  # não impede a edição/exclusão do registro
+                current_app.logger.warning('Falha ao remover imagem remota %s: %s', valor, erro)
+        return
+
+    caminho = os.path.join(current_app.config['UPLOAD_FOLDER'], valor)
+    if os.path.exists(caminho):
+        try:
+            os.remove(caminho)
+        except OSError:
+            pass
 
 
 def extrair_youtube_id(url):
@@ -287,13 +329,7 @@ def aluno_editar(id):
         aluno.ativo = form.ativo.data
 
         if form.foto.data and form.foto.data.filename:
-            if aluno.foto:
-                foto_antiga = os.path.join(current_app.config['UPLOAD_FOLDER'], aluno.foto)
-                if os.path.exists(foto_antiga):
-                    try:
-                        os.remove(foto_antiga)
-                    except OSError:
-                        pass
+            remover_imagem(aluno.foto)
             aluno.foto = salvar_imagem(form.foto.data, 'aluno')
 
         if aluno.usuario:
@@ -315,13 +351,7 @@ def aluno_editar(id):
 def aluno_excluir(id):
     aluno = db.get_or_404(Aluno, id)
     nome = aluno.nome
-    if aluno.foto:
-        caminho_foto = os.path.join(current_app.config['UPLOAD_FOLDER'], aluno.foto)
-        if os.path.exists(caminho_foto):
-            try:
-                os.remove(caminho_foto)
-            except OSError:
-                pass
+    remover_imagem(aluno.foto)
 
     usuario = aluno.usuario
     db.session.delete(aluno)
@@ -456,13 +486,7 @@ def exercicio_editar(id):
         exercicio.ativo = form.ativo.data
 
         if form.imagem.data and form.imagem.data.filename:
-            if exercicio.imagem:
-                img_antiga = os.path.join(current_app.config['UPLOAD_FOLDER'], exercicio.imagem)
-                if os.path.exists(img_antiga):
-                    try:
-                        os.remove(img_antiga)
-                    except OSError:
-                        pass
+            remover_imagem(exercicio.imagem)
             exercicio.imagem = salvar_imagem(form.imagem.data, 'ex')
 
         db.session.commit()
@@ -477,13 +501,7 @@ def exercicio_editar(id):
 def exercicio_excluir(id):
     exercicio = db.get_or_404(Exercicio, id)
     titulo = exercicio.titulo
-    if exercicio.imagem:
-        caminho_img = os.path.join(current_app.config['UPLOAD_FOLDER'], exercicio.imagem)
-        if os.path.exists(caminho_img):
-            try:
-                os.remove(caminho_img)
-            except OSError:
-                pass
+    remover_imagem(exercicio.imagem)
 
     db.session.delete(exercicio)
     db.session.commit()

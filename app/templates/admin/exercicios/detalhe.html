@@ -58,7 +58,7 @@
           {% if exercicio.imagem %}
             <div class="col-12 col-md-{{ '5' if youtube_id else '12' }}">
               <div class="rounded-bt overflow-hidden border shadow-sm text-center bg-light">
-                <img src="{{ url_for('static', filename='uploads/' + exercicio.imagem) }}" alt="{{ exercicio.titulo }}" style="max-height: 350px; width: 100%; object-fit: contain;">
+                <img src="{{ upload_url(exercicio.imagem) }}" alt="{{ exercicio.titulo }}" style="max-height: 350px; width: 100%; object-fit: contain;">
               </div>
             </div>
           {% endif %}

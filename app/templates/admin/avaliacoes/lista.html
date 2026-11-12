@@ -77,7 +77,7 @@
                     <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
                          style="width: 34px; height: 34px; background: var(--bt-ocean); font-size: 0.85rem; flex-shrink: 0;">
                       {% if aval.aluno.foto %}
-                        <img src="{{ url_for('static', filename='uploads/' ~ aval.aluno.foto) }}" alt="{{ aval.aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                        <img src="{{ upload_url(aval.aluno.foto) }}" alt="{{ aval.aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
                       {% else %}
                         {{ aval.aluno.nome[:2].upper() }}
                       {% endif %}

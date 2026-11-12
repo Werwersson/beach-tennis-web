@@ -11,7 +11,7 @@
       <div class="p-4">
         <div class="avatar-circle mx-auto mb-3 shadow" style="width:90px;height:90px;font-size:2.2rem;background:linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%);">
           {% if aluno.foto %}
-            <img src="{{ url_for('static', filename='uploads/' ~ aluno.foto) }}" alt="{{ aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
+            <img src="{{ upload_url(aluno.foto) }}" alt="{{ aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
           {% else %}
             {{ aluno.nome[:2].upper() }}
           {% endif %}

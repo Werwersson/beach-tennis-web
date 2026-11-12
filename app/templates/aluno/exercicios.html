@@ -62,7 +62,7 @@
           <!-- Imagem ou Placeholder Esportivo -->
           {% if ex.imagem %}
             <div style="height: 180px; overflow: hidden; background: #ECE7DE;">
-              <img src="{{ url_for('static', filename='uploads/' ~ ex.imagem) }}" alt="{{ ex.titulo }}" class="w-100 h-100" style="object-fit: cover;">
+              <img src="{{ upload_url(ex.imagem) }}" alt="{{ ex.titulo }}" class="w-100 h-100" style="object-fit: cover;">
             </div>
           {% else %}
             <div class="d-flex align-items-center justify-content-center text-white" style="height: 140px; background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%);">

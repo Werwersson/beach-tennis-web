@@ -229,7 +229,7 @@
           <div class="avatar-circle mx-auto shadow-lg"
                style="width: 250px; height: 250px; font-size: 5rem; background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%); border: 6px solid rgba(255,255,255,0.25);">
             {% if cfg.foto_professor %}
-              <img src="{{ url_for('static', filename='uploads/' ~ cfg.foto_professor) }}" alt="{{ cfg.nome_professor }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+              <img src="{{ upload_url(cfg.foto_professor) }}" alt="{{ cfg.nome_professor }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
             {% else %}
               <i class="bi bi-tsunami text-white"></i>
             {% endif %}
@@ -583,7 +583,7 @@
               <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
                    style="width:42px; height:42px; background: var(--bt-ocean); font-size:0.9rem;">
                 {% if dep.foto %}
-                  <img src="{{ url_for('static', filename='uploads/' ~ dep.foto) }}" alt="{{ dep.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
+                  <img src="{{ upload_url(dep.foto) }}" alt="{{ dep.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
                 {% else %}
                   {{ dep.nome[:2].upper() }}
                 {% endif %}
@@ -617,7 +617,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
             {% if item.tipo == 'imagem' and item.arquivo %}
-              <img src="{{ url_for('static', filename='uploads/' ~ item.arquivo) }}" alt="{{ item.titulo }}" class="w-100" style="height:220px; object-fit:cover;" loading="lazy">
+              <img src="{{ upload_url(item.arquivo) }}" alt="{{ item.titulo }}" class="w-100" style="height:220px; object-fit:cover;" loading="lazy">
             {% elif item.url_video %}
               <div class="ratio ratio-16x9">
                 <iframe src="{{ item.url_video }}" title="{{ item.titulo }}" allowfullscreen loading="lazy"></iframe>

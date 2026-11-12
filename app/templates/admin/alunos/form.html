@@ -17,7 +17,7 @@
           <!-- Foto -->
           <div class="text-center mb-4">
             {% if aluno and aluno.foto %}
-              <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" id="fotoPreview" class="foto-preview mb-2" alt="Foto do aluno">
+              <img src="{{ upload_url(aluno.foto) }}" id="fotoPreview" class="foto-preview mb-2" alt="Foto do aluno">
             {% else %}
               <div class="avatar-circle avatar-lg mx-auto mb-2" id="fotoAvatar">
                 {{ aluno.nome[0].upper() if aluno else '?' }}

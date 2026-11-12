@@ -13,6 +13,8 @@ venv/
 env/
 app/static/uploads/*
 !app/static/uploads/.gitkeep
+scratch/_*.py
+.vercel/
 .DS_Store
 Thumbs.db
 *.log
