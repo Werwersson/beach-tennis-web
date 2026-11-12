@@ -62,15 +62,37 @@ com `DATABASE_URL` apontando para um arquivo temporário.
 
 ## Banco de dados online (PostgreSQL)
 
-O projeto já está preparado para PostgreSQL. A opção gratuita recomendada é o
-**Neon** (https://neon.tech):
+O projeto funciona com qualquer PostgreSQL padrão. As opções gratuitas mais
+comuns são **Neon** e **Supabase**.
 
-1. Crie uma conta e um projeto no Neon.
+### Neon
+
+1. Crie uma conta e um projeto no Neon (https://neon.tech).
 2. Copie a **connection string** (use a opção *Pooled connection* e mantenha
    `?sslmode=require`).
 3. No servidor, configure `DATABASE_URL` com essa string.
 
-Exemplo:
+### Supabase (alternativa)
+
+1. Crie um projeto em https://supabase.com/dashboard.
+2. Em **Project Settings → Database → Connection string**, escolha
+   **Session pooler** (porta **5432**).
+   - Use o session pooler, não a conexão direta: o Render não suporta IPv6 e a
+     conexão direta do Supabase é IPv6 por padrão.
+   - O session pooler preserva sessão e prepared statements, que é o modo mais
+     seguro para este app com psycopg2/SQLAlchemy.
+3. Copie a string no formato
+   `postgresql://postgres.[PROJECT-REF]:[SENHA]@aws-0-[REGIAO].pooler.supabase.com:5432/postgres?sslmode=require`.
+   Se a senha tiver caracteres especiais (`@`, `#`, `%`), URL-encode ou gere uma
+   senha só com letras e números.
+4. Configure `DATABASE_URL` no Render.
+
+Projetos gratuitos do Supabase pausam após 7 dias sem atividade. Um acesso ao
+site de vez em quando mantém o projeto ativo; se pausar, basta clicar em
+**Resume project** no dashboard. O Neon suspende por inatividade, mas retoma
+automaticamente na primeira conexão.
+
+Exemplo de URL:
 
 ```env
 DATABASE_URL=postgresql://usuario:senha@ep-xyz-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
