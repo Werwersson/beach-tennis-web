@@ -5,6 +5,18 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from .extensions import db, login_manager, migrate, csrf
 from config import config
 
+# Imports no nível do módulo: além de evitar importações tardias, garantem que
+# o empacotador do Vercel inclua models, blueprints e utils no bundle da função.
+from .models import (Usuario, Aluno, MetaAluno, Turma, TurmaAluno,
+                     Exercicio, Aula, AulaExercicio, Presenca,
+                     Avaliacao, AvaliacaoNota, Depoimento,
+                     ConfiguracaoSite, Plano, Conquista,
+                     Modalidade, GaleriaItem, MensagemContato)
+from .blueprints.public.routes import public_bp
+from .blueprints.auth.routes import auth_bp
+from .blueprints.admin.routes import admin_bp
+from .blueprints.aluno.routes import aluno_bp
+
 
 def create_app(config_name=None):
     if config_name is None:
@@ -38,19 +50,7 @@ def create_app(config_name=None):
     # Cria diretório de uploads caso não exista
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    # Importa models para que fiquem visíveis ao SQLAlchemy/Migrate
-    from .models import (Usuario, Aluno, MetaAluno, Turma, TurmaAluno,
-                         Exercicio, Aula, AulaExercicio, Presenca,
-                         Avaliacao, AvaliacaoNota, Depoimento,
-                         ConfiguracaoSite, Plano, Conquista,
-                         Modalidade, GaleriaItem, MensagemContato)
-
     # Registra Blueprints
-    from .blueprints.public.routes import public_bp
-    from .blueprints.auth.routes import auth_bp
-    from .blueprints.admin.routes import admin_bp
-    from .blueprints.aluno.routes import aluno_bp
-
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
