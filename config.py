@@ -3,6 +3,22 @@ from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
+def normalizar_database_url(url):
+    """Força o driver psycopg2 (já instalado) em URLs PostgreSQL.
+
+    Sem o sufixo +psycopg2, versões novas do SQLAlchemy podem tentar usar
+    psycopg 3, que não está nas dependências do projeto.
+    """
+    if not url:
+        return url
+    if url.startswith('postgres://'):
+        return 'postgresql+psycopg2://' + url[len('postgres://'):]
+    if url.startswith('postgresql://'):
+        return 'postgresql+psycopg2://' + url[len('postgresql://'):]
+    return url
+
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-mude-em-producao')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -22,8 +38,7 @@ class DevelopmentConfig(Config):
     SESSION_COOKIE_SECURE = False
     REMEMBER_COOKIE_SECURE = False
     db_url = os.environ.get('DATABASE_URL', f'sqlite:///{os.path.join(basedir, "beach_tennis.db")}')
-    if db_url.startswith('postgres://'):
-        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+    db_url = normalizar_database_url(db_url)
     SQLALCHEMY_DATABASE_URI = db_url
 
 class ProductionConfig(Config):
@@ -34,8 +49,7 @@ class ProductionConfig(Config):
 
     SECRET_KEY = os.environ.get('SECRET_KEY', '')
     database_url = os.environ.get('DATABASE_URL', '')
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    database_url = normalizar_database_url(database_url)
     SQLALCHEMY_DATABASE_URI = database_url
 
     # Evita conexões mortas em bancos gerenciados (Neon/Supabase) que suspendem
