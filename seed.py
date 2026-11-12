@@ -32,10 +32,9 @@ def seed_database():
             db.session.add(professor)
             print(f"Sucesso: Usuário professor criado ({admin_email})!")
         else:
-            professor.nome = admin_nome
+            # Não sobrescreve nome nem senha de um admin já configurado.
             professor.ativo = True
-            # Nunca redefine a senha de um admin existente (evita reset em cada deploy).
-            print("Sucesso: Usuário professor já existente (senha preservada).")
+            print("Sucesso: Usuário professor já existente (dados preservados).")
 
         # 2. CONFIGURAÇÕES DO SITE
         configs_padrao = {
