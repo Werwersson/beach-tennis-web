@@ -15,6 +15,7 @@ sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 def seed_database():
     with app.app_context():
         db.create_all()
+        seed_demo = os.environ.get('SEED_DEMO', '1').lower() not in ('0', 'false', 'no')
 
         # 1. PROFESSOR / ADMIN
         admin_email = os.environ.get('ADMIN_EMAIL', 'professor@beachtennis.com').strip().lower()
@@ -163,7 +164,7 @@ def seed_database():
             print("Sucesso: 7 Modalidades cadastradas!")
 
         # 5. TURMAS ATIVAS (Para horários automáticos no site)
-        if Turma.query.count() == 0:
+        if seed_demo and Turma.query.count() == 0:
             turma1 = Turma(
                 nome='Turma Terça & Quinta Noite',
                 nivel='iniciante',
@@ -188,7 +189,7 @@ def seed_database():
             print("Sucesso: Turmas de exemplo criadas!")
 
         # 6. PLANOS E VALORES (Marcados como exemplo)
-        if Plano.query.count() == 0:
+        if seed_demo and Plano.query.count() == 0:
             planos = [
                 Plano(
                     nome='Plano 2x por Semana (exemplo)',
@@ -225,7 +226,7 @@ def seed_database():
             print("Sucesso: Planos de exemplo criados!")
 
         # 7. DEPOIMENTOS (Exemplo aprovados)
-        if Depoimento.query.count() == 0:
+        if seed_demo and Depoimento.query.count() == 0:
             deps = [
                 Depoimento(
                     nome='Camila Rocha (exemplo)',
@@ -246,7 +247,6 @@ def seed_database():
             print("Sucesso: Depoimentos de exemplo criados!")
 
         # 8. ALUNO PADRÃO DE TESTE (Lucas Silva) — apenas quando SEED_DEMO != 0
-        seed_demo = os.environ.get('SEED_DEMO', '1').lower() not in ('0', 'false', 'no')
         aluno_user = Usuario.query.filter_by(email='aluno@beachtennis.com').first() if seed_demo else None
         if not seed_demo:
             print("Seed de demonstração desativado (SEED_DEMO=0). Nenhum aluno de teste criado.")
