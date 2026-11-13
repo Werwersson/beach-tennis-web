@@ -653,6 +653,7 @@
         </p>
 
         <form method="POST" action="{{ url_for('public.enviar_contato') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <!-- Campo Honeypot anti-spam invisível para humanos -->
           <div class="honeypot-field">
             <label for="website_url">Não preencha este campo se for humano:</label>
