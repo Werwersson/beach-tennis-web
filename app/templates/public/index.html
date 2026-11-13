@@ -167,7 +167,7 @@
           {% if current_user.is_authenticated %}
             {% if current_user.is_admin %}
               <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-cta">
-                <i class="bi bi-speedometer2 me-1"></i>Painel Admin
+                <i class="bi bi-speedometer2 me-1"></i>Painel Aluno
               </a>
             {% else %}
               <a href="{{ url_for('aluno.painel') }}" class="btn btn-sm btn-cta">
