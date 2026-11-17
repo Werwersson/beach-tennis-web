@@ -1873,7 +1873,13 @@ def partidas_lista():
     if categoria:
         query = query.filter_by(categoria=categoria)
 
-    partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+    try:
+        partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+    except Exception:
+        db.session.rollback()
+        db.create_all()
+        partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+
     return render_template('admin/partidas/lista.html', partidas=partidas, busca=busca, categoria=categoria)
 
 

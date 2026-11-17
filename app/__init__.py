@@ -10,8 +10,9 @@ from config import config
 from .models import (Usuario, Aluno, MetaAluno, Turma, TurmaAluno,
                      Exercicio, Aula, AulaExercicio, Presenca,
                      Avaliacao, AvaliacaoNota, Depoimento,
-                     ConfiguracaoSite, Plano, Conquista,
-                     Modalidade, GaleriaItem, MensagemContato)
+                     ConfiguracaoSite, Plano, Conquista, TrofeuAluno,
+                     Modalidade, GaleriaItem, MensagemContato,
+                     Partida, PontoPartida)
 from .blueprints.public.routes import public_bp
 from .blueprints.auth.routes import auth_bp
 from .blueprints.admin.routes import admin_bp

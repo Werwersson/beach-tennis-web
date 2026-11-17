@@ -286,22 +286,25 @@ def partidas_lista():
     """Visualização das partidas e scouts (BT Tracker) do aluno."""
     aluno = get_current_aluno()
 
-    # Partidas onde o aluno é Jogador 1, 2, 3 ou 4, ou partidas gerais
-    partidas = Partida.query.filter(
-        db.or_(
-            Partida.jogador1_aluno_id == aluno.id,
-            Partida.jogador2_aluno_id == aluno.id,
-            Partida.jogador3_aluno_id == aluno.id,
-            Partida.jogador4_aluno_id == aluno.id,
-            Partida.jogador1_nome.ilike(f"%{aluno.nome}%"),
-            Partida.jogador2_nome.ilike(f"%{aluno.nome}%"),
-            Partida.jogador3_nome.ilike(f"%{aluno.nome}%"),
-            Partida.jogador4_nome.ilike(f"%{aluno.nome}%"),
-        )
-    ).order_by(Partida.data.desc(), Partida.id.desc()).all()
+    try:
+        partidas = Partida.query.filter(
+            db.or_(
+                Partida.jogador1_aluno_id == aluno.id,
+                Partida.jogador2_aluno_id == aluno.id,
+                Partida.jogador3_aluno_id == aluno.id,
+                Partida.jogador4_aluno_id == aluno.id,
+                Partida.jogador1_nome.ilike(f"%{aluno.nome}%"),
+                Partida.jogador2_nome.ilike(f"%{aluno.nome}%"),
+                Partida.jogador3_nome.ilike(f"%{aluno.nome}%"),
+                Partida.jogador4_nome.ilike(f"%{aluno.nome}%"),
+            )
+        ).order_by(Partida.data.desc(), Partida.id.desc()).all()
 
-    # Se não tiver partida específica do aluno, mostra todas para demonstração
-    if not partidas:
+        if not partidas:
+            partidas = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+    except Exception:
+        db.session.rollback()
+        db.create_all()
         partidas = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
 
     return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
