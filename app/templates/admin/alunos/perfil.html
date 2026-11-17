@@ -118,6 +118,50 @@
         {% endfor %}
       </div>
     </div>
+
+    <!-- Card Troféus -->
+    <div class="card-bt mb-4">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-trophy-fill me-1 text-warning"></i>Troféus do Aluno</span>
+        <a href="{{ url_for('admin.trofeu_novo', aluno_id=aluno.id) }}" class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem;">+ Troféu</a>
+      </div>
+      <div class="p-3">
+        {% for trofeu in aluno.trofeus %}
+          <div class="border-bottom pb-2 mb-2">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div>
+                <div class="d-flex align-items-center gap-1 flex-wrap mb-1">
+                  <span class="badge bg-dark">{{ trofeu.ano }}</span>
+                  <span class="badge {{ trofeu.badge_class }}">
+                    <i class="bi {{ trofeu.icone }} me-1"></i>{{ trofeu.colocacao_label }}
+                  </span>
+                  {% if trofeu.destaque %}
+                    <i class="bi bi-star-fill text-warning" title="Destaque"></i>
+                  {% endif %}
+                </div>
+                <div class="fw-bold text-dark" style="font-size:0.88rem;">{{ trofeu.titulo }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">
+                  {{ trofeu.categoria }}{% if trofeu.torneio %} · {{ trofeu.torneio }}{% endif %}
+                </div>
+              </div>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('admin.trofeu_editar', id=trofeu.id) }}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Editar troféu">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{{ url_for('admin.trofeu_excluir', id=trofeu.id) }}" class="d-inline" onsubmit="return confirm('Excluir este troféu?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Excluir troféu">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0" style="font-size:0.85rem;">Nenhum troféu cadastrado. Use “+ Troféu” para adicionar.</p>
+        {% endfor %}
+      </div>
+    </div>
   </div>
 
   <!-- Coluna da direita: Análise de Desempenho e Gráficos -->

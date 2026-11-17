@@ -33,6 +33,7 @@ class Aluno(db.Model):
     presencas = db.relationship('Presenca', back_populates='aluno', cascade='all, delete-orphan')
     avaliacoes = db.relationship('Avaliacao', back_populates='aluno', cascade='all, delete-orphan', order_by='Avaliacao.data.desc()')
     metas = db.relationship('MetaAluno', back_populates='aluno', cascade='all, delete-orphan', order_by='MetaAluno.criado_em.desc()')
+    trofeus = db.relationship('TrofeuAluno', back_populates='aluno', cascade='all, delete-orphan', order_by='TrofeuAluno.ano.desc(), TrofeuAluno.ordem.asc()')
 
     @property
     def categoria_efetiva(self):

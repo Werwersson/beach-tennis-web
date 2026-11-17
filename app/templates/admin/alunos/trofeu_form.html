@@ -1,0 +1,76 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if trofeu else 'Novo' }} Troféu — {{ aluno.nome }}{% endblock %}
+{% block page_title %}{{ 'Editar Troféu' if trofeu else 'Novo Troféu do Aluno' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="card-bt">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-trophy-fill text-warning"></i>
+          <span>{{ 'Editar Troféu' if trofeu else 'Cadastrar Troféu' }} — {{ aluno.nome }}</span>
+        </div>
+        <a href="{{ url_for('admin.aluno_perfil', id=aluno.id) }}" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-arrow-left me-1"></i>Perfil
+        </a>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="ano">Ano *</label>
+              {{ form.ano(class="form-control" + (" is-invalid" if form.ano.errors else ""), id="ano", placeholder="2026") }}
+              {% for e in form.ano.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label" for="colocacao">Colocação / Resultado *</label>
+              {{ form.colocacao(class="form-select", id="colocacao") }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="categoria">Categoria *</label>
+              {{ form.categoria(class="form-control" + (" is-invalid" if form.categoria.errors else ""), id="categoria", placeholder="Ex: Masculina C, Mista C, Open") }}
+              {% for e in form.categoria.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="titulo">Título / Descrição *</label>
+              {{ form.titulo(class="form-control" + (" is-invalid" if form.titulo.errors else ""), id="titulo", placeholder="Ex: Campeão Masc C") }}
+              {% for e in form.titulo.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label" for="torneio">Torneio / Circuito</label>
+              {{ form.torneio(class="form-control", id="torneio", placeholder="Circuito AIBT") }}
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="ordem">Ordem de Exibição</label>
+              {{ form.ordem(class="form-control", id="ordem", type="number") }}
+            </div>
+
+            <div class="col-12 mt-3">
+              <div class="form-check form-switch">
+                {{ form.destaque(class="form-check-input", id="destaque") }}
+                <label class="form-check-label fw-bold" for="destaque">Destacar no perfil do aluno</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+            <a href="{{ url_for('admin.aluno_perfil', id=aluno.id) }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-ocean px-4">
+              <i class="bi bi-check-lg me-1"></i>{{ 'Salvar Alterações' if trofeu else 'Salvar Troféu' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

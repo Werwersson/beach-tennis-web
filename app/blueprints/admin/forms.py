@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
+from datetime import date
 from wtforms import (StringField, TextAreaField, SelectField, SelectMultipleField,
                      DateField, TimeField, DateTimeLocalField, IntegerField, FloatField,
                      BooleanField, PasswordField, SubmitField)
@@ -295,6 +296,32 @@ class ConquistaForm(FlaskForm):
     destaque = BooleanField('Destacar na Linha do Tempo', default=False)
     ordem = IntegerField('Ordem de Exibição', default=0)
     submit = SubmitField('Salvar Conquista')
+
+
+class TrofeuForm(FlaskForm):
+    ano = IntegerField('Ano', default=date.today().year, validators=[
+        DataRequired(message='Informe o ano.'),
+        NumberRange(min=2000, max=2100)
+    ])
+    colocacao = SelectField('Colocação', choices=[
+        ('campeao', 'Campeão (1º Lugar)'),
+        ('vice', 'Vice-campeão (2º Lugar)'),
+        ('3_lugar', '3º Lugar')
+    ], validators=[DataRequired()])
+    categoria = StringField('Categoria', validators=[
+        DataRequired(message='Informe a categoria.'),
+        Length(max=100)
+    ])
+    titulo = StringField('Título / Descrição', validators=[
+        DataRequired(message='Informe o título.'),
+        Length(max=150)
+    ])
+    torneio = StringField('Torneio / Circuito', default='Circuito AIBT', validators=[
+        Optional(), Length(max=150)
+    ])
+    destaque = BooleanField('Destacar no perfil do aluno', default=False)
+    ordem = IntegerField('Ordem de Exibição', default=0)
+    submit = SubmitField('Salvar Troféu')
 
 
 class ModalidadeForm(FlaskForm):

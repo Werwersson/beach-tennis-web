@@ -9,7 +9,7 @@ from .categoria import (CATEGORIAS_BEACH_TENNIS, CATEGORIA_PESOS, CATEGORIA_ORDE
                         calcular_indice)
 from .depoimento import Depoimento
 from .configuracao import ConfiguracaoSite, Plano
-from .conquista import Conquista
+from .conquista import Conquista, TrofeuAluno
 from .modalidade import Modalidade
 from .galeria import GaleriaItem
 from .mensagem import MensagemContato
@@ -23,5 +23,5 @@ __all__ = [
     'Avaliacao', 'AvaliacaoNota', 'CRITERIOS_AVALIACAO',
     'CATEGORIAS_BEACH_TENNIS', 'CATEGORIA_PESOS', 'CATEGORIA_ORDEM', 'calcular_indice',
     'Depoimento', 'ConfiguracaoSite', 'Plano',
-    'Conquista', 'Modalidade', 'GaleriaItem', 'MensagemContato',
+    'Conquista', 'TrofeuAluno', 'Modalidade', 'GaleriaItem', 'MensagemContato',
 ]

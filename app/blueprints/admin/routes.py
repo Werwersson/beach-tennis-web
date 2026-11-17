@@ -10,7 +10,7 @@ from app.models import (Usuario, Aluno, MetaAluno, Turma, TurmaAluno,
                         Exercicio, Aula, AulaExercicio, Presenca,
                         Avaliacao, AvaliacaoNota, Depoimento,
                         ConfiguracaoSite, Plano, Conquista,
-                        Modalidade, GaleriaItem, MensagemContato)
+                        Modalidade, GaleriaItem, MensagemContato, TrofeuAluno)
 from app.models.exercicio import CATEGORIAS_EXERCICIO, NIVEIS_EXERCICIO
 from app.models.avaliacao import CRITERIOS_AVALIACAO
 from app.models.categoria import CATEGORIAS_BEACH_TENNIS, CATEGORIA_PESOS
@@ -19,7 +19,7 @@ from .forms import (AlunoForm, ExercicioForm, TurmaForm, AulaForm,
                     GerarAulasRecorrentesForm, CancelarAulaForm,
                     RemarcarAulaForm, AulaExercicioForm, AvaliacaoForm,
                     ConfiguracaoSiteForm, ConquistaForm, ModalidadeForm,
-                    PlanoForm, DepoimentoForm, GaleriaItemForm)
+                    PlanoForm, DepoimentoForm, GaleriaItemForm, TrofeuForm)
 
 from app.utils.analytics import get_aluno_analytics
 from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
@@ -389,6 +389,65 @@ def meta_concluir(id):
     status_str = 'concluída' if meta.concluida else 'reaberta'
     flash(f'Meta marcada como {status_str}!', 'success')
     return redirect(url_for('admin.aluno_perfil', id=meta.aluno_id))
+
+
+# ── TROFÉUS DO ALUNO ──────────────────────────────────────────────────────
+@admin_bp.route('/alunos/<int:aluno_id>/trofeus/novo', methods=['GET', 'POST'])
+@admin_required
+def trofeu_novo(aluno_id):
+    aluno = db.get_or_404(Aluno, aluno_id)
+    form = TrofeuForm()
+
+    if form.validate_on_submit():
+        trofeu = TrofeuAluno(
+            aluno_id=aluno.id,
+            ano=form.ano.data,
+            colocacao=form.colocacao.data,
+            categoria=form.categoria.data.strip(),
+            titulo=form.titulo.data.strip(),
+            torneio=form.torneio.data.strip() if form.torneio.data else None,
+            destaque=form.destaque.data,
+            ordem=form.ordem.data or 0,
+        )
+        db.session.add(trofeu)
+        db.session.commit()
+        flash(f'Troféu "{trofeu.titulo}" adicionado ao aluno {aluno.nome}!', 'success')
+        return redirect(url_for('admin.aluno_perfil', id=aluno.id))
+
+    return render_template('admin/alunos/trofeu_form.html', aluno=aluno, trofeu=None, form=form)
+
+
+@admin_bp.route('/trofeus/<int:id>/editar', methods=['GET', 'POST'])
+@admin_required
+def trofeu_editar(id):
+    trofeu = db.get_or_404(TrofeuAluno, id)
+    form = TrofeuForm(obj=trofeu)
+
+    if form.validate_on_submit():
+        trofeu.ano = form.ano.data
+        trofeu.colocacao = form.colocacao.data
+        trofeu.categoria = form.categoria.data.strip()
+        trofeu.titulo = form.titulo.data.strip()
+        trofeu.torneio = form.torneio.data.strip() if form.torneio.data else None
+        trofeu.destaque = form.destaque.data
+        trofeu.ordem = form.ordem.data or 0
+        db.session.commit()
+        flash('Troféu atualizado com sucesso!', 'success')
+        return redirect(url_for('admin.aluno_perfil', id=trofeu.aluno_id))
+
+    return render_template('admin/alunos/trofeu_form.html', aluno=trofeu.aluno, trofeu=trofeu, form=form)
+
+
+@admin_bp.route('/trofeus/<int:id>/excluir', methods=['POST'])
+@admin_required
+def trofeu_excluir(id):
+    trofeu = db.get_or_404(TrofeuAluno, id)
+    aluno_id = trofeu.aluno_id
+    titulo = trofeu.titulo
+    db.session.delete(trofeu)
+    db.session.commit()
+    flash(f'Troféu "{titulo}" removido.', 'info')
+    return redirect(url_for('admin.aluno_perfil', id=aluno_id))
 
 
 # ── EXERCÍCIOS ────────────────────────────────────────────────────────────
