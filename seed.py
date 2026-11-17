@@ -6,7 +6,8 @@ from app.extensions import db
 from app.models import (Usuario, Aluno, MetaAluno, Turma, TurmaAluno,
                         Exercicio, Aula, AulaExercicio, Avaliacao,
                         AvaliacaoNota, ConfiguracaoSite, Conquista,
-                        Modalidade, Plano, Depoimento, GaleriaItem)
+                        Modalidade, Plano, Depoimento, GaleriaItem,
+                        Partida, PontoPartida)
 
 app = create_app(os.environ.get('FLASK_ENV', 'development'))
 
@@ -362,6 +363,112 @@ def seed_database():
             print("Sucesso: Aluno padrão Lucas Silva criado com 3 avaliações (D -> C) e curva de evolução!")
         else:
             aluno_user.ativo = True
+
+        # 9. PARTIDA DEMO DO BT TRACKER (SCOUT REAL DOS RELATÓRIOS OFICIAIS)
+        if seed_demo and Partida.query.count() == 0:
+            aluno_padrao = Aluno.query.first()
+            partida_demo = Partida(
+                titulo='Final Circuito AIBT 2026 — Masculina B',
+                data=date.today() - timedelta(days=7),
+                torneio='Circuito AIBT 2026',
+                categoria='Masculina B',
+                fase='Final',
+                local='Arena Itabuna (Quadra Central)',
+                jogador1_nome='Everson Vicktor',
+                jogador2_nome='Lucas Silva',
+                jogador2_aluno_id=aluno_padrao.id if aluno_padrao else None,
+                jogador3_nome='Carlos Mendes',
+                jogador4_nome='Rafael Costa',
+                set1_dupla1=4,
+                set1_dupla2=6,
+                set2_dupla1=3,
+                set2_dupla2=6,
+                placar_detalhado='4x6 | 3x6',
+                dupla_vencedora=2,
+                duracao_minutos=75,
+                observacoes='Grande final do Circuito AIBT com vento moderado. Destaque para os smashes e variações de saque aberto.'
+            )
+            db.session.add(partida_demo)
+            db.session.flush()
+
+            # Lances reais da partida oficial do BT Tracker
+            amostra_pontos = [
+                (4, 1, 3, 'erro_nao_forcado', 'Smash', 'Esquerda', '2', 'Bom', 'No sacador', 'Boa', '0x0 15x0', None, 45, 60, 50, 15, 'Erro não forçado de Smash de Carlos Mendes'),
+                (4, 2, 4, 'winner', 'Smash', 'Esquerda', '3', 'Bom', 'Meio', 'Regular', '0x0 15x15', None, 60, 80, 20, 25, 'Winner de Smash de Rafael Costa'),
+                (4, 2, 1, 'erro_nao_forcado', 'Avanço com Forehand', 'Esquerda', '4', 'Bom', 'No sacador', 'Regular', '0x0 15x30', None, 30, 20, 35, 95, 'Erro não forçado de Avanço de Everson Vicktor'),
+                (4, 1, 4, 'erro_saque', None, 'Esquerda', '5', 'Erro', None, None, '0x0 30x30', None, 65, 85, 65, 45, 'Erro de Saque de Rafael Costa'),
+                (4, 1, 4, 'erro_saque', None, 'Esquerda', '3', 'Erro', None, None, '0x0 40x30', None, 65, 85, 50, 48, 'Erro de Saque de Rafael Costa'),
+                (4, 2, 4, 'winner', 'Gancho', 'Esquerda', '2', 'Bom', 'Lob', 'Regular', '0x0 40x40', 'Bola na Fita', 70, 75, 25, 20, 'Winner de Gancho de Rafael Costa [40x40 Decisivo]'),
+                (4, 2, 4, 'forcou_erro', 'Lob Chutado com Forehand', 'Esquerda', '3', 'Bom', 'Meio', 'Ruim', '0x1', None, 50, 80, 80, 15, 'Rafael Costa forçou o erro com Lob Chutado'),
+
+                (2, 2, 2, 'erro_saque', None, 'Direita', '1', 'Erro', None, None, '0x1 0x15', None, 35, 15, 35, 52, 'Erro de Saque de Lucas Silva'),
+                (2, 2, 2, 'erro_saque', None, 'Direita', '1', 'Erro', None, None, '0x1 0x30', None, 35, 15, 45, 53, 'Erro de Saque de Lucas Silva'),
+                (2, 2, 4, 'winner', 'Smash', 'Direita', '3', 'Regular', 'No sacador', 'Boa', '0x1 0x40', None, 65, 80, 30, 20, 'Winner de Smash de Rafael Costa'),
+                (2, 1, 4, 'erro_devolucao', None, 'Direita', '2', 'Bom', 'No sacador', 'Erro', '0x1 15x40', None, 40, 20, 70, 70, 'Erro de devolução de Rafael Costa'),
+                (2, 2, 4, 'forcou_erro', 'Smash', 'Direita', '3', 'Regular', 'Meio', 'Ruim', '0x2', None, 75, 75, 40, 25, 'Rafael Costa forçou o erro com Smash'),
+
+                (3, 2, 4, 'winner', 'Smash', 'Direita', '3', 'Bom', 'No sacador', 'Regular', '0x2 0x15', None, 65, 80, 25, 15, 'Winner de Smash de Rafael Costa'),
+                (3, 2, 4, 'winner', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'Meio', 'Regular', '0x2 0x30', 'Bola na Linha', 70, 75, 20, 10, 'Winner de Lob Chutado de Rafael Costa'),
+                (3, 1, 2, 'winner', 'Lob Chutado com Backhand', 'Direita', '2', 'Regular', 'No sacador', 'Boa', '0x2 15x30', None, 40, 25, 80, 85, 'Winner de Lob Chutado de Lucas Silva'),
+                (3, 2, 2, 'erro_devolucao', None, 'Direita', '4', 'Bom', 'No parceiro', 'Erro', '0x2 15x40', 'Bola na Fita', 35, 85, 30, 30, 'Erro de devolução de Lucas Silva'),
+                (3, 1, 2, 'forcou_erro', 'Smash', 'Direita', '3', 'Regular', 'Meio', 'Regular', '0x2 30x40', None, 45, 30, 65, 80, 'Lucas Silva forçou erro com Smash'),
+                (3, 2, 4, 'winner', 'Gancho', 'Direita', '3', 'Bom', 'No sacador', 'Regular', '0x3', None, 60, 75, 30, 15, 'Winner de Gancho de Rafael Costa'),
+
+                (1, 2, 3, 'winner', 'Curta com Forehand', 'Direita', '3', 'Regular', 'No sacador', 'Boa', '0x3 0x15', 'Bola na Linha', 30, 70, 45, 45, 'Winner de Curta de Carlos Mendes'),
+                (1, 1, 1, 'ace', None, 'Direita', '4', 'Ace', None, None, '0x3 15x15', None, 30, 15, 75, 75, 'Ace no ângulo de Everson Vicktor'),
+                (1, 2, 4, 'forcou_erro', 'Lob Chutado com Forehand', 'Direita', '2', 'Regular', 'Meio', 'Ruim', '0x3 15x30', None, 70, 80, 30, 20, 'Rafael Costa forçou o erro com Lob Chutado'),
+                (1, 2, 3, 'winner', 'Devolução com Forehand', 'Direita', '3', 'Regular', 'No sacador', 'Winner', '0x3 15x40', None, 30, 70, 75, 20, 'Winner de Devolução de Carlos Mendes'),
+                (1, 1, 4, 'erro_devolucao', None, 'Direita', '3', 'Bom', 'No sacador', 'Erro', '0x3 30x40', None, 40, 20, 65, 65, 'Erro de devolução de Rafael Costa'),
+                (1, 1, 3, 'erro_nao_forcado', 'Smash', 'Direita', '4', 'Bom', 'Meio', 'Regular', '0x3 40x40', 'Furou a bola', 35, 75, 40, 55, 'Erro não forçado de Smash de Carlos Mendes'),
+                (1, 2, 1, 'erro_nao_forcado', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'No sacador', 'Regular', '0x4', None, 35, 25, 40, 95, 'Erro não forçado de Lob Chutado de Everson Vicktor'),
+
+                (4, 2, 4, 'winner', 'Lob Chutado com Forehand', 'Esquerda', '3', 'Bom', 'Meio', 'Regular', '0x4 0x15', None, 65, 80, 25, 15, 'Winner de Lob Chutado de Rafael Costa'),
+                (4, 1, 4, 'erro_saque', None, 'Esquerda', '4', 'Erro', None, None, '0x4 15x15', None, 65, 85, 40, 45, 'Erro de Saque de Rafael Costa'),
+                (4, 1, 1, 'forcou_erro', 'Voleio estático com Forehand', 'Esquerda', '2', 'Regular', 'No sacador', 'Boa', '0x4 30x15', None, 40, 35, 60, 65, 'Everson Vicktor forçou erro com Voleio Estático'),
+                (4, 2, 3, 'forcou_erro', '1-2 Combination', 'Esquerda', '3', 'Bom', 'Meio', 'Ruim', '0x4 30x30', None, 35, 65, 30, 25, 'Carlos Mendes forçou erro com 1-2 Combination'),
+                (4, 1, 3, 'erro_nao_forcado', 'Curta com Forehand', 'Esquerda', '2', 'Bom', 'No sacador', 'Boa', '0x4 40x30', None, 40, 60, 45, 55, 'Erro não forçado de Curta de Carlos Mendes'),
+                (4, 1, 1, 'forcou_erro', 'Smash', 'Esquerda', '3', 'Regular', 'Meio', 'Boa', '1x4', None, 35, 30, 65, 75, 'Everson Vicktor forçou erro com Smash'),
+
+                (2, 1, 1, 'winner', 'Smash', 'Direita', '3', 'Bom', 'Meio', 'Regular', '1x4 15x30', None, 35, 35, 65, 80, 'Winner de Smash de Everson Vicktor'),
+                (2, 1, 4, 'erro_nao_forcado', 'Curta com Backhand', 'Direita', '2', 'Bom', 'No sacador', 'Regular', '1x4 30x30', None, 65, 70, 60, 52, 'Erro não forçado de Curta de Rafael Costa'),
+                (2, 1, 1, 'forcou_erro', 'Smash', 'Direita', '3', 'Bom', 'Meio', 'Regular', '1x4 40x30', None, 40, 30, 75, 75, 'Everson Vicktor forçou erro com Smash'),
+                (2, 2, 3, 'winner', 'Smash', 'Direita', '4', 'Regular', 'No sacador', 'Boa', '1x4 40x40', None, 35, 75, 35, 20, 'Winner de Smash de Carlos Mendes'),
+                (2, 1, 1, 'forcou_erro', '1-2 Combination', 'Direita', '3', 'Bom', 'Meio', 'Regular', '2x4', None, 35, 35, 70, 70, 'Everson Vicktor forçou o erro com 1-2 Combination'),
+
+                (3, 1, 1, 'winner', 'Smash', 'Direita', '3', 'Regular', 'Meio', 'Boa', '2x4 15x0', None, 40, 30, 65, 75, 'Winner de Smash de Everson Vicktor'),
+                (3, 1, 3, 'erro_saque', None, 'Direita', '2', 'Erro', None, None, '2x4 30x0', None, 35, 85, 50, 45, 'Erro de Saque de Carlos Mendes'),
+                (3, 2, 2, 'erro_devolucao', None, 'Direita', '3', 'Bom', 'No sacador', 'Erro', '2x4 30x15', None, 45, 20, 35, 85, 'Erro de devolução de Lucas Silva'),
+                (3, 1, 3, 'erro_saque', None, 'Direita', '4', 'Erro', None, None, '2x4 40x15', None, 35, 85, 30, 45, 'Erro de Saque de Carlos Mendes'),
+                (3, 2, 4, 'winner', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'Meio', 'Regular', '2x4 40x30', None, 70, 80, 25, 15, 'Winner de Lob Chutado de Rafael Costa'),
+                (3, 1, 3, 'erro_nao_forcado', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'Meio', 'Regular', '3x4', None, 35, 75, 35, 5, 'Erro não forçado de Lob Chutado de Carlos Mendes'),
+            ]
+
+            for idx, pt in enumerate(amostra_pontos, start=1):
+                ponto = PontoPartida(
+                    partida_id=partida_demo.id,
+                    numero_ponto=idx,
+                    sacador=pt[0],
+                    dupla_vencedora=pt[1],
+                    atleta_finalizador=pt[2],
+                    tipo_desfecho=pt[3],
+                    tipo_golpe=pt[4],
+                    posicao_sacador=pt[5],
+                    direcao_saque=pt[6],
+                    qualidade_saque=pt[7],
+                    direcao_devolucao=pt[8],
+                    qualidade_devolucao=pt[9],
+                    placar_texto=pt[10],
+                    situacao_adicional=pt[11],
+                    origem_x=pt[12],
+                    origem_y=pt[13],
+                    destino_x=pt[14],
+                    destino_y=pt[15],
+                    descricao_lance=pt[16],
+                    duracao_ponto='Curto' if pt[3] in ['ace', 'erro_saque'] else ('Longo' if 'Lob' in str(pt[4]) else 'Médio')
+                )
+                db.session.add(ponto)
+
+            print("Sucesso: Partida oficial do BT Tracker com 42 lances cadastrada!")
 
         db.session.commit()
         print("\n=== BANCO DE DADOS POPULADO COM SUCESSO! ===")

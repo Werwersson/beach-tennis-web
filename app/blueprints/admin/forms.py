@@ -412,3 +412,42 @@ class GaleriaItemForm(FlaskForm):
     ativo = BooleanField('Item Ativo', default=True)
     ordem = IntegerField('Ordem', default=0)
     submit = SubmitField('Salvar Item da Galeria')
+
+
+class PartidaForm(FlaskForm):
+    titulo = StringField('Título da Partida / Confronto', default='Partida de Beach Tennis', validators=[
+        DataRequired(message='Informe o título.'),
+        Length(max=150)
+    ])
+    data = DateField('Data', default=date.today, validators=[DataRequired(message='Informe a data.')])
+    torneio = StringField('Torneio / Circuito', default='Circuito AIBT', validators=[Optional(), Length(max=150)])
+    categoria = StringField('Categoria', default='Masculina B', validators=[Optional(), Length(max=50)])
+    fase = StringField('Fase', default='Final', validators=[Optional(), Length(max=50)])
+    local = StringField('Local / Quadra', default='Arena Itabuna', validators=[Optional(), Length(max=150)])
+
+    # Dupla 1
+    jogador1_nome = StringField('Jogador 1 (Nome)', validators=[DataRequired(), Length(max=100)])
+    jogador1_aluno_id = SelectField('Vincular a Aluno (opcional)', coerce=int, validators=[Optional()])
+    jogador2_nome = StringField('Jogador 2 (Nome)', validators=[DataRequired(), Length(max=100)])
+    jogador2_aluno_id = SelectField('Vincular a Aluno (opcional)', coerce=int, validators=[Optional()])
+
+    # Dupla 2
+    jogador3_nome = StringField('Jogador 3 / Adversário 1', validators=[DataRequired(), Length(max=100)])
+    jogador3_aluno_id = SelectField('Vincular a Aluno (opcional)', coerce=int, validators=[Optional()])
+    jogador4_nome = StringField('Jogador 4 / Adversário 2', validators=[DataRequired(), Length(max=100)])
+    jogador4_aluno_id = SelectField('Vincular a Aluno (opcional)', coerce=int, validators=[Optional()])
+
+    # Sets
+    set1_dupla1 = IntegerField('Set 1 - Dupla 1', default=0)
+    set1_dupla2 = IntegerField('Set 1 - Dupla 2', default=0)
+    set2_dupla1 = IntegerField('Set 2 - Dupla 1', default=0)
+    set2_dupla2 = IntegerField('Set 2 - Dupla 2', default=0)
+    set3_dupla1 = IntegerField('Set 3 - Dupla 1', default=0)
+    set3_dupla2 = IntegerField('Set 3 - Dupla 2', default=0)
+
+    placar_detalhado = StringField('Placar Detalhado (ex: 6x4 | 4x6 | 10x8)', validators=[Optional(), Length(max=100)])
+    dupla_vencedora = SelectField('Dupla Vencedora', choices=[(1, 'Dupla 1'), (2, 'Dupla 2')], coerce=int, default=1)
+    duracao_minutos = IntegerField('Duração (minutos)', default=60, validators=[Optional()])
+    observacoes = TextAreaField('Observações Gerais', validators=[Optional()])
+    submit = SubmitField('Salvar Partida')
+

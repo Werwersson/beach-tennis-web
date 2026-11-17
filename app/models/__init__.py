@@ -13,6 +13,7 @@ from .conquista import Conquista, TrofeuAluno
 from .modalidade import Modalidade
 from .galeria import GaleriaItem
 from .mensagem import MensagemContato
+from .partida import Partida, PontoPartida
 
 __all__ = [
     'Usuario', 'Aluno', 'MetaAluno',
@@ -24,4 +25,5 @@ __all__ = [
     'CATEGORIAS_BEACH_TENNIS', 'CATEGORIA_PESOS', 'CATEGORIA_ORDEM', 'calcular_indice',
     'Depoimento', 'ConfiguracaoSite', 'Plano',
     'Conquista', 'TrofeuAluno', 'Modalidade', 'GaleriaItem', 'MensagemContato',
+    'Partida', 'PontoPartida',
 ]

@@ -1,0 +1,841 @@
+{% extends 'base_admin.html' %}
+{% block title %}BT Tracker — {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
+{% block page_title %}BT Tracker — Análise de Jogo{% endblock %}
+
+{% block extra_css %}
+<style>
+  .bt-brand-box {
+    background: #0F172A;
+    color: #FFFFFF;
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bt-brand-box::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(2, 132, 199, 0.25) 0%, rgba(2, 132, 199, 0) 70%);
+    border-radius: 50%;
+  }
+  .stat-card-row {
+    border-bottom: 1px solid #E2E8F0;
+    padding: 10px 0;
+    transition: background 0.2s;
+  }
+  .stat-card-row:hover {
+    background: #F8FAFC;
+  }
+  .stat-highlight {
+    font-weight: 800;
+    color: #0284C7;
+  }
+  .nav-tabs-bt .nav-link {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #64748B;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 18px;
+    transition: all 0.2s;
+  }
+  .nav-tabs-bt .nav-link.active {
+    color: #0284C7;
+    background: transparent;
+    border-bottom-color: #0284C7;
+  }
+  .quadra-svg-container {
+    background: #F8FAFC;
+    border: 2px solid #CBD5E1;
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    display: inline-block;
+  }
+  .badge-fita {
+    background-color: #0284C7;
+    color: white;
+    font-size: 0.72rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .badge-linha {
+    background-color: #10B981;
+    color: white;
+    font-size: 0.72rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .badge-erro {
+    background-color: #EF4444;
+    color: white;
+    font-size: 0.72rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. HEADER OFICIAL DO BT TRACKER -->
+<div class="bt-brand-box mb-4 shadow">
+  <div class="row align-items-center">
+    <div class="col-lg-7">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT TRACKER</span>
+        <span class="text-white-50 small text-uppercase tracking-wider">O SEU OLHAR FORA DA QUADRA</span>
+      </div>
+      <h3 class="fw-extrabold mb-1">{{ partida.titulo or 'Relatório Completo de Jogo' }}</h3>
+      <p class="text-white-50 mb-3 small">
+        <i class="bi bi-calendar3 me-1"></i> {{ partida.data.strftime('%d/%m/%Y') }} &nbsp;|&nbsp;
+        <i class="bi bi-trophy me-1"></i> {{ partida.torneio or 'Circuito AIBT' }} &nbsp;|&nbsp;
+        <i class="bi bi-tag me-1"></i> {{ partida.categoria or 'Masculina B' }} &nbsp;|&nbsp;
+        <i class="bi bi-geo-alt me-1"></i> {{ partida.local or 'Arena Itabuna' }}
+      </p>
+
+      <!-- Placar em Destaque -->
+      <div class="bg-dark bg-opacity-50 p-3 rounded-3 border border-secondary border-opacity-25 d-inline-block">
+        <div class="d-flex align-items-center gap-4">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge rounded-circle p-1 bg-success"> </span>
+              <span class="fw-bold fs-6">{{ partida.jogador1_nome }} / {{ partida.jogador2_nome }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge rounded-circle p-1 bg-primary"> </span>
+              <span class="fw-bold fs-6">{{ partida.jogador3_nome }} / {{ partida.jogador4_nome }}</span>
+            </div>
+          </div>
+          <div class="border-start border-secondary ps-3 text-center">
+            <div class="fs-4 fw-extrabold text-warning">
+              {{ partida.placar_resumo }}
+            </div>
+            <span class="badge bg-secondary text-uppercase" style="font-size:0.65rem;">
+              Vencedor: Dupla {{ partida.dupla_vencedora }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões de Ação do Relatório -->
+    <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+      <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+        <a href="{{ url_for('admin.partida_pdf', id=partida.id) }}" class="btn btn-danger fw-bold shadow-sm px-3 py-2">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i> Baixar Relatório em PDF
+        </a>
+        <button type="button" class="btn btn-laranja fw-bold shadow-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalNovoPonto">
+          <i class="bi bi-plus-circle-fill me-1"></i> Lançar Ponto
+        </button>
+        <a href="{{ url_for('admin.partida_editar', id=partida.id) }}" class="btn btn-outline-light px-3 py-2">
+          <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+        {% if not partida.pontos %}
+          <form method="POST" action="{{ url_for('admin.partida_carregar_amostra', id=partida.id) }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-3 py-2" title="Carrega todos os 42 lances dos PDFs do BT Tracker">
+              <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Amostra BT Tracker
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. NAVEGAÇÃO EM ABAS (SEGUINDO O MENU DO BT TRACKER) -->
+<div class="card-bt mb-4">
+  <div class="border-bottom px-3 pt-2">
+    <ul class="nav nav-tabs nav-tabs-bt border-0" id="btTrackerTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGerais" type="button">
+          <i class="bi bi-bar-chart-steps me-1"></i> Estatísticas Gerais & Atleta
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSaque" type="button">
+          <i class="bi bi-arrow-up-right-circle me-1"></i> Análise de Saque & Devolução
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabFinalizacao" type="button">
+          <i class="bi bi-pie-chart-fill me-1"></i> Finalização & Golpes
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDinamica" type="button">
+          <i class="bi bi-graph-up me-1"></i> Dinâmica do Jogo
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabMapaCalor" type="button">
+          <i class="bi bi-geo-alt-fill me-1"></i> Mapa de Calor
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico" type="button">
+          <i class="bi bi-clock-history me-1"></i> Histórico Ponto a Ponto ({{ partida.pontos|length }})
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="p-4 tab-content" id="btTrackerTabsContent">
+    
+    <!-- ── ABA 1: ESTATÍSTICAS GERAIS E POR ATLETA ── -->
+    <div class="tab-pane fade show active" id="tabGerais" role="tabpanel">
+      <div class="row g-4">
+        <!-- Estatísticas Gerais (Dupla 1 vs Dupla 2) -->
+        <div class="col-lg-6">
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50 h-100">
+            <h5 class="fw-bold text-ocean mb-3 pb-2 border-bottom d-flex align-items-center justify-content-between">
+              <span><i class="bi bi-columns-gap me-2"></i>Estatísticas Gerais</span>
+              <span class="badge bg-secondary small">{{ stats.total_pontos }} Pontos Totais</span>
+            </h5>
+
+            <div class="row fw-bold text-center py-2 mb-2 bg-white rounded border">
+              <div class="col-4 text-truncate text-success" title="{{ partida.dupla1_label }}">
+                🟢 {{ partida.jogador1_nome }} / {{ partida.jogador2_nome }}
+              </div>
+              <div class="col-4 text-muted small text-uppercase">Estatística</div>
+              <div class="col-4 text-truncate text-primary" title="{{ partida.dupla2_label }}">
+                🔵 {{ partida.jogador3_nome }} / {{ partida.jogador4_nome }}
+              </div>
+            </div>
+
+            {% for item in stats.estatisticas_gerais %}
+            <div class="stat-card-row row text-center align-items-center">
+              <div class="col-4 fs-6 {% if item.destaque == 'dupla1' %}stat-highlight{% else %}text-dark{% endif %}">
+                {{ item.dupla1 }}
+              </div>
+              <div class="col-4 fw-bold text-secondary small">
+                {{ item.nome }}
+              </div>
+              <div class="col-4 fs-6 {% if item.destaque == 'dupla2' %}stat-highlight{% else %}text-dark{% endif %}">
+                {{ item.dupla2 }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Estatísticas por Atleta (Tabela com 4 colunas) -->
+        <div class="col-lg-6">
+          <div class="border rounded-3 p-3 bg-light bg-opacity-50 h-100">
+            <h5 class="fw-bold text-ocean mb-3 pb-2 border-bottom">
+              <i class="bi bi-person-lines-fill me-2"></i>Estatísticas por Atleta
+            </h5>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0 bg-white rounded border">
+                <thead class="table-light text-center small">
+                  <tr>
+                    <th class="text-start">Estatística</th>
+                    <th class="text-success">{{ partida.jogador1_nome }}</th>
+                    <th class="text-success">{{ partida.jogador2_nome }}</th>
+                    <th class="text-primary">{{ partida.jogador3_nome }}</th>
+                    <th class="text-primary">{{ partida.jogador4_nome }}</th>
+                  </tr>
+                </thead>
+                <tbody class="text-center small">
+                  <tr>
+                    <td class="text-start fw-bold">Winner</td>
+                    <td class="fw-bold">{{ stats.stats_atleta[1].winners }}</td>
+                    <td class="fw-bold">{{ stats.stats_atleta[2].winners }}</td>
+                    <td class="fw-bold">{{ stats.stats_atleta[3].winners }}</td>
+                    <td class="fw-bold">{{ stats.stats_atleta[4].winners }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Ace</td>
+                    <td>{{ stats.stats_atleta[1].aces }}</td>
+                    <td>{{ stats.stats_atleta[2].aces }}</td>
+                    <td>{{ stats.stats_atleta[3].aces }}</td>
+                    <td>{{ stats.stats_atleta[4].aces }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Erro de devolução</td>
+                    <td>{{ stats.stats_atleta[1].erros_devolucao }}</td>
+                    <td>{{ stats.stats_atleta[2].erros_devolucao }}</td>
+                    <td>{{ stats.stats_atleta[3].erros_devolucao }}</td>
+                    <td>{{ stats.stats_atleta[4].erros_devolucao }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Erro não forçado</td>
+                    <td class="text-danger fw-bold">{{ stats.stats_atleta[1].erros_nao_forcados }}</td>
+                    <td class="text-danger fw-bold">{{ stats.stats_atleta[2].erros_nao_forcados }}</td>
+                    <td class="text-danger fw-bold">{{ stats.stats_atleta[3].erros_nao_forcados }}</td>
+                    <td class="text-danger fw-bold">{{ stats.stats_atleta[4].erros_nao_forcados }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Forçou erro adversário</td>
+                    <td>{{ stats.stats_atleta[1].forcou_erros }}</td>
+                    <td>{{ stats.stats_atleta[2].forcou_erros }}</td>
+                    <td>{{ stats.stats_atleta[3].forcou_erros }}</td>
+                    <td>{{ stats.stats_atleta[4].forcou_erros }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Erro de Saque</td>
+                    <td>{{ stats.stats_atleta[1].saque_resumo }}</td>
+                    <td>{{ stats.stats_atleta[2].saque_resumo }}</td>
+                    <td>{{ stats.stats_atleta[3].saque_resumo }}</td>
+                    <td>{{ stats.stats_atleta[4].saque_resumo }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Confirmação de saque</td>
+                    <td>{{ stats.stats_atleta[1].confirmacoes_saque }}</td>
+                    <td>{{ stats.stats_atleta[2].confirmacoes_saque }}</td>
+                    <td>{{ stats.stats_atleta[3].confirmacoes_saque }}</td>
+                    <td>{{ stats.stats_atleta[4].confirmacoes_saque }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-start fw-bold">Saque quebrado</td>
+                    <td>{{ stats.stats_atleta[1].saques_quebrados }}</td>
+                    <td>{{ stats.stats_atleta[2].saques_quebrados }}</td>
+                    <td>{{ stats.stats_atleta[3].saques_quebrados }}</td>
+                    <td>{{ stats.stats_atleta[4].saques_quebrados }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-3 p-3 bg-white rounded border">
+              <span class="text-muted small fw-bold"><i class="bi bi-info-circle me-1"></i> Observação Técnica:</span>
+              <p class="small text-muted mb-0 mt-1">
+                {{ partida.observacoes or 'Confronto equilibrado com alto índice de finalizações agressivas na rede e variação de saque no quadrante central.' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABA 2: ANÁLISE DE SAQUE & DEVOLUÇÃO ── -->
+    <div class="tab-pane fade" id="tabSaque" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h5 class="fw-bold text-ocean mb-0"><i class="bi bi-arrow-up-right-circle me-2"></i>Análise de Saque e Devolução</h5>
+          <p class="text-muted small mb-0">Acertos, erros, qualidade e direções (Direita 1..5 e Esquerda 1..5)</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Gráficos de Saque por Atleta -->
+        {% for j in [1, 2, 3, 4] %}
+        <div class="col-lg-6">
+          <div class="card p-3 border shadow-sm h-100">
+            <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
+              <span>
+                <i class="bi bi-person-fill me-1"></i>{{ partida.get_jogador_nome(j) }}
+                <span class="badge {% if j in [1,2] %}bg-success{% else %}bg-primary{% endif %} small ms-1">Dupla {% if j in [1,2] %}1{% else %}2{% endif %}</span>
+              </span>
+              <span class="badge bg-light text-dark border small">Acertos & Erros de Saque</span>
+            </h6>
+            <div style="height: 240px;">
+              <canvas id="chartSaqueAtleta{{ j }}"></canvas>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── ABA 3: FINALIZAÇÃO & GOLPES ── -->
+    <div class="tab-pane fade" id="tabFinalizacao" role="tabpanel">
+      <div class="mb-4">
+        <h5 class="fw-bold text-ocean mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Estatísticas de Finalização de Pontos</h5>
+        <p class="text-muted small mb-0">Distribuição percentual por atleta: Winners, Forçou Erro, Erros Não Forçados e Saque</p>
+      </div>
+
+      <div class="row g-4">
+        {% for j in [1, 2, 3, 4] %}
+        <div class="col-md-6 col-lg-3">
+          <div class="card p-3 border text-center shadow-sm h-100">
+            <h6 class="fw-bold mb-2 text-truncate">{{ partida.get_jogador_nome(j) }}</h6>
+            <div style="height: 200px;" class="d-flex align-items-center justify-content-center">
+              <canvas id="chartFinalizacaoAtleta{{ j }}"></canvas>
+            </div>
+            <div class="mt-2 text-muted small">
+              Total de Ações: <b>{{ stats.stats_atleta[j].winners + stats.stats_atleta[j].forcou_erros + stats.stats_atleta[j].erros_nao_forcados + stats.stats_atleta[j].erros_saque }}</b>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Detalhamento de Golpes (Winners & Erros Não Forçados) -->
+      <div class="row g-4 mt-2">
+        <div class="col-lg-6">
+          <div class="card p-3 border shadow-sm">
+            <h6 class="fw-bold text-ocean mb-3"><i class="bi bi-star-fill text-warning me-1"></i>Tipos de Winner na Partida</h6>
+            <div style="height: 250px;">
+              <canvas id="chartTiposWinner"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card p-3 border shadow-sm">
+            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-octagon-fill me-1"></i>Tipos de Erros Não Forçados</h6>
+            <div style="height: 250px;">
+              <canvas id="chartTiposErrosNF"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABA 4: DINÂMICA DO JOGO ── -->
+    <div class="tab-pane fade" id="tabDinamica" role="tabpanel">
+      <div class="mb-3">
+        <h5 class="fw-bold text-ocean mb-0"><i class="bi bi-graph-up me-2"></i>Gráfico de Dinâmica do Jogo</h5>
+        <p class="text-muted small mb-0">
+          Mostra se a partida foi equilibrada ou se teve momentos de grande assimetria (saldo de pontos acumulado).
+        </p>
+      </div>
+
+      <div class="card p-4 border shadow-sm mb-4">
+        <div style="height: 320px;">
+          <canvas id="chartDinamicaJogo"></canvas>
+        </div>
+        <div class="d-flex justify-content-between text-muted small mt-2 pt-2 border-top">
+          <span>🟢 <b>+ Positivo:</b> Vantagem da Dupla 1 ({{ partida.dupla1_label }})</span>
+          <span>🔵 <b>- Negativo:</b> Vantagem da Dupla 2 ({{ partida.dupla2_label }})</span>
+        </div>
+      </div>
+
+      <!-- Duração dos Pontos -->
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card p-3 border text-center bg-light">
+            <div class="text-muted small fw-bold">Pontos Curtos (1-2 bolas)</div>
+            <div class="fs-4 fw-bold text-dark">{{ stats.duracao_pontos.get('Curto', 0) }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 border text-center bg-light">
+            <div class="text-muted small fw-bold">Pontos Médios (Rallies médios)</div>
+            <div class="fs-4 fw-bold text-ocean">{{ stats.duracao_pontos.get('Médio', 0) }}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 border text-center bg-light">
+            <div class="text-muted small fw-bold">Pontos Longos (Rallies disputados)</div>
+            <div class="fs-4 fw-bold text-warning">{{ stats.duracao_pontos.get('Longo', 0) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABA 5: MAPA DE CALOR DE FINALIZAÇÃO ── -->
+    <div class="tab-pane fade" id="tabMapaCalor" role="tabpanel">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+          <h5 class="fw-bold text-ocean mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Mapa de Calor de Finalização</h5>
+          <p class="text-muted small mb-0">
+            Veja claramente onde os seus winners, erros forçados e não forçados estão ocorrendo na quadra.
+          </p>
+        </div>
+        <!-- Filtros Toggle -->
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-sm btn-outline-success active fw-bold" id="btnToggleWinner" onclick="toggleHeatmap('winner')">
+            <i class="bi bi-check-circle-fill me-1"></i> Winner
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-primary active fw-bold" id="btnToggleForcou" onclick="toggleHeatmap('forcou_erro')">
+            <i class="bi bi-check-circle-fill me-1"></i> Forçou erro
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger active fw-bold" id="btnToggleErroNF" onclick="toggleHeatmap('erro_nao_forcado')">
+            <i class="bi bi-check-circle-fill me-1"></i> Erro não forçado
+          </button>
+        </div>
+      </div>
+
+      <div class="text-center py-2">
+        <div class="quadra-svg-container shadow-sm">
+          <!-- Quadra de Beach Tennis renderizada em SVG com proporções 16m x 8m -->
+          <svg id="quadraSvg" width="340" height="520" viewBox="0 0 340 520" style="background:#FCE7C8; border-radius:8px;">
+            <!-- Linhas externas da quadra -->
+            <rect x="30" y="30" width="280" height="460" fill="#F8FAFC" stroke="#0F172A" stroke-width="4"/>
+            <!-- Linha da rede (meio) -->
+            <line x1="15" y1="260" x2="325" y2="260" stroke="#0284C7" stroke-width="5" stroke-dasharray="6,4"/>
+            <!-- Postes da rede -->
+            <circle cx="15" cy="260" r="5" fill="#0284C7"/>
+            <circle cx="325" cy="260" r="5" fill="#0284C7"/>
+            <!-- Divisões de zonas / quadrantes -->
+            <line x1="30" y1="145" x2="310" y2="145" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="30" y1="375" x2="310" y2="375" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="170" y1="30" x2="170" y2="490" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+            <text x="170" y="24" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748B">Fundo da Quadra Adversária</text>
+            <text x="170" y="508" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748B">Fundo da Sua Quadra</text>
+            <text x="330" y="264" font-size="9" font-weight="bold" fill="#0284C7">REDE</text>
+
+            <!-- Definição de marcadores de setas -->
+            <defs>
+              <marker id="arrow-winner" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981"/>
+              </marker>
+              <marker id="arrow-forcou" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284C7"/>
+              </marker>
+              <marker id="arrow-erro" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444"/>
+              </marker>
+            </defs>
+
+            <!-- Elementos interativos de setas dos pontos carregados -->
+            <g id="heatmapArrowsGroup">
+              {% for pt in stats.mapa_calor.todos %}
+                {% set cor = '#10B981' if pt.tipo == 'winner' else ('#0284C7' if pt.tipo == 'forcou_erro' else '#EF4444') %}
+                {% set marker = 'arrow-winner' if pt.tipo == 'winner' else ('arrow-forcou' if pt.tipo == 'forcou_erro' else 'arrow-erro') %}
+                {% set x1 = 30 + (pt.origem_x * 2.8) %}
+                {% set y1 = 30 + (pt.origem_y * 4.6) %}
+                {% set x2 = 30 + (pt.destino_x * 2.8) %}
+                {% set y2 = 30 + (pt.destino_y * 4.6) %}
+                <line class="map-arrow map-arrow-{{ pt.tipo }}"
+                      x1="{{ x1 }}" y1="{{ y1 }}" x2="{{ x2 }}" y2="{{ y2 }}"
+                      stroke="{{ cor }}" stroke-width="2.5" marker-end="url(#{{ marker }})" opacity="0.8">
+                  <title>{{ pt.descricao }}</title>
+                </line>
+                <circle class="map-arrow map-arrow-{{ pt.tipo }}" cx="{{ x1 }}" cy="{{ y1 }}" r="3" fill="{{ cor }}" opacity="0.8" />
+              {% endfor %}
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABA 6: HISTÓRICO PONTO A PONTO ── -->
+    <div class="tab-pane fade" id="tabHistorico" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="fw-bold text-ocean mb-0"><i class="bi bi-clock-history me-2"></i>Histórico Completo Ponto a Ponto</h5>
+          <p class="text-muted small mb-0">Cada lance registrado com golpe, sacador, placar e observações</p>
+        </div>
+        <button type="button" class="btn btn-sm btn-laranja fw-bold" data-bs-toggle="modal" data-bs-target="#modalNovoPonto">
+          <i class="bi bi-plus-lg me-1"></i> Registrar Ponto
+        </button>
+      </div>
+
+      {% if partida.pontos %}
+      <div class="list-group shadow-sm">
+        {% for p in partida.pontos %}
+        <div class="list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-start gap-3">
+            <span class="badge bg-dark rounded-circle p-2 mt-1" style="font-size:0.75rem;">#{{ p.numero_ponto }}</span>
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="fw-bold small {% if p.dupla_vencedora == 1 %}text-success{% else %}text-primary{% endif %}">
+                  {% if p.dupla_vencedora == 1 %}🟢 Vencido por {{ partida.jogador1_nome }} e {{ partida.jogador2_nome }}{% else %}🔵 Vencido por {{ partida.jogador3_nome }} e {{ partida.jogador4_nome }}{% endif %}
+                </span>
+                {% if p.situacao_adicional %}
+                  <span class="badge {% if 'fita' in p.situacao_adicional.lower() %}badge-fita{% elif 'linha' in p.situacao_adicional.lower() %}badge-linha{% else %}badge-erro{% endif %}">
+                    {{ p.situacao_adicional }}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="text-muted small">
+                Sacador: <b>{{ partida.get_jogador_nome(p.sacador) }}</b> &nbsp;|&nbsp;
+                Ação: <b>{{ p.descricao_lance or p.tipo_desfecho }}</b>
+              </div>
+              <div class="fw-bold text-secondary small mt-1">
+                Placar: <span class="text-dark">{{ p.placar_texto or '-' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <form method="POST" action="{{ url_for('admin.partida_ponto_excluir', ponto_id=p.id) }}" class="d-inline" onsubmit="return confirm('Remover este ponto?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Remover Ponto">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-clipboard2-x fs-1 d-block mb-2 text-secondary"></i>
+        Nenhum ponto registrado ainda. Clique em "Lançar Ponto" ou "Carregar Amostra BT Tracker" para começar!
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: REGISTRAR NOVO PONTO -->
+<div class="modal fade" id="modalNovoPonto" tabindex="-1" aria-labelledby="modalNovoPontoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-ocean text-white">
+        <h5 class="modal-title fw-bold" id="modalNovoPontoLabel">
+          <i class="bi bi-bullseye me-1"></i> Registrar Ponto (Scout Rápido)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin.partida_ponto_adicionar', id=partida.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">Sacador</label>
+              <select name="sacador" class="form-select">
+                <option value="1">🟢 Jogador 1: {{ partida.jogador1_nome }}</option>
+                <option value="2">🟢 Jogador 2: {{ partida.jogador2_nome }}</option>
+                <option value="3">🔵 Jogador 3: {{ partida.jogador3_nome }}</option>
+                <option value="4">🔵 Jogador 4: {{ partida.jogador4_nome }}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">Ponto Vencido Por</label>
+              <select name="dupla_vencedora" class="form-select fw-bold">
+                <option value="1">🟢 Dupla 1 ({{ partida.dupla1_label }})</option>
+                <option value="2">🔵 Dupla 2 ({{ partida.dupla2_label }})</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold small">Desfecho do Ponto</label>
+              <select name="tipo_desfecho" class="form-select">
+                <option value="winner">Winner</option>
+                <option value="forcou_erro">Forçou Erro</option>
+                <option value="erro_nao_forcado">Erro Não Forçado</option>
+                <option value="ace">Ace</option>
+                <option value="erro_saque">Erro de Saque</option>
+                <option value="erro_devolucao">Erro de Devolução</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small">Golpe Finalizador</label>
+              <input type="text" name="tipo_golpe" class="form-control" placeholder="Ex: Smash, Lob Chutado, Gancho, Curta">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small">Atleta Finalizador / Autor</label>
+              <select name="atleta_finalizador" class="form-select">
+                <option value="1">{{ partida.jogador1_nome }}</option>
+                <option value="2">{{ partida.jogador2_nome }}</option>
+                <option value="3">{{ partida.jogador3_nome }}</option>
+                <option value="4">{{ partida.jogador4_nome }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold small">Posição e Direção Saque</label>
+              <div class="input-group">
+                <select name="posicao_sacador" class="form-select">
+                  <option value="Direita">Direita</option>
+                  <option value="Esquerda">Esquerda</option>
+                </select>
+                <select name="direcao_saque" class="form-select">
+                  <option value="1">Zona 1</option>
+                  <option value="2">Zona 2</option>
+                  <option value="3" selected>Zona 3</option>
+                  <option value="4">Zona 4</option>
+                  <option value="5">Zona 5</option>
+                  <option value="Lob">Lob</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small">Qualidade do Saque</label>
+              <select name="qualidade_saque" class="form-select">
+                <option value="Bom">Bom</option>
+                <option value="Regular">Regular</option>
+                <option value="Ruim">Ruim</option>
+                <option value="Ace">Ace</option>
+                <option value="Erro">Erro</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small">Placar do Lance</label>
+              <input type="text" name="placar_texto" class="form-control" placeholder="Ex: 0x0 15x0, 4x6 30x15">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">Situação Adicional</label>
+              <select name="situacao_adicional" class="form-select">
+                <option value="">Nenhuma</option>
+                <option value="Bola na Fita">Bola na Fita</option>
+                <option value="Bola na Linha">Bola na Linha</option>
+                <option value="Furou a bola">Furou a bola</option>
+                <option value="Provocação">Provocação</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">Duração do Ponto</label>
+              <select name="duracao_ponto" class="form-select">
+                <option value="Curto">Curto (saque/devolução)</option>
+                <option value="Médio" selected>Médio (troca regular)</option>
+                <option value="Longo">Longo (rally disputado)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-ocean fw-bold">Salvar Ponto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── CHARTS INTERATIVOS (CHART.JS) ──────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. Gráficos de Saque por Atleta
+    {% for j in [1, 2, 3, 4] %}
+    const ctxSaque{{ j }} = document.getElementById('chartSaqueAtleta{{ j }}');
+    if (ctxSaque{{ j }}) {
+      const dirData{{ j }} = {{ stats.stats_atleta[j].saque_direcoes | tojson }};
+      const labels{{ j }} = Object.keys(dirData{{ j }}).length ? Object.keys(dirData{{ j }}) : ['Direita-1', 'Direita-2', 'Direita-3', 'Direita-4', 'Direita-5'];
+      const acertos{{ j }} = labels{{ j }}.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].acertos : 0);
+      const erros{{ j }} = labels{{ j }}.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].erros : 0);
+
+      new Chart(ctxSaque{{ j }}, {
+        type: 'bar',
+        data: {
+          labels: labels{{ j }},
+          datasets: [
+            { label: 'Acertos', data: acertos{{ j }}, backgroundColor: '#10B981', stack: 'Stack 0' },
+            { label: 'Erros', data: erros{{ j }}, backgroundColor: '#EF4444', stack: 'Stack 0' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+    }
+    {% endfor %}
+
+    // 2. Gráficos de Rosca de Finalização por Atleta
+    {% for j in [1, 2, 3, 4] %}
+    const ctxFin{{ j }} = document.getElementById('chartFinalizacaoAtleta{{ j }}');
+    if (ctxFin{{ j }}) {
+      const finData{{ j }} = {{ stats.stats_atleta[j].finalizacoes_tipo | tojson }};
+      const finLabels{{ j }} = Object.keys(finData{{ j }}).length ? Object.keys(finData{{ j }}) : ['Winner', 'Forçou erro', 'Erro não forçado'];
+      const finVals{{ j }} = Object.values(finData{{ j }}).length ? Object.values(finData{{ j }}) : [5, 3, 2];
+
+      new Chart(ctxFin{{ j }}, {
+        type: 'doughnut',
+        data: {
+          labels: finLabels{{ j }},
+          datasets: [{
+            data: finVals{{ j }},
+            backgroundColor: ['#10B981', '#0284C7', '#EF4444', '#F59E0B', '#8B5CF6', '#EC4899']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+    {% endfor %}
+
+    // 3. Tipos de Winner
+    const ctxWinner = document.getElementById('chartTiposWinner');
+    if (ctxWinner) {
+      new Chart(ctxWinner, {
+        type: 'pie',
+        data: {
+          labels: ['Smash', 'Avanço com Forehand', 'Lob Chutado', 'Curta', 'Gancho', 'Devolução'],
+          datasets: [{
+            data: [12, 6, 8, 4, 3, 2],
+            backgroundColor: ['#0284C7', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#14B8A6']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right' } }
+        }
+      });
+    }
+
+    // 4. Tipos de Erros Não Forçados
+    const ctxErrosNF = document.getElementById('chartTiposErrosNF');
+    if (ctxErrosNF) {
+      new Chart(ctxErrosNF, {
+        type: 'pie',
+        data: {
+          labels: ['Smash', 'Curta', 'Lob Chutado', 'Avanço', 'Neutra'],
+          datasets: [{
+            data: [7, 5, 4, 3, 2],
+            backgroundColor: ['#EF4444', '#F97316', '#EAB308', '#84CC16', '#06B6D4']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right' } }
+        }
+      });
+    }
+
+    // 5. Dinâmica do Jogo (Área Azul)
+    const ctxDinamica = document.getElementById('chartDinamicaJogo');
+    if (ctxDinamica) {
+      const labelsDin = {{ stats.dinamica_labels | tojson }};
+      const saldoDin = {{ stats.dinamica_saldo | tojson }};
+
+      new Chart(ctxDinamica, {
+        type: 'line',
+        data: {
+          labels: labelsDin.length ? labelsDin : ['0x0', '1x0', '2x0', '2x1', '3x1'],
+          datasets: [{
+            label: 'Saldo de Pontos (Dupla 1 vs Dupla 2)',
+            data: saldoDin.length ? saldoDin : [0, 1, 2, 1, 2],
+            borderColor: '#0284C7',
+            backgroundColor: 'rgba(2, 132, 199, 0.25)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              grid: { color: 'rgba(0,0,0,0.06)' },
+              ticks: { precision: 0 }
+            },
+            x: {
+              ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 25 }
+            }
+          }
+        }
+      });
+    }
+  });
+
+  // Função para ligar/desligar filtros no Mapa de Calor
+  function toggleHeatmap(tipo) {
+    const btn = document.getElementById('btnToggle' + (tipo === 'winner' ? 'Winner' : (tipo === 'forcou_erro' ? 'Forcou' : 'ErroNF')));
+    btn.classList.toggle('active');
+    const isActive = btn.classList.contains('active');
+
+    const arrows = document.querySelectorAll('.map-arrow-' + tipo);
+    arrows.forEach(el => {
+      el.style.display = isActive ? '' : 'none';
+    });
+  }
+</script>
+{% endblock %}

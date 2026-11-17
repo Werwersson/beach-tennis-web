@@ -40,6 +40,9 @@
           <a href="{{ url_for('admin.aluno_relatorio_pdf', id=aluno.id) }}" class="btn btn-sm btn-outline-danger fw-bold" target="_blank" title="Baixar relatório oficial em PDF">
             <i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar PDF
           </a>
+          <a href="{{ url_for('admin.partidas_lista', busca=aluno.nome) }}" class="btn btn-sm btn-outline-dark fw-bold" title="Ver jogos do aluno no BT Tracker">
+            <i class="bi bi-radar me-1 text-ocean"></i>BT Tracker
+          </a>
         </div>
 
         <div class="text-start border-top pt-3" style="font-size:0.88rem;">

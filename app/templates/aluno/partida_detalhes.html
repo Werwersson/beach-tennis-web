@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% block title %}BT Tracker — {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .bt-brand-box {
+    background: #0F172A;
+    color: #FFFFFF;
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card-row {
+    border-bottom: 1px solid #E2E8F0;
+    padding: 10px 0;
+  }
+  .stat-card-row:hover {
+    background: #F8FAFC;
+  }
+  .stat-highlight {
+    font-weight: 800;
+    color: #0284C7;
+  }
+  .nav-tabs-bt .nav-link {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #64748B;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 18px;
+    transition: all 0.2s;
+  }
+  .nav-tabs-bt .nav-link.active {
+    color: #0284C7;
+    background: transparent;
+    border-bottom-color: #0284C7;
+  }
+  .quadra-svg-container {
+    background: #F8FAFC;
+    border: 2px solid #CBD5E1;
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    display: inline-block;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25">
+  <div class="container">
+    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2" href="{{ url_for('aluno.painel') }}">
+      <i class="bi bi-radar text-warning"></i>
+      <span>BT TRACKER</span>
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ url_for('aluno.partidas_lista') }}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i> Meus Jogos
+      </a>
+      <a href="{{ url_for('aluno.partida_pdf', id=partida.id) }}" class="btn btn-sm btn-danger fw-bold">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Baixar Relatório PDF
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="bt-brand-box mb-4 shadow">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT TRACKER</span>
+          <span class="text-white-50 small text-uppercase">O SEU OLHAR FORA DA QUADRA</span>
+        </div>
+        <h3 class="fw-extrabold mb-1">{{ partida.titulo or 'Relatório Completo de Jogo' }}</h3>
+        <p class="text-white-50 mb-3 small">
+          <i class="bi bi-calendar3 me-1"></i> {{ partida.data.strftime('%d/%m/%Y') }} &nbsp;|&nbsp;
+          <i class="bi bi-trophy me-1"></i> {{ partida.torneio or 'Circuito AIBT' }} &nbsp;|&nbsp;
+          <i class="bi bi-tag me-1"></i> {{ partida.categoria or 'Masculina B' }} &nbsp;|&nbsp;
+          <i class="bi bi-geo-alt me-1"></i> {{ partida.local or 'Arena Itabuna' }}
+        </p>
+
+        <div class="bg-dark bg-opacity-50 p-3 rounded-3 border border-secondary border-opacity-25 d-inline-block">
+          <div class="d-flex align-items-center gap-4">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-circle p-1 bg-success"> </span>
+                <span class="fw-bold fs-6">{{ partida.jogador1_nome }} / {{ partida.jogador2_nome }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle p-1 bg-primary"> </span>
+                <span class="fw-bold fs-6">{{ partida.jogador3_nome }} / {{ partida.jogador4_nome }}</span>
+              </div>
+            </div>
+            <div class="border-start border-secondary ps-3 text-center">
+              <div class="fs-4 fw-extrabold text-warning">
+                {{ partida.placar_resumo }}
+              </div>
+              <span class="badge bg-secondary text-uppercase" style="font-size:0.65rem;">
+                Vencedor: Dupla {{ partida.dupla_vencedora }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <a href="{{ url_for('aluno.partida_pdf', id=partida.id) }}" class="btn btn-danger btn-lg fw-bold shadow-sm px-4">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i> Baixar Relatório PDF
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abas -->
+  <div class="card border shadow-sm mb-4">
+    <div class="border-bottom px-3 pt-2">
+      <ul class="nav nav-tabs nav-tabs-bt border-0" id="btAlunoTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGerais" type="button">
+            <i class="bi bi-bar-chart-steps me-1"></i> Estatísticas Gerais & Atleta
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSaque" type="button">
+            <i class="bi bi-arrow-up-right-circle me-1"></i> Análise de Saque
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDinamica" type="button">
+            <i class="bi bi-graph-up me-1"></i> Dinâmica do Jogo
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabMapaCalor" type="button">
+            <i class="bi bi-geo-alt-fill me-1"></i> Mapa de Calor
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico" type="button">
+            <i class="bi bi-clock-history me-1"></i> Histórico Lance a Lance
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="p-4 tab-content">
+      <!-- Estatísticas Gerais -->
+      <div class="tab-pane fade show active" id="tabGerais" role="tabpanel">
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="border rounded-3 p-3 bg-light bg-opacity-50 h-100">
+              <h5 class="fw-bold text-ocean mb-3 pb-2 border-bottom">Estatísticas Gerais da Partida</h5>
+              <div class="row fw-bold text-center py-2 mb-2 bg-white rounded border">
+                <div class="col-4 text-success text-truncate">🟢 {{ partida.dupla1_label }}</div>
+                <div class="col-4 text-muted small">Estatística</div>
+                <div class="col-4 text-primary text-truncate">🔵 {{ partida.dupla2_label }}</div>
+              </div>
+              {% for item in stats.estatisticas_gerais %}
+              <div class="stat-card-row row text-center align-items-center">
+                <div class="col-4 fs-6 {% if item.destaque == 'dupla1' %}stat-highlight{% else %}text-dark{% endif %}">
+                  {{ item.dupla1 }}
+                </div>
+                <div class="col-4 fw-bold text-secondary small">
+                  {{ item.nome }}
+                </div>
+                <div class="col-4 fs-6 {% if item.destaque == 'dupla2' %}stat-highlight{% else %}text-dark{% endif %}">
+                  {{ item.dupla2 }}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="border rounded-3 p-3 bg-light bg-opacity-50 h-100">
+              <h5 class="fw-bold text-ocean mb-3 pb-2 border-bottom">Estatísticas por Atleta</h5>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 bg-white rounded border">
+                  <thead class="table-light text-center small">
+                    <tr>
+                      <th class="text-start">Estatística</th>
+                      <th class="text-success">{{ partida.jogador1_nome }}</th>
+                      <th class="text-success">{{ partida.jogador2_nome }}</th>
+                      <th class="text-primary">{{ partida.jogador3_nome }}</th>
+                      <th class="text-primary">{{ partida.jogador4_nome }}</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-center small">
+                    <tr>
+                      <td class="text-start fw-bold">Winner</td>
+                      <td class="fw-bold">{{ stats.stats_atleta[1].winners }}</td>
+                      <td class="fw-bold">{{ stats.stats_atleta[2].winners }}</td>
+                      <td class="fw-bold">{{ stats.stats_atleta[3].winners }}</td>
+                      <td class="fw-bold">{{ stats.stats_atleta[4].winners }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-start fw-bold">Ace</td>
+                      <td>{{ stats.stats_atleta[1].aces }}</td>
+                      <td>{{ stats.stats_atleta[2].aces }}</td>
+                      <td>{{ stats.stats_atleta[3].aces }}</td>
+                      <td>{{ stats.stats_atleta[4].aces }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-start fw-bold">Erro de devolução</td>
+                      <td>{{ stats.stats_atleta[1].erros_devolucao }}</td>
+                      <td>{{ stats.stats_atleta[2].erros_devolucao }}</td>
+                      <td>{{ stats.stats_atleta[3].erros_devolucao }}</td>
+                      <td>{{ stats.stats_atleta[4].erros_devolucao }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-start fw-bold">Erro não forçado</td>
+                      <td class="text-danger fw-bold">{{ stats.stats_atleta[1].erros_nao_forcados }}</td>
+                      <td class="text-danger fw-bold">{{ stats.stats_atleta[2].erros_nao_forcados }}</td>
+                      <td class="text-danger fw-bold">{{ stats.stats_atleta[3].erros_nao_forcados }}</td>
+                      <td class="text-danger fw-bold">{{ stats.stats_atleta[4].erros_nao_forcados }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-start fw-bold">Forçou erro adversário</td>
+                      <td>{{ stats.stats_atleta[1].forcou_erros }}</td>
+                      <td>{{ stats.stats_atleta[2].forcou_erros }}</td>
+                      <td>{{ stats.stats_atleta[3].forcou_erros }}</td>
+                      <td>{{ stats.stats_atleta[4].forcou_erros }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-start fw-bold">Erro de Saque</td>
+                      <td>{{ stats.stats_atleta[1].saque_resumo }}</td>
+                      <td>{{ stats.stats_atleta[2].saque_resumo }}</td>
+                      <td>{{ stats.stats_atleta[3].saque_resumo }}</td>
+                      <td>{{ stats.stats_atleta[4].saque_resumo }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saque -->
+      <div class="tab-pane fade" id="tabSaque" role="tabpanel">
+        <div class="row g-4">
+          {% for j in [1, 2, 3, 4] %}
+          <div class="col-lg-6">
+            <div class="card p-3 border shadow-sm">
+              <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
+                <span>{{ partida.get_jogador_nome(j) }}</span>
+                <span class="badge bg-light text-dark border small">Acertos & Erros de Saque</span>
+              </h6>
+              <div style="height: 220px;">
+                <canvas id="chartSaqueAtleta{{ j }}"></canvas>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Dinâmica -->
+      <div class="tab-pane fade" id="tabDinamica" role="tabpanel">
+        <h5 class="fw-bold text-ocean mb-3">Gráfico de Dinâmica da Partida</h5>
+        <div class="card p-4 border shadow-sm mb-3">
+          <div style="height: 320px;">
+            <canvas id="chartDinamicaJogo"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mapa de Calor -->
+      <div class="tab-pane fade text-center" id="tabMapaCalor" role="tabpanel">
+        <h5 class="fw-bold text-ocean mb-3">Mapa de Calor da Quadra</h5>
+        <div class="quadra-svg-container shadow-sm">
+          <svg id="quadraSvg" width="340" height="520" viewBox="0 0 340 520" style="background:#FCE7C8; border-radius:8px;">
+            <rect x="30" y="30" width="280" height="460" fill="#F8FAFC" stroke="#0F172A" stroke-width="4"/>
+            <line x1="15" y1="260" x2="325" y2="260" stroke="#0284C7" stroke-width="5" stroke-dasharray="6,4"/>
+            <circle cx="15" cy="260" r="5" fill="#0284C7"/>
+            <circle cx="325" cy="260" r="5" fill="#0284C7"/>
+            <line x1="30" y1="145" x2="310" y2="145" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="30" y1="375" x2="310" y2="375" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <line x1="170" y1="30" x2="170" y2="490" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+            <defs>
+              <marker id="arrow-winner" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981"/>
+              </marker>
+              <marker id="arrow-forcou" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284C7"/>
+              </marker>
+              <marker id="arrow-erro" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444"/>
+              </marker>
+            </defs>
+
+            {% for pt in stats.mapa_calor.todos %}
+              {% set cor = '#10B981' if pt.tipo == 'winner' else ('#0284C7' if pt.tipo == 'forcou_erro' else '#EF4444') %}
+              {% set marker = 'arrow-winner' if pt.tipo == 'winner' else ('arrow-forcou' if pt.tipo == 'forcou_erro' else 'arrow-erro') %}
+              {% set x1 = 30 + (pt.origem_x * 2.8) %}
+              {% set y1 = 30 + (pt.origem_y * 4.6) %}
+              {% set x2 = 30 + (pt.destino_x * 2.8) %}
+              {% set y2 = 30 + (pt.destino_y * 4.6) %}
+              <line x1="{{ x1 }}" y1="{{ y1 }}" x2="{{ x2 }}" y2="{{ y2 }}"
+                    stroke="{{ cor }}" stroke-width="2.5" marker-end="url(#{{ marker }})" opacity="0.85">
+                <title>{{ pt.descricao }}</title>
+              </line>
+            {% endfor %}
+          </svg>
+        </div>
+      </div>
+
+      <!-- Histórico -->
+      <div class="tab-pane fade" id="tabHistorico" role="tabpanel">
+        <h5 class="fw-bold text-ocean mb-3">Histórico de Lances</h5>
+        <div class="list-group shadow-sm">
+          {% for p in partida.pontos %}
+          <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-start gap-3">
+              <span class="badge bg-dark rounded-circle p-2 mt-1">#{{ p.numero_ponto }}</span>
+              <div>
+                <span class="fw-bold small {% if p.dupla_vencedora == 1 %}text-success{% else %}text-primary{% endif %}">
+                  {% if p.dupla_vencedora == 1 %}🟢 Vencido por {{ partida.jogador1_nome }} e {{ partida.jogador2_nome }}{% else %}🔵 Vencido por {{ partida.jogador3_nome }} e {{ partida.jogador4_nome }}{% endif %}
+                </span>
+                <div class="text-muted small">
+                  Sacador: <b>{{ partida.get_jogador_nome(p.sacador) }}</b> | Lance: <b>{{ p.descricao_lance }}</b>
+                </div>
+                <div class="fw-bold text-secondary small">
+                  Placar: <span class="text-dark">{{ p.placar_texto or '-' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Gráficos de Saque
+    {% for j in [1, 2, 3, 4] %}
+    const ctxSaque{{ j }} = document.getElementById('chartSaqueAtleta{{ j }}');
+    if (ctxSaque{{ j }}) {
+      const dirData{{ j }} = {{ stats.stats_atleta[j].saque_direcoes | tojson }};
+      const labels{{ j }} = Object.keys(dirData{{ j }}).length ? Object.keys(dirData{{ j }}) : ['Direita-1', 'Direita-2', 'Direita-3', 'Direita-4', 'Direita-5'];
+      const acertos{{ j }} = labels{{ j }}.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].acertos : 0);
+      const erros{{ j }} = labels{{ j }}.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].erros : 0);
+
+      new Chart(ctxSaque{{ j }}, {
+        type: 'bar',
+        data: {
+          labels: labels{{ j }},
+          datasets: [
+            { label: 'Acertos', data: acertos{{ j }}, backgroundColor: '#10B981' },
+            { label: 'Erros', data: erros{{ j }}, backgroundColor: '#EF4444' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+    {% endfor %}
+
+    // Gráfico de Dinâmica
+    const ctxDin = document.getElementById('chartDinamicaJogo');
+    if (ctxDin) {
+      new Chart(ctxDin, {
+        type: 'line',
+        data: {
+          labels: {{ stats.dinamica_labels | tojson }},
+          datasets: [{
+            label: 'Saldo de Pontos',
+            data: {{ stats.dinamica_saldo | tojson }},
+            borderColor: '#0284C7',
+            backgroundColor: 'rgba(2, 132, 199, 0.25)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

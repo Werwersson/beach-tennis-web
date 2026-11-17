@@ -1,0 +1,162 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ 'Editar' if partida else 'Nova' }} Partida — BT Tracker{% endblock %}
+{% block page_title %}{{ 'Editar Partida' if partida else 'Cadastrar Nova Partida' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+    <div class="card-bt shadow-sm">
+      <div class="card-header-bt d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-radar text-warning"></i>
+          <span>{{ 'Editar Dados da Partida' if partida else 'Nova Partida (BT Tracker)' }}</span>
+        </div>
+        <a href="{{ url_for('admin.partidas_lista') }}" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <!-- 1. Informações Básicas -->
+          <h6 class="fw-bold text-ocean text-uppercase mb-3 pb-2 border-bottom">
+            <i class="bi bi-info-circle me-1"></i> 1. Informações do Confronto
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-8">
+              <label class="form-label fw-bold small" for="titulo">Título / Confronto *</label>
+              {{ form.titulo(class="form-control" + (" is-invalid" if form.titulo.errors else ""), id="titulo", placeholder="Ex: Final AIBT — Everson & Parceiro vs Adversários") }}
+              {% for e in form.titulo.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small" for="data">Data da Partida *</label>
+              {{ form.data(class="form-control" + (" is-invalid" if form.data.errors else ""), id="data") }}
+              {% for e in form.data.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small" for="torneio">Torneio / Circuito</label>
+              {{ form.torneio(class="form-control", id="torneio", placeholder="Ex: Circuito AIBT") }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small" for="categoria">Categoria</label>
+              {{ form.categoria(class="form-control", id="categoria", placeholder="Ex: Masculina B, Open, Mista B") }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small" for="fase">Fase do Torneio</label>
+              {{ form.fase(class="form-control", id="fase", placeholder="Ex: Final, Semifinal, Treino") }}
+            </div>
+          </div>
+
+          <!-- 2. Atletas / Duplas -->
+          <h6 class="fw-bold text-ocean text-uppercase mb-3 pb-2 border-bottom">
+            <i class="bi bi-people me-1"></i> 2. Duplas em Quadra
+          </h6>
+          <div class="row g-3 mb-4">
+            <!-- Dupla 1 -->
+            <div class="col-lg-6">
+              <div class="card p-3 border-success-subtle bg-success-subtle bg-opacity-10 h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span class="badge bg-success rounded-circle p-1"> </span>
+                  <h6 class="fw-bold text-success mb-0">Dupla 1</h6>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">Jogador 1 (Nome) *</label>
+                  {{ form.jogador1_nome(class="form-control mb-1", placeholder="Ex: Everson Vicktor") }}
+                  <small class="text-muted">Ou vincular a aluno cadastrado:</small>
+                  {{ form.jogador1_aluno_id(class="form-select form-select-sm") }}
+                </div>
+                <div>
+                  <label class="form-label small fw-bold">Jogador 2 (Nome) *</label>
+                  {{ form.jogador2_nome(class="form-control mb-1", placeholder="Ex: Parceiro") }}
+                  <small class="text-muted">Ou vincular a aluno cadastrado:</small>
+                  {{ form.jogador2_aluno_id(class="form-select form-select-sm") }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Dupla 2 -->
+            <div class="col-lg-6">
+              <div class="card p-3 border-primary-subtle bg-primary-subtle bg-opacity-10 h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span class="badge bg-primary rounded-circle p-1"> </span>
+                  <h6 class="fw-bold text-primary mb-0">Dupla 2 (Adversários)</h6>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">Jogador 3 (Nome) *</label>
+                  {{ form.jogador3_nome(class="form-control mb-1", placeholder="Ex: Adversário 1") }}
+                  <small class="text-muted">Ou vincular a aluno cadastrado:</small>
+                  {{ form.jogador3_aluno_id(class="form-select form-select-sm") }}
+                </div>
+                <div>
+                  <label class="form-label small fw-bold">Jogador 4 (Nome) *</label>
+                  {{ form.jogador4_nome(class="form-control mb-1", placeholder="Ex: Adversário 2") }}
+                  <small class="text-muted">Ou vincular a aluno cadastrado:</small>
+                  {{ form.jogador4_aluno_id(class="form-select form-select-sm") }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Placares -->
+          <h6 class="fw-bold text-ocean text-uppercase mb-3 pb-2 border-bottom">
+            <i class="bi bi-trophy me-1"></i> 3. Placar e Resultado
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Set 1 (Dupla 1 x Dupla 2)</label>
+              <div class="input-group">
+                {{ form.set1_dupla1(class="form-control text-center", type="number") }}
+                <span class="input-group-text">x</span>
+                {{ form.set1_dupla2(class="form-control text-center", type="number") }}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Set 2 (Dupla 1 x Dupla 2)</label>
+              <div class="input-group">
+                {{ form.set2_dupla1(class="form-control text-center", type="number") }}
+                <span class="input-group-text">x</span>
+                {{ form.set2_dupla2(class="form-control text-center", type="number") }}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Set 3 / Match Tiebreak (opcional)</label>
+              <div class="input-group">
+                {{ form.set3_dupla1(class="form-control text-center", type="number") }}
+                <span class="input-group-text">x</span>
+                {{ form.set3_dupla2(class="form-control text-center", type="number") }}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold" for="placar_detalhado">Placar Detalhado com Tiebreak</label>
+              {{ form.placar_detalhado(class="form-control", placeholder="Ex: 6x7 (9x11) | 6x7 (5x7) ou 6x4 | 6x3") }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-bold" for="dupla_vencedora">Dupla Vencedora</label>
+              {{ form.dupla_vencedora(class="form-select") }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-bold" for="duracao_minutos">Duração (minutos)</label>
+              {{ form.duracao_minutos(class="form-control", type="number") }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold" for="observacoes">Observações Técnicas</label>
+              {{ form.observacoes(class="form-control", rows=2, placeholder="Condições climáticas, vento, tática empregada...") }}
+            </div>
+          </div>
+
+          <!-- Botões -->
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+            <a href="{{ url_for('admin.partidas_lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-ocean px-4 fw-bold">
+              <i class="bi bi-check-lg me-1"></i> {{ 'Salvar Alterações' if partida else 'Criar Partida & Ir ao Scout' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

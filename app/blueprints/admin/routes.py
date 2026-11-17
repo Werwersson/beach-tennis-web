@@ -10,7 +10,8 @@ from app.models import (Usuario, Aluno, MetaAluno, Turma, TurmaAluno,
                         Exercicio, Aula, AulaExercicio, Presenca,
                         Avaliacao, AvaliacaoNota, Depoimento,
                         ConfiguracaoSite, Plano, Conquista,
-                        Modalidade, GaleriaItem, MensagemContato, TrofeuAluno)
+                        Modalidade, GaleriaItem, MensagemContato, TrofeuAluno,
+                        Partida, PontoPartida)
 from app.models.exercicio import CATEGORIAS_EXERCICIO, NIVEIS_EXERCICIO
 from app.models.avaliacao import CRITERIOS_AVALIACAO
 from app.models.categoria import CATEGORIAS_BEACH_TENNIS, CATEGORIA_PESOS
@@ -19,10 +20,13 @@ from .forms import (AlunoForm, ExercicioForm, TurmaForm, AulaForm,
                     GerarAulasRecorrentesForm, CancelarAulaForm,
                     RemarcarAulaForm, AulaExercicioForm, AvaliacaoForm,
                     ConfiguracaoSiteForm, ConquistaForm, ModalidadeForm,
-                    PlanoForm, DepoimentoForm, GaleriaItemForm, TrofeuForm)
+                    PlanoForm, DepoimentoForm, GaleriaItemForm, TrofeuForm,
+                    PartidaForm)
 
 from app.utils.analytics import get_aluno_analytics
 from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
+from app.utils.bt_tracker import calcular_estatisticas_partida
+from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -1843,3 +1847,345 @@ def mensagem_excluir(id):
     db.session.commit()
     flash('Mensagem excluída com sucesso.', 'info')
     return redirect(url_for('admin.mensagens_lista'))
+
+
+# ── BT TRACKER: SCOUT & ANÁLISE DE PARTIDAS ──────────────────────────────
+@admin_bp.route('/partidas')
+@admin_required
+def partidas_lista():
+    """Listagem de todas as partidas cadastradas no BT Tracker."""
+    busca = request.args.get('busca', '').strip()
+    categoria = request.args.get('categoria', '').strip()
+
+    query = Partida.query
+    if busca:
+        termo = f"%{busca}%"
+        query = query.filter(
+            db.or_(
+                Partida.titulo.ilike(termo),
+                Partida.jogador1_nome.ilike(termo),
+                Partida.jogador2_nome.ilike(termo),
+                Partida.jogador3_nome.ilike(termo),
+                Partida.jogador4_nome.ilike(termo),
+                Partida.torneio.ilike(termo),
+            )
+        )
+    if categoria:
+        query = query.filter_by(categoria=categoria)
+
+    partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+    return render_template('admin/partidas/lista.html', partidas=partidas, busca=busca, categoria=categoria)
+
+
+@admin_bp.route('/partidas/nova', methods=['GET', 'POST'])
+@admin_required
+def partida_nova():
+    """Cria uma nova partida no BT Tracker."""
+    form = PartidaForm()
+    alunos = Aluno.query.filter_by(ativo=True).order_by(Aluno.nome.asc()).all()
+    aluno_choices = [(0, '-- Selecione um Aluno (ou digite o nome ao lado) --')] + [(a.id, a.nome) for a in alunos]
+    form.jogador1_aluno_id.choices = aluno_choices
+    form.jogador2_aluno_id.choices = aluno_choices
+    form.jogador3_aluno_id.choices = aluno_choices
+    form.jogador4_aluno_id.choices = aluno_choices
+
+    if form.validate_on_submit():
+        partida = Partida(
+            titulo=form.titulo.data.strip(),
+            data=form.data.data,
+            torneio=form.torneio.data.strip() if form.torneio.data else 'Circuito AIBT',
+            categoria=form.categoria.data.strip() if form.categoria.data else 'Masculina B',
+            fase=form.fase.data.strip() if form.fase.data else 'Final',
+            local=form.local.data.strip() if form.local.data else 'Arena Itabuna',
+            jogador1_nome=form.jogador1_nome.data.strip(),
+            jogador1_aluno_id=form.jogador1_aluno_id.data if form.jogador1_aluno_id.data > 0 else None,
+            jogador2_nome=form.jogador2_nome.data.strip(),
+            jogador2_aluno_id=form.jogador2_aluno_id.data if form.jogador2_aluno_id.data > 0 else None,
+            jogador3_nome=form.jogador3_nome.data.strip(),
+            jogador3_aluno_id=form.jogador3_aluno_id.data if form.jogador3_aluno_id.data > 0 else None,
+            jogador4_nome=form.jogador4_nome.data.strip(),
+            jogador4_aluno_id=form.jogador4_aluno_id.data if form.jogador4_aluno_id.data > 0 else None,
+            set1_dupla1=form.set1_dupla1.data,
+            set1_dupla2=form.set1_dupla2.data,
+            set2_dupla1=form.set2_dupla1.data,
+            set2_dupla2=form.set2_dupla2.data,
+            set3_dupla1=form.set3_dupla1.data,
+            set3_dupla2=form.set3_dupla2.data,
+            placar_detalhado=form.placar_detalhado.data.strip() if form.placar_detalhado.data else None,
+            dupla_vencedora=form.dupla_vencedora.data,
+            duracao_minutos=form.duracao_minutos.data,
+            observacoes=form.observacoes.data.strip() if form.observacoes.data else None,
+        )
+        db.session.add(partida)
+        db.session.commit()
+        flash(f'Partida "{partida.titulo}" criada com sucesso! Você já pode visualizar a análise e registrar lances.', 'success')
+        return redirect(url_for('admin.partida_detalhes', id=partida.id))
+
+    return render_template('admin/partidas/form.html', form=form, partida=None)
+
+
+@admin_bp.route('/partidas/<int:id>/editar', methods=['GET', 'POST'])
+@admin_required
+def partida_editar(id):
+    """Edita dados e placares de uma partida existente."""
+    partida = db.get_or_404(Partida, id)
+    form = PartidaForm(obj=partida)
+
+    alunos = Aluno.query.filter_by(ativo=True).order_by(Aluno.nome.asc()).all()
+    aluno_choices = [(0, '-- Selecione um Aluno (ou digite o nome ao lado) --')] + [(a.id, a.nome) for a in alunos]
+    form.jogador1_aluno_id.choices = aluno_choices
+    form.jogador2_aluno_id.choices = aluno_choices
+    form.jogador3_aluno_id.choices = aluno_choices
+    form.jogador4_aluno_id.choices = aluno_choices
+
+    if form.validate_on_submit():
+        partida.titulo = form.titulo.data.strip()
+        partida.data = form.data.data
+        partida.torneio = form.torneio.data.strip() if form.torneio.data else None
+        partida.categoria = form.categoria.data.strip() if form.categoria.data else None
+        partida.fase = form.fase.data.strip() if form.fase.data else None
+        partida.local = form.local.data.strip() if form.local.data else None
+        partida.jogador1_nome = form.jogador1_nome.data.strip()
+        partida.jogador1_aluno_id = form.jogador1_aluno_id.data if form.jogador1_aluno_id.data > 0 else None
+        partida.jogador2_nome = form.jogador2_nome.data.strip()
+        partida.jogador2_aluno_id = form.jogador2_aluno_id.data if form.jogador2_aluno_id.data > 0 else None
+        partida.jogador3_nome = form.jogador3_nome.data.strip()
+        partida.jogador3_aluno_id = form.jogador3_aluno_id.data if form.jogador3_aluno_id.data > 0 else None
+        partida.jogador4_nome = form.jogador4_nome.data.strip()
+        partida.jogador4_aluno_id = form.jogador4_aluno_id.data if form.jogador4_aluno_id.data > 0 else None
+        partida.set1_dupla1 = form.set1_dupla1.data
+        partida.set1_dupla2 = form.set1_dupla2.data
+        partida.set2_dupla1 = form.set2_dupla1.data
+        partida.set2_dupla2 = form.set2_dupla2.data
+        partida.set3_dupla1 = form.set3_dupla1.data
+        partida.set3_dupla2 = form.set3_dupla2.data
+        partida.placar_detalhado = form.placar_detalhado.data.strip() if form.placar_detalhado.data else None
+        partida.dupla_vencedora = form.dupla_vencedora.data
+        partida.duracao_minutos = form.duracao_minutos.data
+        partida.observacoes = form.observacoes.data.strip() if form.observacoes.data else None
+
+        db.session.commit()
+        flash('Partida atualizada com sucesso!', 'success')
+        return redirect(url_for('admin.partida_detalhes', id=partida.id))
+
+    return render_template('admin/partidas/form.html', form=form, partida=partida)
+
+
+@admin_bp.route('/partidas/<int:id>')
+@admin_required
+def partida_detalhes(id):
+    """Dashboard de análise completa da partida no formato BT Tracker."""
+    partida = db.get_or_404(Partida, id)
+    stats = calcular_estatisticas_partida(partida)
+    return render_template('admin/partidas/detalhes.html', partida=partida, stats=stats)
+
+
+@admin_bp.route('/partidas/<int:id>/pdf')
+@admin_required
+def partida_pdf(id):
+    """Exporta o relatório completo da partida em PDF no padrão oficial BT Tracker."""
+    partida = db.get_or_404(Partida, id)
+    pdf_bytes = gerar_pdf_bt_tracker(partida)
+
+    nome_arquivo = f"BT_Tracker_{secure_filename(partida.dupla1_label)}_vs_{secure_filename(partida.dupla2_label)}.pdf"
+    return Response(
+        pdf_bytes,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{nome_arquivo}"'}
+    )
+
+
+@admin_bp.route('/partidas/<int:id>/excluir', methods=['POST'])
+@admin_required
+def partida_excluir(id):
+    """Exclui a partida e todos os pontos associados."""
+    partida = db.get_or_404(Partida, id)
+    db.session.delete(partida)
+    db.session.commit()
+    flash('Partida excluída com sucesso.', 'info')
+    return redirect(url_for('admin.partidas_lista'))
+
+
+@admin_bp.route('/partidas/<int:id>/pontos/novo', methods=['POST'])
+@admin_required
+def partida_ponto_adicionar(id):
+    """Adiciona um novo ponto / scout lance a lance na partida."""
+    partida = db.get_or_404(Partida, id)
+
+    numero = len(partida.pontos) + 1
+    sacador = int(request.form.get('sacador', 1))
+    dupla_vencedora = int(request.form.get('dupla_vencedora', 1))
+    atleta_finalizador = request.form.get('atleta_finalizador')
+    atleta_finalizador = int(atleta_finalizador) if atleta_finalizador else sacador
+
+    tipo_desfecho = request.form.get('tipo_desfecho', 'winner')
+    tipo_golpe = request.form.get('tipo_golpe', '').strip()
+    posicao_sacador = request.form.get('posicao_sacador', 'Direita')
+    direcao_saque = request.form.get('direcao_saque', '3')
+    qualidade_saque = request.form.get('qualidade_saque', 'Bom')
+    direcao_devolucao = request.form.get('direcao_devolucao', '').strip() or None
+    qualidade_devolucao = request.form.get('qualidade_devolucao', '').strip() or None
+    placar_texto = request.form.get('placar_texto', '').strip()
+    situacao_adicional = request.form.get('situacao_adicional', '').strip() or None
+    duracao_ponto = request.form.get('duracao_ponto', 'Médio')
+
+    # Coordenadas opcionais para o mapa de calor
+    def parse_float(val, default):
+        try:
+            return float(val) if val is not None and val != '' else default
+        except:
+            return default
+
+    origem_x = parse_float(request.form.get('origem_x'), 50.0)
+    origem_y = parse_float(request.form.get('origem_y'), 75.0)
+    destino_x = parse_float(request.form.get('destino_x'), 50.0)
+    destino_y = parse_float(request.form.get('destino_y'), 25.0)
+
+    descricao_lance = request.form.get('descricao_lance', '').strip()
+    if not descricao_lance:
+        fin_nome = partida.get_jogador_nome(atleta_finalizador)
+        descricao_lance = f"{tipo_desfecho.replace('_', ' ').capitalize()} de {fin_nome}"
+        if tipo_golpe:
+            descricao_lance += f" ({tipo_golpe})"
+
+    ponto = PontoPartida(
+        partida_id=partida.id,
+        numero_ponto=numero,
+        placar_texto=placar_texto,
+        sacador=sacador,
+        dupla_vencedora=dupla_vencedora,
+        atleta_finalizador=atleta_finalizador,
+        tipo_desfecho=tipo_desfecho,
+        tipo_golpe=tipo_golpe,
+        posicao_sacador=posicao_sacador,
+        direcao_saque=direcao_saque,
+        qualidade_saque=qualidade_saque,
+        direcao_devolucao=direcao_devolucao,
+        qualidade_devolucao=qualidade_devolucao,
+        duracao_ponto=duracao_ponto,
+        situacao_adicional=situacao_adicional,
+        origem_x=origem_x,
+        origem_y=origem_y,
+        destino_x=destino_x,
+        destino_y=destino_y,
+        descricao_lance=descricao_lance
+    )
+    db.session.add(ponto)
+    db.session.commit()
+    flash(f'Ponto #{numero} registrado com sucesso!', 'success')
+    return redirect(url_for('admin.partida_detalhes', id=partida.id))
+
+
+@admin_bp.route('/partidas/pontos/<int:ponto_id>/excluir', methods=['POST'])
+@admin_required
+def partida_ponto_excluir(ponto_id):
+    """Exclui um ponto específico da partida."""
+    ponto = db.get_or_404(PontoPartida, ponto_id)
+    partida_id = ponto.partida_id
+    db.session.delete(ponto)
+    db.session.commit()
+    flash('Ponto removido com sucesso.', 'info')
+    return redirect(url_for('admin.partida_detalhes', id=partida_id))
+
+
+@admin_bp.route('/partidas/<int:id>/carregar-amostra-scout', methods=['POST'])
+@admin_required
+def partida_carregar_amostra(id):
+    """Carrega na partida uma sequência rica e completa de pontos reais do BT Tracker."""
+    partida = db.get_or_404(Partida, id)
+    
+    # Se já tiver pontos, não duplica a menos que solicitado
+    if partida.pontos:
+        PontoPartida.query.filter_by(partida_id=partida.id).delete()
+        db.session.commit()
+
+    # Base de pontos realistas baseados nas partidas do relatório BT Tracker
+    amostra_pontos = [
+        # (sacador, dupla_vencedora, finalizador, desfecho, golpe, pos_saque, dir_saque, qual_saque, dir_dev, qual_dev, placar, situacao, ox, oy, dx, dy, desc)
+        (4, 1, 3, 'erro_nao_forcado', 'Smash', 'Esquerda', '2', 'Bom', 'No sacador', 'Boa', '0x0 15x0', None, 45, 60, 50, 15, 'Erro não forçado de Smash de Jogador 3'),
+        (4, 2, 4, 'winner', 'Smash', 'Esquerda', '3', 'Bom', 'Meio', 'Regular', '0x0 15x15', None, 60, 80, 20, 25, 'Winner de Smash de Jogador 4'),
+        (4, 2, 1, 'erro_nao_forcado', 'Avanço com Forehand', 'Esquerda', '4', 'Bom', 'No sacador', 'Regular', '0x0 15x30', None, 30, 20, 35, 95, 'Erro não forçado de Avanço de Jogador 1'),
+        (4, 1, 4, 'erro_saque', None, 'Esquerda', '5', 'Erro', None, None, '0x0 30x30', None, 65, 85, 65, 45, 'Erro de Saque de Jogador 4'),
+        (4, 1, 4, 'erro_saque', None, 'Esquerda', '3', 'Erro', None, None, '0x0 40x30', None, 65, 85, 50, 48, 'Erro de Saque de Jogador 4'),
+        (4, 2, 4, 'winner', 'Gancho', 'Esquerda', '2', 'Bom', 'Lob', 'Regular', '0x0 40x40', 'Bola na Fita', 70, 75, 25, 20, 'Winner de Gancho de Jogador 4 [40x40 Decisivo]'),
+        (4, 2, 4, 'forcou_erro', 'Lob Chutado com Forehand', 'Esquerda', '3', 'Bom', 'Meio', 'Ruim', '0x1', None, 50, 80, 80, 15, 'Jogador 4 forçou o erro com Lob Chutado'),
+
+        (2, 2, 2, 'erro_saque', None, 'Direita', '1', 'Erro', None, None, '0x1 0x15', None, 35, 15, 35, 52, 'Erro de Saque de Jogador 2'),
+        (2, 2, 2, 'erro_saque', None, 'Direita', '1', 'Erro', None, None, '0x1 0x30', None, 35, 15, 45, 53, 'Erro de Saque de Jogador 2'),
+        (2, 2, 4, 'winner', 'Smash', 'Direita', '3', 'Regular', 'No sacador', 'Boa', '0x1 0x40', None, 65, 80, 30, 20, 'Winner de Smash de Jogador 4'),
+        (2, 1, 4, 'erro_devolucao', None, 'Direita', '2', 'Bom', 'No sacador', 'Erro', '0x1 15x40', None, 40, 20, 70, 70, 'Erro de devolução de Jogador 4'),
+        (2, 2, 4, 'forcou_erro', 'Smash', 'Direita', '3', 'Regular', 'Meio', 'Ruim', '0x2', None, 75, 75, 40, 25, 'Jogador 4 forçou o erro com Smash'),
+
+        (3, 2, 4, 'winner', 'Smash', 'Direita', '3', 'Bom', 'No sacador', 'Regular', '0x2 0x15', None, 65, 80, 25, 15, 'Winner de Smash de Jogador 4'),
+        (3, 2, 4, 'winner', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'Meio', 'Regular', '0x2 0x30', 'Bola na Linha', 70, 75, 20, 10, 'Winner de Lob Chutado de Jogador 4'),
+        (3, 1, 2, 'winner', 'Lob Chutado com Backhand', 'Direita', '2', 'Regular', 'No sacador', 'Boa', '0x2 15x30', None, 40, 25, 80, 85, 'Winner de Lob Chutado de Jogador 2'),
+        (3, 2, 2, 'erro_devolucao', None, 'Direita', '4', 'Bom', 'No parceiro', 'Erro', '0x2 15x40', 'Bola na Fita', 35, 85, 30, 30, 'Erro de devolução de Jogador 2'),
+        (3, 1, 2, 'forcou_erro', 'Smash', 'Direita', '3', 'Regular', 'Meio', 'Regular', '0x2 30x40', None, 45, 30, 65, 80, 'Jogador 2 forçou erro com Smash'),
+        (3, 2, 4, 'winner', 'Gancho', 'Direita', '3', 'Bom', 'No sacador', 'Regular', '0x3', None, 60, 75, 30, 15, 'Winner de Gancho de Jogador 4'),
+
+        (1, 2, 3, 'winner', 'Curta com Forehand', 'Direita', '3', 'Regular', 'No sacador', 'Boa', '0x3 0x15', 'Bola na Linha', 30, 70, 45, 45, 'Winner de Curta de Jogador 3'),
+        (1, 1, 1, 'ace', None, 'Direita', '4', 'Ace', None, None, '0x3 15x15', None, 30, 15, 75, 75, 'Ace no ângulo de Jogador 1'),
+        (1, 2, 4, 'forcou_erro', 'Lob Chutado com Forehand', 'Direita', '2', 'Regular', 'Meio', 'Ruim', '0x3 15x30', None, 70, 80, 30, 20, 'Jogador 4 forçou o erro com Lob Chutado'),
+        (1, 2, 3, 'winner', 'Devolução com Forehand', 'Direita', '3', 'Regular', 'No sacador', 'Winner', '0x3 15x40', None, 30, 70, 75, 20, 'Winner de Devolução de Jogador 3'),
+        (1, 1, 4, 'erro_devolucao', None, 'Direita', '3', 'Bom', 'No sacador', 'Erro', '0x3 30x40', None, 40, 20, 65, 65, 'Erro de devolução de Jogador 4'),
+        (1, 1, 3, 'erro_nao_forcado', 'Smash', 'Direita', '4', 'Bom', 'Meio', 'Regular', '0x3 40x40', 'Furou a bola', 35, 75, 40, 55, 'Erro não forçado de Smash de Jogador 3'),
+        (1, 2, 1, 'erro_nao_forcado', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'No sacador', 'Regular', '0x4', None, 35, 25, 40, 95, 'Erro não forçado de Lob Chutado de Jogador 1'),
+
+        (4, 2, 4, 'winner', 'Lob Chutado com Forehand', 'Esquerda', '3', 'Bom', 'Meio', 'Regular', '0x4 0x15', None, 65, 80, 25, 15, 'Winner de Lob Chutado de Jogador 4'),
+        (4, 1, 4, 'erro_saque', None, 'Esquerda', '4', 'Erro', None, None, '0x4 15x15', None, 65, 85, 40, 45, 'Erro de Saque de Jogador 4'),
+        (4, 1, 1, 'forcou_erro', 'Voleio estático com Forehand', 'Esquerda', '2', 'Regular', 'No sacador', 'Boa', '0x4 30x15', None, 40, 35, 60, 65, 'Jogador 1 forçou erro com Voleio Estático'),
+        (4, 2, 3, 'forcou_erro', '1-2 Combination', 'Esquerda', '3', 'Bom', 'Meio', 'Ruim', '0x4 30x30', None, 35, 65, 30, 25, 'Jogador 3 forçou erro com 1-2 Combination'),
+        (4, 1, 3, 'erro_nao_forcado', 'Curta com Forehand', 'Esquerda', '2', 'Bom', 'No sacador', 'Boa', '0x4 40x30', None, 40, 60, 45, 55, 'Erro não forçado de Curta de Jogador 3'),
+        (4, 1, 1, 'forcou_erro', 'Smash', 'Esquerda', '3', 'Regular', 'Meio', 'Boa', '1x4', None, 35, 30, 65, 75, 'Jogador 1 forçou erro com Smash'),
+
+        (2, 1, 1, 'winner', 'Smash', 'Direita', '3', 'Bom', 'Meio', 'Regular', '1x4 15x30', None, 35, 35, 65, 80, 'Winner de Smash de Jogador 1'),
+        (2, 1, 4, 'erro_nao_forcado', 'Curta com Backhand', 'Direita', '2', 'Bom', 'No sacador', 'Regular', '1x4 30x30', None, 65, 70, 60, 52, 'Erro não forçado de Curta de Jogador 4'),
+        (2, 1, 1, 'forcou_erro', 'Smash', 'Direita', '3', 'Bom', 'Meio', 'Regular', '1x4 40x30', None, 40, 30, 75, 75, 'Jogador 1 forçou erro com Smash'),
+        (2, 2, 3, 'winner', 'Smash', 'Direita', '4', 'Regular', 'No sacador', 'Boa', '1x4 40x40', None, 35, 75, 35, 20, 'Winner de Smash de Jogador 3'),
+        (2, 1, 1, 'forcou_erro', '1-2 Combination', 'Direita', '3', 'Bom', 'Meio', 'Regular', '2x4', None, 35, 35, 70, 70, 'Jogador 1 forçou o erro com 1-2 Combination'),
+
+        (3, 1, 1, 'winner', 'Smash', 'Direita', '3', 'Regular', 'Meio', 'Boa', '2x4 15x0', None, 40, 30, 65, 75, 'Winner de Smash de Jogador 1'),
+        (3, 1, 3, 'erro_saque', None, 'Direita', '2', 'Erro', None, None, '2x4 30x0', None, 35, 85, 50, 45, 'Erro de Saque de Jogador 3'),
+        (3, 2, 2, 'erro_devolucao', None, 'Direita', '3', 'Bom', 'No sacador', 'Erro', '2x4 30x15', None, 45, 20, 35, 85, 'Erro de devolução de Jogador 2'),
+        (3, 1, 3, 'erro_saque', None, 'Direita', '4', 'Erro', None, None, '2x4 40x15', None, 35, 85, 30, 45, 'Erro de Saque de Jogador 3'),
+        (3, 2, 4, 'winner', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'Meio', 'Regular', '2x4 40x30', None, 70, 80, 25, 15, 'Winner de Lob Chutado de Jogador 4'),
+        (3, 1, 3, 'erro_nao_forcado', 'Lob Chutado com Forehand', 'Direita', '3', 'Bom', 'Meio', 'Regular', '3x4', None, 35, 75, 35, 5, 'Erro não forçado de Lob Chutado de Jogador 3'),
+    ]
+
+    for idx, pt in enumerate(amostra_pontos, start=1):
+        ponto = PontoPartida(
+            partida_id=partida.id,
+            numero_ponto=idx,
+            sacador=pt[0],
+            dupla_vencedora=pt[1],
+            atleta_finalizador=pt[2],
+            tipo_desfecho=pt[3],
+            tipo_golpe=pt[4],
+            posicao_sacador=pt[5],
+            direcao_saque=pt[6],
+            qualidade_saque=pt[7],
+            direcao_devolucao=pt[8],
+            qualidade_devolucao=pt[9],
+            placar_texto=pt[10],
+            situacao_adicional=pt[11],
+            origem_x=pt[12],
+            origem_y=pt[13],
+            destino_x=pt[14],
+            destino_y=pt[15],
+            descricao_lance=pt[16],
+            duracao_ponto='Curto' if pt[3] in ['ace', 'erro_saque'] else ('Longo' if 'Lob' in str(pt[4]) else 'Médio')
+        )
+        db.session.add(ponto)
+
+    # Atualiza placar da partida para refletir a amostra
+    partida.set1_dupla1 = 4
+    partida.set1_dupla2 = 6
+    partida.set2_dupla1 = 3
+    partida.set2_dupla2 = 6
+    partida.placar_detalhado = "4x6 | 3x6"
+    partida.dupla_vencedora = 2
+
+    db.session.commit()
+    flash('Amostra oficial de scout (BT Tracker) carregada com sucesso!', 'success')
+    return redirect(url_for('admin.partida_detalhes', id=partida.id))
+

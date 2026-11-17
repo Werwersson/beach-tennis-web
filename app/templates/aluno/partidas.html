@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Meus Jogos & Scouts — BT Tracker{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25">
+  <div class="container">
+    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2" href="{{ url_for('aluno.painel') }}">
+      <i class="bi bi-radar text-warning"></i>
+      <span>BT TRACKER <span class="badge bg-ocean fs-6 fw-normal">Área do Aluno</span></span>
+    </a>
+    <div class="d-flex align-items-center gap-3">
+      <a href="{{ url_for('aluno.painel') }}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-arrow-left me-1"></i> Voltar ao Painel
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-danger">Sair</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <h4 class="fw-bold mb-0">Meus Jogos Analisados</h4>
+        <span class="badge bg-ocean px-3 py-1">BT TRACKER</span>
+      </div>
+      <p class="text-muted small mb-0 mt-1">
+        Acompanhe o scout detalhado de seus jogos, mapas de calor, percentual de saque e baixe o relatório oficial em PDF.
+      </p>
+    </div>
+  </div>
+
+  {% if partidas %}
+  <div class="row g-4">
+    {% for p in partidas %}
+    <div class="col-lg-6 col-xl-4">
+      <div class="card h-100 border shadow-sm rounded-3 overflow-hidden">
+        <div class="card-header bg-dark text-white py-3 px-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-activity text-warning"></i>
+            <span class="fw-bold small text-truncate" style="max-width:180px;">{{ p.torneio or 'Circuito AIBT' }}</span>
+          </div>
+          <span class="badge bg-light text-dark small border">{{ p.categoria or 'Masculina' }}</span>
+        </div>
+
+        <div class="card-body p-3 d-flex flex-column">
+          <div class="d-flex justify-content-between text-muted small mb-2">
+            <span><i class="bi bi-calendar-event me-1"></i>{{ p.data.strftime('%d/%m/%Y') }}</span>
+            <span><i class="bi bi-geo-alt me-1"></i>{{ p.local or 'Arena Itabuna' }}</span>
+          </div>
+
+          <h6 class="fw-bold text-dark mb-3">{{ p.titulo or 'Partida de Beach Tennis' }}</h6>
+
+          <!-- Placar -->
+          <div class="bg-light p-3 rounded-3 mb-3 border">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-truncate" style="max-width:70%;">🟢 {{ p.dupla1_label }}</span>
+              <span class="badge bg-white text-dark border px-2 py-1 fw-bold fs-6">
+                {{ p.set1_dupla1 or 0 }} {{ p.set2_dupla1 or 0 }} {% if p.set3_dupla1 %}{{ p.set3_dupla1 }}{% endif %}
+              </span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small fw-bold text-truncate" style="max-width:70%;">🔵 {{ p.dupla2_label }}</span>
+              <span class="badge bg-white text-dark border px-2 py-1 fw-bold fs-6">
+                {{ p.set1_dupla2 or 0 }} {{ p.set2_dupla2 or 0 }} {% if p.set3_dupla2 %}{{ p.set3_dupla2 }}{% endif %}
+              </span>
+            </div>
+            {% if p.placar_detalhado %}
+              <div class="text-center text-muted small mt-2 pt-2 border-top">
+                Placar: <span class="fw-bold text-dark">{{ p.placar_detalhado }}</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+            <span><i class="bi bi-list-check me-1"></i><b>{{ p.pontos|length }}</b> lances analisados</span>
+            <span class="badge bg-secondary-subtle text-dark border px-2 py-1">
+              Vencedor: Dupla {{ p.dupla_vencedora }}
+            </span>
+          </div>
+
+          <div class="mt-auto d-flex gap-2 pt-2 border-top">
+            <a href="{{ url_for('aluno.partida_detalhes', id=p.id) }}" class="btn btn-sm btn-ocean flex-grow-1 fw-bold">
+              <i class="bi bi-bar-chart-fill me-1"></i> Ver Análise
+            </a>
+            <a href="{{ url_for('aluno.partida_pdf', id=p.id) }}" class="btn btn-sm btn-outline-danger fw-bold" title="Baixar Relatório PDF">
+              <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card p-5 text-center border-0 shadow-sm bg-light">
+    <div class="py-4">
+      <div class="display-4 text-ocean mb-3"><i class="bi bi-radar"></i></div>
+      <h5 class="fw-bold">Nenhum jogo cadastrado ainda</h5>
+      <p class="text-muted mx-auto mb-3" style="max-width:480px;">
+        Assim que o professor Everson realizar o scout dos seus jogos competitivos ou treinos, eles aparecerão aqui com estatísticas completas e mapas de calor.
+      </p>
+      <a href="{{ url_for('aluno.painel') }}" class="btn btn-ocean fw-bold px-4">
+        Voltar ao Painel
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

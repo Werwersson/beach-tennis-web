@@ -3,11 +3,14 @@ from datetime import datetime, date, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, Response
 from flask_login import current_user
 from app.extensions import db
-from app.models import Aluno, Turma, TurmaAluno, Aula, AulaExercicio, Presenca, Avaliacao, MetaAluno, Exercicio
+from app.models import (Aluno, Turma, TurmaAluno, Aula, AulaExercicio,
+                        Presenca, Avaliacao, MetaAluno, Exercicio, Partida)
 from app.models.exercicio import CATEGORIAS_EXERCICIO, NIVEIS_EXERCICIO
 from app.utils.decorators import aluno_required
 from app.utils.analytics import get_aluno_analytics
 from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
+from app.utils.bt_tracker import calcular_estatisticas_partida
+from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
 
 aluno_bp = Blueprint('aluno', __name__)
 
@@ -274,3 +277,58 @@ def relatorio_pdf():
         mimetype='application/pdf',
         headers={'Content-Disposition': f'attachment; filename="{nome_arquivo}"'}
     )
+
+
+# ── BT TRACKER DO ALUNO ───────────────────────────────────────────────────
+@aluno_bp.route('/partidas')
+@aluno_required
+def partidas_lista():
+    """Visualização das partidas e scouts (BT Tracker) do aluno."""
+    aluno = get_current_aluno()
+
+    # Partidas onde o aluno é Jogador 1, 2, 3 ou 4, ou partidas gerais
+    partidas = Partida.query.filter(
+        db.or_(
+            Partida.jogador1_aluno_id == aluno.id,
+            Partida.jogador2_aluno_id == aluno.id,
+            Partida.jogador3_aluno_id == aluno.id,
+            Partida.jogador4_aluno_id == aluno.id,
+            Partida.jogador1_nome.ilike(f"%{aluno.nome}%"),
+            Partida.jogador2_nome.ilike(f"%{aluno.nome}%"),
+            Partida.jogador3_nome.ilike(f"%{aluno.nome}%"),
+            Partida.jogador4_nome.ilike(f"%{aluno.nome}%"),
+        )
+    ).order_by(Partida.data.desc(), Partida.id.desc()).all()
+
+    # Se não tiver partida específica do aluno, mostra todas para demonstração
+    if not partidas:
+        partidas = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+
+    return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
+
+
+@aluno_bp.route('/partidas/<int:id>')
+@aluno_required
+def partida_detalhes(id):
+    """Visualização da análise da partida pelo aluno no formato BT Tracker."""
+    aluno = get_current_aluno()
+    partida = db.get_or_404(Partida, id)
+    stats = calcular_estatisticas_partida(partida)
+    return render_template('aluno/partida_detalhes.html', aluno=aluno, partida=partida, stats=stats)
+
+
+@aluno_bp.route('/partidas/<int:id>/pdf')
+@aluno_required
+def partida_pdf(id):
+    """Download do relatório oficial em PDF da partida."""
+    aluno = get_current_aluno()
+    partida = db.get_or_404(Partida, id)
+    pdf_bytes = gerar_pdf_bt_tracker(partida)
+
+    nome_arquivo = f"BT_Tracker_{partida.id}_{date.today().strftime('%Y-%m-%d')}.pdf"
+    return Response(
+        pdf_bytes,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{nome_arquivo}"'}
+    )
+
