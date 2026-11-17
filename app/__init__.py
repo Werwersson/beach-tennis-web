@@ -60,13 +60,26 @@ def create_app(config_name=None):
     # Injeção de variáveis globais nos templates
     @app.context_processor
     def inject_site_data():
+        nao_lidas = 0
+        partidas_pendentes = 0
         try:
-            from .models import MensagemContato, Partida
+            from .models import MensagemContato
             nao_lidas = MensagemContato.query.filter_by(lida=False).count()
+        except Exception:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+        try:
+            from .models import Partida
             partidas_pendentes = Partida.query.filter_by(status='pendente').count()
         except Exception:
-            nao_lidas = 0
-            partidas_pendentes = 0
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
         return {
             'total_mensagens_nao_lidas': nao_lidas,
             'total_partidas_pendentes': partidas_pendentes

@@ -27,6 +27,7 @@ from app.utils.analytics import get_aluno_analytics
 from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
 from app.utils.bt_tracker import calcular_estatisticas_partida
 from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
+from app.utils.schema_migration import garantir_esquema_banco
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -1853,12 +1854,12 @@ def mensagem_excluir(id):
 @admin_bp.route('/sincronizar-banco', methods=['GET', 'POST'])
 @admin_required
 def sincronizar_banco():
-    """Garante que todas as tabelas (partidas, pontos_partida, etc.) existam no banco de produção."""
+    """Garante que todas as tabelas e novas colunas existam no banco de produção."""
     try:
-        db.create_all()
-        flash('Tabelas do banco de dados sincronizadas com sucesso!', 'success')
+        garantir_esquema_banco()
+        flash('Banco de dados sincronizado e todas as colunas atualizadas com sucesso!', 'success')
     except Exception as e:
-        flash(f'Erro ao sincronizar tabelas: {e}', 'danger')
+        flash(f'Erro ao sincronizar banco: {e}', 'danger')
     return redirect(url_for('admin.partidas_lista'))
 
 
@@ -1889,8 +1890,12 @@ def partidas_lista():
         partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
     except Exception:
         db.session.rollback()
-        db.create_all()
-        partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+        try:
+            garantir_esquema_banco()
+            partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+        except Exception:
+            db.session.rollback()
+            partidas = []
 
     return render_template('admin/partidas/lista.html', partidas=partidas, busca=busca, categoria=categoria)
 

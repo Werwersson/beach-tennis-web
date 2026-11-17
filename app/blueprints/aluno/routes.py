@@ -11,6 +11,7 @@ from app.utils.analytics import get_aluno_analytics
 from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
 from app.utils.bt_tracker import calcular_estatisticas_partida
 from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
+from app.utils.schema_migration import garantir_esquema_banco
 from .forms import AlunoPartidaForm
 
 aluno_bp = Blueprint('aluno', __name__)
@@ -287,8 +288,8 @@ def partidas_lista():
     """Visualização das partidas e scouts (BT Tracker) do aluno."""
     aluno = get_current_aluno()
 
-    try:
-        partidas = Partida.query.filter(
+    def _buscar_partidas():
+        pts = Partida.query.filter(
             db.or_(
                 Partida.jogador1_aluno_id == aluno.id,
                 Partida.jogador2_aluno_id == aluno.id,
@@ -301,12 +302,20 @@ def partidas_lista():
             )
         ).order_by(Partida.data.desc(), Partida.id.desc()).all()
 
-        if not partidas:
-            partidas = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+        if not pts:
+            pts = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+        return pts
+
+    try:
+        partidas = _buscar_partidas()
     except Exception:
         db.session.rollback()
-        db.create_all()
-        partidas = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+        try:
+            garantir_esquema_banco()
+            partidas = _buscar_partidas()
+        except Exception:
+            db.session.rollback()
+            partidas = []
 
     return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
 
