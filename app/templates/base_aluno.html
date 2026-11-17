@@ -89,7 +89,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="aluno-nav-link {{ 'active' if request.endpoint in ['aluno.partidas_lista', 'aluno.partida_detalhes'] else '' }}" href="{{ url_for('aluno.partidas_lista') }}">
+          <a class="aluno-nav-link {{ 'active' if request.endpoint in ['aluno.partidas_lista', 'aluno.partida_detalhes', 'aluno.partida_nova'] else '' }}" href="{{ url_for('aluno.partidas_lista') }}">
             <i class="bi bi-radar"></i> BT Tracker
           </a>
         </li>

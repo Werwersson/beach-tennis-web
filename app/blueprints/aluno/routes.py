@@ -11,6 +11,7 @@ from app.utils.analytics import get_aluno_analytics
 from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
 from app.utils.bt_tracker import calcular_estatisticas_partida
 from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
+from .forms import AlunoPartidaForm
 
 aluno_bp = Blueprint('aluno', __name__)
 
@@ -308,6 +309,49 @@ def partidas_lista():
         partidas = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
 
     return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
+
+
+@aluno_bp.route('/partidas/nova', methods=['GET', 'POST'])
+@aluno_required
+def partida_nova():
+    """O aluno cadastra uma nova partida para avaliação do professor."""
+    aluno = get_current_aluno()
+    form = AlunoPartidaForm()
+
+    if form.validate_on_submit():
+        partida = Partida(
+            titulo=form.titulo.data.strip(),
+            data=form.data.data,
+            torneio=form.torneio.data.strip() if form.torneio.data else 'Treino Competitivo',
+            categoria=form.categoria.data,
+            fase=form.fase.data.strip() if form.fase.data else 'Treino',
+            local=form.local.data.strip() if form.local.data else 'Arena Itabuna',
+            # O aluno que cadastra é o Jogador 1 da Dupla 1
+            jogador1_nome=aluno.nome,
+            jogador1_aluno_id=aluno.id,
+            jogador2_nome=form.parceiro_nome.data.strip(),
+            jogador3_nome=form.jogador3_nome.data.strip(),
+            jogador4_nome=form.jogador4_nome.data.strip(),
+            set1_dupla1=form.set1_dupla1.data,
+            set1_dupla2=form.set1_dupla2.data,
+            set2_dupla1=form.set2_dupla1.data,
+            set2_dupla2=form.set2_dupla2.data,
+            set3_dupla1=form.set3_dupla1.data,
+            set3_dupla2=form.set3_dupla2.data,
+            placar_detalhado=form.placar_detalhado.data.strip() if form.placar_detalhado.data else None,
+            dupla_vencedora=form.dupla_vencedora.data,
+            duracao_minutos=form.duracao_minutos.data,
+            observacoes=form.observacoes.data.strip() if form.observacoes.data else None,
+            # Status: PENDENTE de validação do professor
+            status='pendente',
+            criada_por_aluno_id=aluno.id
+        )
+        db.session.add(partida)
+        db.session.commit()
+        flash('Partida registrada com sucesso! Ela foi enviada para validação e correções do professor Everson.', 'success')
+        return redirect(url_for('aluno.partidas_lista'))
+
+    return render_template('aluno/partida_form.html', aluno=aluno, form=form)
 
 
 @aluno_bp.route('/partidas/<int:id>')

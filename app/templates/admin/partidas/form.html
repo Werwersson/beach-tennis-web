@@ -147,6 +147,21 @@
             </div>
           </div>
 
+          <!-- 4. Validação e Feedback do Professor -->
+          <h6 class="fw-bold text-ocean text-uppercase mb-3 pb-2 border-bottom">
+            <i class="bi bi-shield-check me-1"></i> 4. Validação & Feedback Técnico do Professor
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold" for="status">Status de Validação</label>
+              {{ form.status(class="form-select", id="status") }}
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-bold" for="comentario_professor">Correções e Orientações Técnicas ao Aluno (Opcional)</label>
+              {{ form.comentario_professor(class="form-control", id="comentario_professor", rows=3, placeholder="Orientações técnicas para o aluno melhorar seu desempenho baseado nesta partida...") }}
+            </div>
+          </div>
+
           <!-- Botões -->
           <div class="d-flex justify-content-between align-items-center pt-3 border-top">
             <a href="{{ url_for('admin.partidas_lista') }}" class="btn btn-outline-secondary">Cancelar</a>

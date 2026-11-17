@@ -91,6 +91,7 @@
       <div class="d-flex align-items-center gap-2 mb-2">
         <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT TRACKER</span>
         <span class="text-white-50 small text-uppercase tracking-wider">O SEU OLHAR FORA DA QUADRA</span>
+        <div>{{ partida.status_badge_html | safe }}</div>
       </div>
       <h3 class="fw-extrabold mb-1">{{ partida.titulo or 'Relatório Completo de Jogo' }}</h3>
       <p class="text-white-50 mb-3 small">
@@ -149,6 +150,47 @@
     </div>
   </div>
 </div>
+
+<!-- BANNER DE VALIDAÇÃO DO PROFESSOR -->
+{% if partida.status == 'pendente' %}
+<div class="alert alert-warning border-start border-4 border-warning shadow-sm rounded-3 mb-4 p-3">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history text-warning"></i>
+        <span>Partida Submetida pelo Aluno — Pendente de Validação</span>
+      </h5>
+      <p class="mb-0 text-muted small">
+        Esta partida foi inserida pelo aluno e está aguardando sua revisão. Você pode aprovar o registro, inserir orientações técnicas opcionais ou solicitar ajustes.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-success fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalValidarPartida">
+        <i class="bi bi-check-circle-fill me-1"></i> Aprovar / Validar
+      </button>
+      <button type="button" class="btn btn-outline-danger fw-bold px-3" data-bs-toggle="modal" data-bs-target="#modalRejeitarPartida">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> Solicitar Ajustes
+      </button>
+    </div>
+  </div>
+</div>
+{% elif partida.comentario_professor %}
+<div class="alert alert-info border-start border-4 border-info shadow-sm rounded-3 mb-4 p-3 d-flex justify-content-between align-items-start gap-3">
+  <div class="d-flex align-items-start gap-3">
+    <i class="bi bi-chat-quote-fill fs-2 text-primary"></i>
+    <div>
+      <h6 class="fw-bold mb-1 text-primary">Suas Orientações / Feedback Técnico (Professor Everson):</h6>
+      <p class="mb-0 text-dark">{{ partida.comentario_professor }}</p>
+      {% if partida.validada_em %}
+      <small class="text-muted d-block mt-1">Validado em {{ partida.validada_em.strftime('%d/%m/%Y às %H:%M') }}</small>
+      {% endif %}
+    </div>
+  </div>
+  <button type="button" class="btn btn-sm btn-outline-primary fw-bold text-nowrap" data-bs-toggle="modal" data-bs-target="#modalValidarPartida">
+    <i class="bi bi-pencil me-1"></i> Alterar Feedback
+  </button>
+</div>
+{% endif %}
 
 <!-- 2. NAVEGAÇÃO EM ABAS (SEGUINDO O MENU DO BT TRACKER) -->
 <div class="card-bt mb-4">
@@ -682,6 +724,67 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-ocean fw-bold">Salvar Ponto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VALIDAR / APROVAR PARTIDA -->
+<div class="modal fade" id="modalValidarPartida" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.partida_validar', id=partida.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Aprovar e Validar Partida</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            Ao validar, a partida receberá o status <b>Aprovada</b> e ficará disponível para o aluno consultar a análise e emitir o relatório PDF.
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Orientações & Feedback Técnico do Professor (Opcional)</label>
+            <textarea name="comentario_professor" class="form-control" rows="4" placeholder="Ex: Excelente aproveitamento nos smashes e saques na Zona 3. Para a próxima partida, atentar para diminuir os erros não forçados na paralela...">{{ partida.comentario_professor or '' }}</textarea>
+            <div class="form-text">O aluno visualizará este comentário com destaque no painel dele.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success fw-bold">
+            <i class="bi bi-check-lg me-1"></i> Confirmar Validação
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REJEITAR / SOLICITAR AJUSTES -->
+<div class="modal fade" id="modalRejeitarPartida" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.partida_rejeitar', id=partida.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Solicitar Ajustes na Partida</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            A partida ficará com status <b>Ajustes Solicitados</b> para que o aluno ou o professor corrijam os dados informados.
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Motivo dos Ajustes / O que corrigir? *</label>
+            <textarea name="comentario_professor" class="form-control" rows="4" placeholder="Ex: Por favor confira o placar do 2º set e o nome da dupla adversária..." required>{{ partida.comentario_professor or '' }}</textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger fw-bold">
+            <i class="bi bi-arrow-repeat me-1"></i> Solicitar Ajustes
+          </button>
         </div>
       </form>
     </div>

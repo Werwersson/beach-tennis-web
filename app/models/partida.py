@@ -38,6 +38,13 @@ class Partida(db.Model):
     dupla_vencedora = db.Column(db.Integer, default=1)  # 1 ou 2
     duracao_minutos = db.Column(db.Integer, nullable=True)
     observacoes = db.Column(db.Text, nullable=True)
+    
+    # Validação e Correções do Professor
+    status = db.Column(db.String(20), default='aprovada', index=True)  # 'aprovada', 'pendente', 'rejeitada'
+    criada_por_aluno_id = db.Column(db.Integer, db.ForeignKey('alunos.id'), nullable=True, index=True)
+    comentario_professor = db.Column(db.Text, nullable=True)
+    validada_em = db.Column(db.DateTime, nullable=True)
+
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relacionamentos
@@ -45,6 +52,7 @@ class Partida(db.Model):
     jogador2_aluno = db.relationship('Aluno', foreign_keys=[jogador2_aluno_id])
     jogador3_aluno = db.relationship('Aluno', foreign_keys=[jogador3_aluno_id])
     jogador4_aluno = db.relationship('Aluno', foreign_keys=[jogador4_aluno_id])
+    criada_por_aluno = db.relationship('Aluno', foreign_keys=[criada_por_aluno_id])
 
     pontos = db.relationship(
         'PontoPartida',
@@ -73,6 +81,24 @@ class Partida(db.Model):
         if self.placar_detalhado:
             return self.placar_detalhado
         return ' | '.join(partes) if partes else '0x0'
+
+    @property
+    def status_label(self):
+        labels = {
+            'aprovada': 'Aprovada',
+            'pendente': 'Pendente de Validação',
+            'rejeitada': 'Ajustes Solicitados',
+        }
+        return labels.get(self.status, 'Aprovada')
+
+    @property
+    def status_badge_class(self):
+        classes = {
+            'aprovada': 'bg-success',
+            'pendente': 'bg-warning text-dark',
+            'rejeitada': 'bg-danger',
+        }
+        return classes.get(self.status, 'bg-secondary')
 
     def get_jogador_nome(self, num):
         nomes = {

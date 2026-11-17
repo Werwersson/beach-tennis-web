@@ -25,8 +25,13 @@
         <span class="badge bg-ocean px-3 py-1">BT TRACKER</span>
       </div>
       <p class="text-muted small mb-0 mt-1">
-        Acompanhe o scout detalhado de seus jogos, mapas de calor, percentual de saque e baixe o relatório oficial em PDF.
+        Acompanhe o scout detalhado de seus jogos, validação do professor, mapas de calor e relatórios oficiais em PDF.
       </p>
+    </div>
+    <div>
+      <a href="{{ url_for('aluno.partida_nova') }}" class="btn btn-laranja fw-bold shadow-sm px-3">
+        <i class="bi bi-plus-circle me-1"></i> Adicionar Minha Partida
+      </a>
     </div>
   </div>
 
@@ -49,7 +54,24 @@
             <span><i class="bi bi-geo-alt me-1"></i>{{ p.local or 'Arena Itabuna' }}</span>
           </div>
 
-          <h6 class="fw-bold text-dark mb-3">{{ p.titulo or 'Partida de Beach Tennis' }}</h6>
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="fw-bold text-dark mb-0">{{ p.titulo or 'Partida de Beach Tennis' }}</h6>
+            <div>{{ p.status_badge_html | safe }}</div>
+          </div>
+
+          <!-- Feedback do Professor se houver -->
+          {% if p.comentario_professor %}
+          <div class="alert alert-info py-2 px-3 small mb-3 border-start border-4 border-info">
+            <div class="fw-bold d-flex align-items-center gap-1 text-primary">
+              <i class="bi bi-chat-left-text-fill"></i> Feedback do Professor:
+            </div>
+            <div class="text-dark mt-1">{{ p.comentario_professor }}</div>
+          </div>
+          {% elif p.status == 'pendente' %}
+          <div class="alert alert-warning py-2 px-3 small mb-3 border-start border-4 border-warning">
+            <i class="bi bi-clock-history me-1"></i> Aguardando validação técnica do professor Everson.
+          </div>
+          {% endif %}
 
           <!-- Placar -->
           <div class="bg-light p-3 rounded-3 mb-3 border">
@@ -97,11 +119,11 @@
     <div class="py-4">
       <div class="display-4 text-ocean mb-3"><i class="bi bi-radar"></i></div>
       <h5 class="fw-bold">Nenhum jogo cadastrado ainda</h5>
-      <p class="text-muted mx-auto mb-3" style="max-width:480px;">
-        Assim que o professor Everson realizar o scout dos seus jogos competitivos ou treinos, eles aparecerão aqui com estatísticas completas e mapas de calor.
+      <p class="text-muted mx-auto mb-4" style="max-width:480px;">
+        Você pode cadastrar uma partida jogada para que o professor Everson faça a validação técnica, forneça correções e elabore o relatório completo.
       </p>
-      <a href="{{ url_for('aluno.painel') }}" class="btn btn-ocean fw-bold px-4">
-        Voltar ao Painel
+      <a href="{{ url_for('aluno.partida_nova') }}" class="btn btn-laranja fw-bold px-4 py-2 shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i> Adicionar Minha Primeira Partida
       </a>
     </div>
   </div>

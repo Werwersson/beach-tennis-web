@@ -61,11 +61,16 @@ def create_app(config_name=None):
     @app.context_processor
     def inject_site_data():
         try:
-            from .models import MensagemContato
+            from .models import MensagemContato, Partida
             nao_lidas = MensagemContato.query.filter_by(lida=False).count()
+            partidas_pendentes = Partida.query.filter_by(status='pendente').count()
         except Exception:
             nao_lidas = 0
-        return {'total_mensagens_nao_lidas': nao_lidas}
+            partidas_pendentes = 0
+        return {
+            'total_mensagens_nao_lidas': nao_lidas,
+            'total_partidas_pendentes': partidas_pendentes
+        }
 
     # Comandos de linha de comando para preparar o banco em produção
     @app.cli.command('init-db')

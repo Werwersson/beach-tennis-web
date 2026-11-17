@@ -449,5 +449,14 @@ class PartidaForm(FlaskForm):
     dupla_vencedora = SelectField('Dupla Vencedora', choices=[(1, 'Dupla 1'), (2, 'Dupla 2')], coerce=int, default=1)
     duracao_minutos = IntegerField('Duração (minutos)', default=60, validators=[Optional()])
     observacoes = TextAreaField('Observações Gerais', validators=[Optional()])
+    
+    # Validação e Correções do Professor
+    status = SelectField('Status de Validação', choices=[
+        ('aprovada', 'Aprovada'),
+        ('pendente', 'Pendente de Validação'),
+        ('rejeitada', 'Rejeitada / Ajustes Solicitados')
+    ], default='aprovada')
+    comentario_professor = TextAreaField('Correções e Feedbacks do Professor (opcional)', validators=[Optional()])
+
     submit = SubmitField('Salvar Partida')
 

@@ -73,6 +73,7 @@
         <div class="d-flex align-items-center gap-2 mb-2">
           <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT TRACKER</span>
           <span class="text-white-50 small text-uppercase">O SEU OLHAR FORA DA QUADRA</span>
+          <div>{{ partida.status_badge_html | safe }}</div>
         </div>
         <h3 class="fw-extrabold mb-1">{{ partida.titulo or 'Relatório Completo de Jogo' }}</h3>
         <p class="text-white-50 mb-3 small">
@@ -113,6 +114,27 @@
       </div>
     </div>
   </div>
+
+  {% if partida.comentario_professor %}
+  <div class="alert alert-info border-start border-4 border-info shadow-sm rounded-3 mb-4 p-3 d-flex align-items-start gap-3">
+    <i class="bi bi-chat-quote-fill fs-2 text-primary"></i>
+    <div>
+      <h6 class="fw-bold mb-1 text-primary">Feedback & Orientações do Professor Everson:</h6>
+      <p class="mb-0 text-dark">{{ partida.comentario_professor }}</p>
+      {% if partida.validada_em %}
+      <small class="text-muted d-block mt-1">Validado em {{ partida.validada_em.strftime('%d/%m/%Y às %H:%M') }}</small>
+      {% endif %}
+    </div>
+  </div>
+  {% elif partida.status == 'pendente' %}
+  <div class="alert alert-warning border-start border-4 border-warning shadow-sm rounded-3 mb-4 p-3 d-flex align-items-center gap-3">
+    <i class="bi bi-clock-history fs-2 text-warning"></i>
+    <div>
+      <h6 class="fw-bold mb-1 text-dark">Partida Aguardando Validação</h6>
+      <p class="mb-0 text-muted small">Os dados foram submetidos e o professor Everson está analisando para validar e incluir eventuais apontamentos técnicos.</p>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Abas -->
   <div class="card border shadow-sm mb-4">
