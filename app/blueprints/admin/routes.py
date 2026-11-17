@@ -1850,6 +1850,18 @@ def mensagem_excluir(id):
 
 
 # ── BT TRACKER: SCOUT & ANÁLISE DE PARTIDAS ──────────────────────────────
+@admin_bp.route('/sincronizar-banco', methods=['GET', 'POST'])
+@admin_required
+def sincronizar_banco():
+    """Garante que todas as tabelas (partidas, pontos_partida, etc.) existam no banco de produção."""
+    try:
+        db.create_all()
+        flash('Tabelas do banco de dados sincronizadas com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao sincronizar tabelas: {e}', 'danger')
+    return redirect(url_for('admin.partidas_lista'))
+
+
 @admin_bp.route('/partidas')
 @admin_required
 def partidas_lista():

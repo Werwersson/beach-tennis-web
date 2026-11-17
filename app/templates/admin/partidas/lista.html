@@ -16,6 +16,9 @@
     </p>
   </div>
   <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.sincronizar_banco') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center" title="Sincronizar tabelas do banco">
+      <i class="bi bi-database-check me-1"></i> Sincronizar Banco
+    </a>
     <a href="{{ url_for('admin.partida_nova') }}" class="btn btn-laranja fw-bold px-3 shadow-sm">
       <i class="bi bi-plus-lg me-1"></i> Nova Partida
     </a>
