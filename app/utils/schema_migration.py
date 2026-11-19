@@ -68,6 +68,7 @@ def garantir_esquema_banco():
                 ('qualidade_saque', "VARCHAR(20)"),
                 ('direcao_devolucao', "VARCHAR(30)"),
                 ('qualidade_devolucao', "VARCHAR(20)"),
+                ('saque_dificil', "BOOLEAN DEFAULT 0"),
                 ('situacao_adicional', "VARCHAR(50)"),
                 ('duracao_ponto', "VARCHAR(20)"),
                 ('x_origem', "FLOAT"),

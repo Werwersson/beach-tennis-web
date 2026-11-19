@@ -592,10 +592,29 @@
           </div>
 
           <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary border-0 btn-editar-ponto"
+                    data-ponto-id="{{ p.id }}"
+                    data-numero="{{ p.numero_ponto }}"
+                    data-sacador="{{ p.sacador }}"
+                    data-dupla-venc="{{ p.dupla_vencedora }}"
+                    data-desfecho="{{ p.tipo_desfecho }}"
+                    data-golpe="{{ p.tipo_golpe or '' }}"
+                    data-finalizador="{{ p.atleta_finalizador or 1 }}"
+                    data-posicao="{{ p.posicao_sacador or 'Direita' }}"
+                    data-direcao="{{ p.direcao_saque or '3' }}"
+                    data-qualidade="{{ p.qualidade_saque or 'Bom' }}"
+                    data-saque-dificil="{{ 1 if p.saque_dificil else 0 }}"
+                    data-placar="{{ p.placar_texto or '' }}"
+                    data-situacao="{{ p.situacao_adicional or '' }}"
+                    data-duracao="{{ p.duracao_ponto or 'Médio' }}"
+                    data-set="{{ p.set_num or 1 }}"
+                    title="Editar Ponto do Scout">
+              <i class="bi bi-pencil-square fs-6"></i>
+            </button>
             <form method="POST" action="{{ url_for('admin.partida_ponto_excluir', ponto_id=p.id) }}" class="d-inline" onsubmit="return confirm('Remover este ponto?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Remover Ponto">
-                <i class="bi bi-trash"></i>
+                <i class="bi bi-trash fs-6"></i>
               </button>
             </form>
           </div>
@@ -613,117 +632,368 @@
   </div>
 </div>
 
-<!-- MODAL: REGISTRAR NOVO PONTO -->
+<!-- MODAL: REGISTRAR NOVO PONTO (SCOUT SIMPLIFICADO) -->
 <div class="modal fade" id="modalNovoPonto" tabindex="-1" aria-labelledby="modalNovoPontoLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-ocean text-white">
         <h5 class="modal-title fw-bold" id="modalNovoPontoLabel">
-          <i class="bi bi-bullseye me-1"></i> Registrar Ponto (Scout Rápido)
+          <i class="bi bi-bullseye me-1"></i> Registrar Ponto (Scout da Partida)
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
       <form method="POST" action="{{ url_for('admin.partida_ponto_adicionar', id=partida.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-body p-4">
+          <div class="alert alert-info py-2 px-3 small mb-3 border-0 bg-info bg-opacity-10 text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+            <span><b>Scout focado na sua dupla:</b> você só precisa registrar as ações de vocês. Quando o adversário sacar, basta indicar se o saque foi difícil.</span>
+          </div>
+
           <div class="row g-3">
+            <!-- 1. Sacador -->
             <div class="col-md-6">
-              <label class="form-label fw-bold small">Sacador</label>
-              <select name="sacador" class="form-select">
-                <option value="1">🟢 Jogador 1: {{ partida.jogador1_nome }}</option>
-                <option value="2">🟢 Jogador 2: {{ partida.jogador2_nome }}</option>
-                <option value="3">🔵 Jogador 3: {{ partida.jogador3_nome }}</option>
-                <option value="4">🔵 Jogador 4: {{ partida.jogador4_nome }}</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-bold small">Ponto Vencido Por</label>
-              <select name="dupla_vencedora" class="form-select fw-bold">
-                <option value="1">🟢 Dupla 1 ({{ partida.dupla1_label }})</option>
-                <option value="2">🔵 Dupla 2 ({{ partida.dupla2_label }})</option>
+              <label class="form-label fw-bold small text-dark">Quem está sacando? *</label>
+              <select name="sacador" id="sacadorNovo" class="form-select border-primary" onchange="alternarCamposSaque(this.value, '')">
+                <option value="1">🟢 {{ partida.jogador1_nome }} (Nossa Dupla)</option>
+                <option value="2">🟢 {{ partida.jogador2_nome }} (Nossa Dupla)</option>
+                <option value="3">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
               </select>
             </div>
 
-            <div class="col-md-4">
-              <label class="form-label fw-bold small">Desfecho do Ponto</label>
-              <select name="tipo_desfecho" class="form-select">
-                <option value="winner">Winner</option>
-                <option value="forcou_erro">Forçou Erro</option>
-                <option value="erro_nao_forcado">Erro Não Forçado</option>
-                <option value="ace">Ace</option>
-                <option value="erro_saque">Erro de Saque</option>
-                <option value="erro_devolucao">Erro de Devolução</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold small">Golpe Finalizador</label>
-              <input type="text" name="tipo_golpe" class="form-control" placeholder="Ex: Smash, Lob Chutado, Gancho, Curta">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold small">Atleta Finalizador / Autor</label>
-              <select name="atleta_finalizador" class="form-select">
-                <option value="1">{{ partida.jogador1_nome }}</option>
-                <option value="2">{{ partida.jogador2_nome }}</option>
-                <option value="3">{{ partida.jogador3_nome }}</option>
-                <option value="4">{{ partida.jogador4_nome }}</option>
+            <!-- Set e Placar -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-dark">Set do Jogo</label>
+              <select name="set_num" class="form-select">
+                <option value="1">Set 1</option>
+                <option value="2">Set 2</option>
+                <option value="3">Set 3 / Tiebreak</option>
+                {% if partida.fase in ['Semifinal', 'Final'] %}
+                <option value="4">Set 4</option>
+                {% endif %}
               </select>
             </div>
 
-            <div class="col-md-4">
-              <label class="form-label fw-bold small">Posição e Direção Saque</label>
-              <div class="input-group">
-                <select name="posicao_sacador" class="form-select">
-                  <option value="Direita">Direita</option>
-                  <option value="Esquerda">Esquerda</option>
-                </select>
-                <select name="direcao_saque" class="form-select">
-                  <option value="1">Zona 1</option>
-                  <option value="2">Zona 2</option>
-                  <option value="3" selected>Zona 3</option>
-                  <option value="4">Zona 4</option>
-                  <option value="5">Zona 5</option>
-                  <option value="Lob">Lob</option>
-                </select>
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-dark">Placar do Game</label>
+              <input type="text" name="placar_texto" class="form-control" placeholder="Ex: 15x0, 30x15, 40x40">
+            </div>
+
+            <!-- 2. ANÁLISE DE SAQUE DA NOSSA DUPLA (Visível quando Jogador 1 ou 2 saca) -->
+            <div id="boxSaqueNossaDupla" class="col-12">
+              <div class="p-3 bg-light rounded-3 border border-success-subtle">
+                <div class="fw-bold small text-success mb-2 d-flex align-items-center gap-1">
+                  <i class="bi bi-arrow-up-right-circle-fill"></i> Análise de Saque da Nossa Dupla:
+                </div>
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Lado e Zona do Saque</label>
+                    <div class="input-group input-group-sm">
+                      <select name="posicao_sacador" class="form-select">
+                        <option value="Direita">Direita</option>
+                        <option value="Esquerda">Esquerda</option>
+                      </select>
+                      <select name="direcao_saque" class="form-select">
+                        <option value="1">Zona 1 (Aberta)</option>
+                        <option value="2">Zona 2</option>
+                        <option value="3" selected>Zona 3 (Corpo)</option>
+                        <option value="4">Zona 4</option>
+                        <option value="5">Zona 5 (T / Aberta)</option>
+                        <option value="Lob">Lob de Saque</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Qualidade do Saque</label>
+                    <select name="qualidade_saque" class="form-select form-select-sm">
+                      <option value="Bom" selected>Bom (teve efeito/pressão)</option>
+                      <option value="Regular">Regular (bola neutra)</option>
+                      <option value="Ruim">Ruim (bola fácil para devolução)</option>
+                      <option value="Ace">Ace (ponto direto)</option>
+                      <option value="Erro">Erro (fora ou rede)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold small">Qualidade do Saque</label>
-              <select name="qualidade_saque" class="form-select">
-                <option value="Bom">Bom</option>
-                <option value="Regular">Regular</option>
-                <option value="Ruim">Ruim</option>
-                <option value="Ace">Ace</option>
-                <option value="Erro">Erro</option>
-              </select>
+
+            <!-- 3. SAQUE DO ADVERSÁRIO (Visível apenas quando Adversário saca) -->
+            <div id="boxSaqueAdversario" class="col-12 d-none">
+              <div class="p-3 rounded-3 border border-warning-subtle bg-warning bg-opacity-10">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <div>
+                    <span class="fw-bold text-dark small d-flex align-items-center gap-1">
+                      <i class="bi bi-shield-exclamation text-warning fs-5"></i> Saque dos Adversários:
+                    </span>
+                    <span class="text-muted small">Não precisa detalhar zonas de saque adversário. Apenas informe se foi difícil:</span>
+                  </div>
+                  <div class="d-flex gap-3">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="saqueNormalNovo" value="0" checked>
+                      <label class="form-check-label small" for="saqueNormalNovo">Saque Normal</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="saqueDificilNovo" value="1">
+                      <label class="form-check-label small fw-bold text-danger" for="saqueDificilNovo">
+                        🔥 Saque Difícil / Pesado
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label fw-bold small">Placar do Lance</label>
-              <input type="text" name="placar_texto" class="form-control" placeholder="Ex: 0x0 15x0, 4x6 30x15">
+
+            <!-- 4. Ponto Vencido Por e Desfecho -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Ponto Vencido Por *</label>
+              <select name="dupla_vencedora" id="duplaVencedoraNovo" class="form-select fw-bold" onchange="atualizarOpcoesDesfecho(this.value, '')">
+                <option value="1">🟢 Dupla 1 ({{ partida.dupla1_label }})</option>
+                <option value="2">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
+              </select>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label fw-bold small">Situação Adicional</label>
-              <select name="situacao_adicional" class="form-select">
-                <option value="">Nenhuma</option>
-                <option value="Bola na Fita">Bola na Fita</option>
-                <option value="Bola na Linha">Bola na Linha</option>
-                <option value="Furou a bola">Furou a bola</option>
-                <option value="Provocação">Provocação</option>
+              <label class="form-label fw-bold small text-dark">Desfecho / Ação do Ponto *</label>
+              <select name="tipo_desfecho" id="tipoDesfechoNovo" class="form-select fw-bold" onchange="alternarAcaoNossaDupla(this.value, '')">
+                <!-- Ações quando Dupla 1 vence: -->
+                <optgroup label="✅ Pontos da Nossa Dupla" id="grpPontosNossaDupla">
+                  <option value="winner">Winner da Nossa Dupla</option>
+                  <option value="forcou_erro">Nossa Dupla Forçou o Erro</option>
+                  <option value="ace">Ace da Nossa Dupla</option>
+                  <option value="erro_adversario">Erro Não Forçado do Adversário</option>
+                  <option value="erro_saque_adversario">Erro de Saque do Adversário</option>
+                </optgroup>
+                <!-- Ações quando Adversário vence: -->
+                <optgroup label="❌ Pontos da Dupla Adversária" id="grpPontosAdversarios">
+                  <option value="erro_nao_forcado">Erro Não Forçado da Nossa Dupla</option>
+                  <option value="erro_devolucao">Erro de Devolução da Nossa Dupla</option>
+                  <option value="erro_saque">Erro de Saque da Nossa Dupla</option>
+                  <option value="winner_adversario">Winner / Ponto Direto do Adversário</option>
+                </optgroup>
               </select>
             </div>
+
+            <!-- 5. DETALHES DA NOSSA DUPLA (Oculto se foi erro/ação direta do adversário) -->
+            <div id="boxAcaoNossaDupla" class="col-12">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Atleta da Nossa Dupla</label>
+                    <select name="atleta_finalizador" id="atletaFinalizadorNovo" class="form-select">
+                      <option value="1">🟢 {{ partida.jogador1_nome }}</option>
+                      <option value="2">🟢 {{ partida.jogador2_nome }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Golpe Executado</label>
+                    <input type="text" name="tipo_golpe" class="form-control" placeholder="Ex: Smash, Lob Chutado, Gancho, Curta, Voleio">
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="col-md-6">
-              <label class="form-label fw-bold small">Duração do Ponto</label>
+              <label class="form-label fw-bold small text-dark">Situação Adicional</label>
+              <select name="situacao_adicional" class="form-select">
+                <option value="">Nenhuma</option>
+                <option value="Bola na Fita">Bola na Fita (Rede)</option>
+                <option value="Bola na Linha">Bola na Linha</option>
+                <option value="Furou a bola">Furou a bola / Erro técnico</option>
+                <option value="Provocação">Ponto Decisivo / Disputado</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Duração da Troca de Bolas</label>
               <select name="duracao_ponto" class="form-select">
-                <option value="Curto">Curto (saque/devolução)</option>
-                <option value="Médio" selected>Médio (troca regular)</option>
-                <option value="Longo">Longo (rally disputado)</option>
+                <option value="Curto">Curto (saque / 1ª devolução)</option>
+                <option value="Médio" selected>Médio (troca normal)</option>
+                <option value="Longo">Longo (rally longo disputado)</option>
               </select>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer bg-light">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-ocean fw-bold">Salvar Ponto</button>
+          <button type="submit" class="btn btn-ocean fw-bold px-4">
+            <i class="bi bi-check-lg me-1"></i> Salvar Ponto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PONTO (PROFESSOR OU ALUNO) -->
+<div class="modal fade" id="modalEditarPonto" tabindex="-1" aria-labelledby="modalEditarPontoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalEditarPontoLabel">
+          <i class="bi bi-pencil-square me-1"></i> Editar Ponto <span id="editPontoNumero">#</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form method="POST" id="formEditarPonto" action="">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Quem estava sacando? *</label>
+              <select name="sacador" id="editSacador" class="form-select border-primary" onchange="alternarCamposSaque(this.value, 'edit_')">
+                <option value="1">🟢 {{ partida.jogador1_nome }} (Nossa Dupla)</option>
+                <option value="2">🟢 {{ partida.jogador2_nome }} (Nossa Dupla)</option>
+                <option value="3">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-dark">Set do Jogo</label>
+              <select name="set_num" id="editSetNum" class="form-select">
+                <option value="1">Set 1</option>
+                <option value="2">Set 2</option>
+                <option value="3">Set 3 / Tiebreak</option>
+                {% if partida.fase in ['Semifinal', 'Final'] %}
+                <option value="4">Set 4</option>
+                {% endif %}
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-dark">Placar do Game</label>
+              <input type="text" name="placar_texto" id="editPlacarTexto" class="form-control">
+            </div>
+
+            <!-- Análise de saque da nossa dupla (Editar) -->
+            <div id="edit_boxSaqueNossaDupla" class="col-12">
+              <div class="p-3 bg-light rounded-3 border border-success-subtle">
+                <div class="fw-bold small text-success mb-2">
+                  <i class="bi bi-arrow-up-right-circle-fill"></i> Análise de Saque da Nossa Dupla:
+                </div>
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Lado e Zona</label>
+                    <div class="input-group input-group-sm">
+                      <select name="posicao_sacador" id="editPosicaoSacador" class="form-select">
+                        <option value="Direita">Direita</option>
+                        <option value="Esquerda">Esquerda</option>
+                      </select>
+                      <select name="direcao_saque" id="editDirecaoSaque" class="form-select">
+                        <option value="1">Zona 1 (Aberta)</option>
+                        <option value="2">Zona 2</option>
+                        <option value="3">Zona 3 (Corpo)</option>
+                        <option value="4">Zona 4</option>
+                        <option value="5">Zona 5 (T / Aberta)</option>
+                        <option value="Lob">Lob de Saque</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Qualidade do Saque</label>
+                    <select name="qualidade_saque" id="editQualidadeSaque" class="form-select form-select-sm">
+                      <option value="Bom">Bom</option>
+                      <option value="Regular">Regular</option>
+                      <option value="Ruim">Ruim</option>
+                      <option value="Ace">Ace</option>
+                      <option value="Erro">Erro</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Saque adversário difícil (Editar) -->
+            <div id="edit_boxSaqueAdversario" class="col-12 d-none">
+              <div class="p-3 rounded-3 border border-warning-subtle bg-warning bg-opacity-10">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <span class="fw-bold text-dark small"><i class="bi bi-shield-exclamation text-warning fs-5"></i> Saque Adversário:</span>
+                  <div class="d-flex gap-3">
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="editSaqueNormal" value="0">
+                      <label class="form-check-label small" for="editSaqueNormal">Saque Normal</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="editSaqueDificil" value="1">
+                      <label class="form-check-label small fw-bold text-danger" for="editSaqueDificil">🔥 Saque Difícil / Pesado</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vencedor e Desfecho (Editar) -->
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Ponto Vencido Por *</label>
+              <select name="dupla_vencedora" id="editDuplaVencedora" class="form-select fw-bold" onchange="atualizarOpcoesDesfecho(this.value, 'edit_')">
+                <option value="1">🟢 Dupla 1 ({{ partida.dupla1_label }})</option>
+                <option value="2">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Desfecho / Ação do Ponto *</label>
+              <select name="tipo_desfecho" id="editTipoDesfecho" class="form-select fw-bold" onchange="alternarAcaoNossaDupla(this.value, 'edit_')">
+                <optgroup label="✅ Pontos da Nossa Dupla" id="edit_grpPontosNossaDupla">
+                  <option value="winner">Winner da Nossa Dupla</option>
+                  <option value="forcou_erro">Nossa Dupla Forçou o Erro</option>
+                  <option value="ace">Ace da Nossa Dupla</option>
+                  <option value="erro_adversario">Erro Não Forçado do Adversário</option>
+                  <option value="erro_saque_adversario">Erro de Saque do Adversário</option>
+                </optgroup>
+                <optgroup label="❌ Pontos da Dupla Adversária" id="edit_grpPontosAdversarios">
+                  <option value="erro_nao_forcado">Erro Não Forçado da Nossa Dupla</option>
+                  <option value="erro_devolucao">Erro de Devolução da Nossa Dupla</option>
+                  <option value="erro_saque">Erro de Saque da Nossa Dupla</option>
+                  <option value="winner_adversario">Winner / Ponto Direto do Adversário</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Ação Nossa Dupla (Editar) -->
+            <div id="edit_boxAcaoNossaDupla" class="col-12">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Atleta da Nossa Dupla</label>
+                    <select name="atleta_finalizador" id="editAtletaFinalizador" class="form-select">
+                      <option value="1">🟢 {{ partida.jogador1_nome }}</option>
+                      <option value="2">🟢 {{ partida.jogador2_nome }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark">Golpe Executado</label>
+                    <input type="text" name="tipo_golpe" id="editTipoGolpe" class="form-control">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Situação Adicional</label>
+              <select name="situacao_adicional" id="editSituacaoAdicional" class="form-select">
+                <option value="">Nenhuma</option>
+                <option value="Bola na Fita">Bola na Fita (Rede)</option>
+                <option value="Bola na Linha">Bola na Linha</option>
+                <option value="Furou a bola">Furou a bola / Erro técnico</option>
+                <option value="Provocação">Ponto Decisivo / Disputado</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-dark">Duração da Troca de Bolas</label>
+              <select name="duracao_ponto" id="editDuracaoPonto" class="form-select">
+                <option value="Curto">Curto (saque / 1ª devolução)</option>
+                <option value="Médio">Médio (troca normal)</option>
+                <option value="Longo">Longo (rally longo disputado)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4">
+            <i class="bi bi-save me-1"></i> Salvar Alterações
+          </button>
         </div>
       </form>
     </div>
@@ -940,5 +1210,104 @@
       el.style.display = isActive ? '' : 'none';
     });
   }
+  // ── CONTROLE DO SCOUT SIMPLIFICADO & EDIÇÃO ─────────────────────────
+  function alternarCamposSaque(sacadorVal, prefix) {
+    prefix = prefix || '';
+    const boxNossa = document.getElementById(prefix + 'boxSaqueNossaDupla');
+    const boxAdv = document.getElementById(prefix + 'boxSaqueAdversario');
+    const isAdversario = (sacadorVal === '3' || sacadorVal === '4' || sacadorVal === 3 || sacadorVal === 4);
+
+    if (boxNossa) {
+      if (isAdversario) {
+        boxNossa.classList.add('d-none');
+      } else {
+        boxNossa.classList.remove('d-none');
+      }
+    }
+    if (boxAdv) {
+      if (isAdversario) {
+        boxAdv.classList.remove('d-none');
+      } else {
+        boxAdv.classList.add('d-none');
+      }
+    }
+  }
+
+  function alternarAcaoNossaDupla(desfechoVal, prefix) {
+    prefix = prefix || '';
+    const boxAcao = document.getElementById(prefix + 'boxAcaoNossaDupla');
+    const isAcaoAdversario = (
+      desfechoVal === 'winner_adversario' ||
+      desfechoVal === 'erro_adversario' ||
+      desfechoVal === 'erro_saque_adversario'
+    );
+    if (boxAcao) {
+      if (isAcaoAdversario) {
+        boxAcao.classList.add('d-none');
+      } else {
+        boxAcao.classList.remove('d-none');
+      }
+    }
+  }
+
+  function atualizarOpcoesDesfecho(duplaVencVal, prefix) {
+    prefix = prefix || '';
+    const selectDesfecho = document.getElementById(prefix ? 'editTipoDesfecho' : 'tipoDesfechoNovo');
+    if (!selectDesfecho) return;
+    if (duplaVencVal === '1') {
+      selectDesfecho.value = 'winner';
+    } else {
+      selectDesfecho.value = 'erro_nao_forcado';
+    }
+    alternarAcaoNossaDupla(selectDesfecho.value, prefix);
+  }
+
+  // Listener para botões de Edição de Ponto
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-editar-ponto').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const modalEl = document.getElementById('modalEditarPonto');
+        if (!modalEl) return;
+        const pontoId = btn.dataset.pontoId;
+        const form = modalEl.querySelector('#formEditarPonto');
+        if (form) {
+          form.action = `/admin/partidas/pontos/${pontoId}/editar`;
+        }
+
+        const numEl = modalEl.querySelector('#editPontoNumero');
+        if (numEl) numEl.textContent = '#' + btn.dataset.numero;
+
+        const setVal = (id, val) => {
+          const el = modalEl.querySelector('#' + id);
+          if (el && val !== undefined && val !== null) el.value = val;
+        };
+
+        setVal('editSacador', btn.dataset.sacador);
+        setVal('editDuplaVencedora', btn.dataset.duplaVenc);
+        setVal('editTipoDesfecho', btn.dataset.desfecho);
+        setVal('editTipoGolpe', btn.dataset.golpe);
+        setVal('editAtletaFinalizador', btn.dataset.finalizador);
+        setVal('editPosicaoSacador', btn.dataset.posicao);
+        setVal('editDirecaoSaque', btn.dataset.direcao);
+        setVal('editQualidadeSaque', btn.dataset.qualidade);
+        setVal('editPlacarTexto', btn.dataset.placar);
+        setVal('editSituacaoAdicional', btn.dataset.situacao);
+        setVal('editDuracaoPonto', btn.dataset.duracao);
+        setVal('editSetNum', btn.dataset.set);
+
+        const saqueDificil = btn.dataset.saqueDificil === '1';
+        const radDificil = modalEl.querySelector('#editSaqueDificil');
+        const radNormal = modalEl.querySelector('#editSaqueNormal');
+        if (radDificil) radDificil.checked = saqueDificil;
+        if (radNormal) radNormal.checked = !saqueDificil;
+
+        alternarCamposSaque(btn.dataset.sacador, 'edit_');
+        alternarAcaoNossaDupla(btn.dataset.desfecho, 'edit_');
+
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+      });
+    });
+  });
 </script>
 {% endblock %}

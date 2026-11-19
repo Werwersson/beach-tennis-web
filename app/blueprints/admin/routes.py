@@ -2247,28 +2247,103 @@ def partida_excluir(id):
     return redirect(url_for('admin.partidas_lista'))
 
 
+def _processar_dados_ponto(partida, form_data):
+    """
+    Processa os dados de um ponto de scout de forma simplificada:
+    - A dupla foca apenas nas suas próprias ações (Jogador 1 e Jogador 2).
+    - Não precisa detalhar ações dos adversários.
+    - Análise de saque detalhada apenas para a nossa dupla; quando o adversário saca,
+      apenas informa se o saque foi difícil (saque_dificil).
+    """
+    sacador = int(form_data.get('sacador', 1))
+    dupla_vencedora = int(form_data.get('dupla_vencedora', 1))
+    saque_dificil = form_data.get('saque_dificil') in ('1', 'true', 'True', 'on', 'sim', 'Sim')
+
+    if sacador in (1, 2):
+        # Nossa dupla sacando: análise técnica completa
+        posicao_sacador = form_data.get('posicao_sacador', 'Direita')
+        direcao_saque = form_data.get('direcao_saque', '3')
+        qualidade_saque = form_data.get('qualidade_saque', 'Bom')
+        saque_dificil = False
+    else:
+        # Adversário sacando: não detalha saque do adversário, apenas se foi difícil
+        posicao_sacador = None
+        direcao_saque = None
+        qualidade_saque = 'Difícil' if saque_dificil else 'Regular'
+        sacador = 3  # Dupla adversária representada
+
+    tipo_desfecho_raw = form_data.get('tipo_desfecho', 'winner')
+
+    # Ações e finalizador simplificados
+    if tipo_desfecho_raw in ('winner_adversario', 'ponto_adversario'):
+        tipo_desfecho = 'winner'
+        atleta_finalizador = 3
+        tipo_golpe = None
+        descricao_lance = "Ponto / Winner do adversário"
+    elif tipo_desfecho_raw in ('erro_adversario', 'erro_nao_forcado_adversario'):
+        tipo_desfecho = 'erro_nao_forcado'
+        atleta_finalizador = 3
+        tipo_golpe = None
+        descricao_lance = "Erro não forçado do adversário"
+    elif tipo_desfecho_raw in ('erro_saque_adversario',):
+        tipo_desfecho = 'erro_saque'
+        atleta_finalizador = 3
+        tipo_golpe = None
+        descricao_lance = "Erro de saque do adversário"
+    else:
+        # Ação executada pela nossa dupla
+        tipo_desfecho = tipo_desfecho_raw
+        atleta_finalizador = int(form_data.get('atleta_finalizador', 1))
+        if atleta_finalizador not in (1, 2):
+            atleta_finalizador = 1
+        tipo_golpe = form_data.get('tipo_golpe', '').strip() or None
+        fin_nome = partida.get_jogador_nome(atleta_finalizador)
+        nomes_desfecho = {
+            'winner': 'Winner',
+            'forcou_erro': 'Forçou erro',
+            'erro_nao_forcado': 'Erro não forçado',
+            'ace': 'Ace',
+            'erro_saque': 'Erro de saque',
+            'erro_devolucao': 'Erro de devolução'
+        }
+        desf_label = nomes_desfecho.get(tipo_desfecho, tipo_desfecho.replace('_', ' ').capitalize())
+        descricao_lance = f"{desf_label} de {fin_nome}"
+        if tipo_golpe:
+            descricao_lance += f" ({tipo_golpe})"
+
+    if saque_dificil and sacador in (3, 4):
+        descricao_lance += " [Saque difícil do adversário]"
+
+    placar_texto = form_data.get('placar_texto', '').strip() or None
+    situacao_adicional = form_data.get('situacao_adicional', '').strip() or None
+    duracao_ponto = form_data.get('duracao_ponto', 'Médio')
+    set_num = int(form_data.get('set_num', 1)) if form_data.get('set_num') else 1
+
+    return {
+        'sacador': sacador,
+        'dupla_vencedora': dupla_vencedora,
+        'atleta_finalizador': atleta_finalizador,
+        'tipo_desfecho': tipo_desfecho,
+        'tipo_golpe': tipo_golpe,
+        'posicao_sacador': posicao_sacador,
+        'direcao_saque': direcao_saque,
+        'qualidade_saque': qualidade_saque,
+        'saque_dificil': saque_dificil,
+        'placar_texto': placar_texto,
+        'situacao_adicional': situacao_adicional,
+        'duracao_ponto': duracao_ponto,
+        'set_num': set_num,
+        'descricao_lance': descricao_lance,
+    }
+
+
 @admin_bp.route('/partidas/<int:id>/pontos/novo', methods=['POST'])
 @admin_required
 def partida_ponto_adicionar(id):
     """Adiciona um novo ponto / scout lance a lance na partida."""
     partida = db.get_or_404(Partida, id)
-
     numero = len(partida.pontos) + 1
-    sacador = int(request.form.get('sacador', 1))
-    dupla_vencedora = int(request.form.get('dupla_vencedora', 1))
-    atleta_finalizador = request.form.get('atleta_finalizador')
-    atleta_finalizador = int(atleta_finalizador) if atleta_finalizador else sacador
-
-    tipo_desfecho = request.form.get('tipo_desfecho', 'winner')
-    tipo_golpe = request.form.get('tipo_golpe', '').strip()
-    posicao_sacador = request.form.get('posicao_sacador', 'Direita')
-    direcao_saque = request.form.get('direcao_saque', '3')
-    qualidade_saque = request.form.get('qualidade_saque', 'Bom')
-    direcao_devolucao = request.form.get('direcao_devolucao', '').strip() or None
-    qualidade_devolucao = request.form.get('qualidade_devolucao', '').strip() or None
-    placar_texto = request.form.get('placar_texto', '').strip()
-    situacao_adicional = request.form.get('situacao_adicional', '').strip() or None
-    duracao_ponto = request.form.get('duracao_ponto', 'Médio')
+    dados = _processar_dados_ponto(partida, request.form)
 
     # Coordenadas opcionais para o mapa de calor
     def parse_float(val, default):
@@ -2282,38 +2357,33 @@ def partida_ponto_adicionar(id):
     destino_x = parse_float(request.form.get('destino_x'), 50.0)
     destino_y = parse_float(request.form.get('destino_y'), 25.0)
 
-    descricao_lance = request.form.get('descricao_lance', '').strip()
-    if not descricao_lance:
-        fin_nome = partida.get_jogador_nome(atleta_finalizador)
-        descricao_lance = f"{tipo_desfecho.replace('_', ' ').capitalize()} de {fin_nome}"
-        if tipo_golpe:
-            descricao_lance += f" ({tipo_golpe})"
-
     ponto = PontoPartida(
         partida_id=partida.id,
         numero_ponto=numero,
-        placar_texto=placar_texto,
-        sacador=sacador,
-        dupla_vencedora=dupla_vencedora,
-        atleta_finalizador=atleta_finalizador,
-        tipo_desfecho=tipo_desfecho,
-        tipo_golpe=tipo_golpe,
-        posicao_sacador=posicao_sacador,
-        direcao_saque=direcao_saque,
-        qualidade_saque=qualidade_saque,
-        direcao_devolucao=direcao_devolucao,
-        qualidade_devolucao=qualidade_devolucao,
-        duracao_ponto=duracao_ponto,
-        situacao_adicional=situacao_adicional,
         origem_x=origem_x,
         origem_y=origem_y,
         destino_x=destino_x,
         destino_y=destino_y,
-        descricao_lance=descricao_lance
+        **dados
     )
     db.session.add(ponto)
     db.session.commit()
     flash(f'Ponto #{numero} registrado com sucesso!', 'success')
+    return redirect(url_for('admin.partida_detalhes', id=partida.id))
+
+
+@admin_bp.route('/partidas/pontos/<int:ponto_id>/editar', methods=['POST'])
+@admin_required
+def partida_ponto_editar(ponto_id):
+    """O professor edita os dados de um ponto do scout."""
+    ponto = db.get_or_404(PontoPartida, ponto_id)
+    partida = ponto.partida
+    dados = _processar_dados_ponto(partida, request.form)
+    for chave, valor in dados.items():
+        setattr(ponto, chave, valor)
+
+    db.session.commit()
+    flash(f'Ponto #{ponto.numero_ponto} atualizado com sucesso pelo professor!', 'success')
     return redirect(url_for('admin.partida_detalhes', id=partida.id))
 
 

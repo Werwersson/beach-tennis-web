@@ -152,6 +152,7 @@ class PontoPartida(db.Model):
     posicao_sacador = db.Column(db.String(20), nullable=True)  # 'Direita', 'Esquerda'
     direcao_saque = db.Column(db.String(30), nullable=True)  # '1', '2', '3', '4', '5', 'Lob' -> Direita-3
     qualidade_saque = db.Column(db.String(20), nullable=True)  # 'Bom', 'Regular', 'Ruim', 'Ace', 'Erro'
+    saque_dificil = db.Column(db.Boolean, default=False, nullable=True)  # Saque do adversário foi difícil (informado pelo aluno)
 
     # Análise de Devolução
     direcao_devolucao = db.Column(db.String(40), nullable=True)  # 'No sacador', 'No parceiro', 'Meio', 'Lob'

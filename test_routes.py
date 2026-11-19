@@ -5,7 +5,7 @@ Uso:  python -u test_routes.py
 """
 import re
 from app import create_app
-from app.models import Partida, Usuario
+from app.models import Partida, Usuario, PontoPartida
 from app.extensions import db
 from app.utils.schema_migration import garantir_esquema_banco
 
@@ -138,6 +138,37 @@ if __name__ == '__main__':
     # -- CSV por set --
     print('\n--- CSV por set ---')
     test_route(f'/admin/partidas/{pid1}/set_1_csv')
+
+    # -- Scout Simplificado: Lançar Ponto com Saque Difícil do Adversário --
+    print('\n--- Scout Simplificado: Ponto com Saque Difícil (sem dados do adversário) ---')
+    resp_ponto = test_route(f'/admin/partidas/{pid1}/pontos/novo', method='POST', data={
+        'sacador': '3',               # Adversário sacando
+        'saque_dificil': '1',         # Apenas indica que o saque foi difícil
+        'dupla_vencedora': '1',       # Nossa dupla venceu
+        'tipo_desfecho': 'winner',    # Winner nosso
+        'atleta_finalizador': '1',    # Jogador 1
+        'tipo_golpe': 'Smash',
+        'set_num': '1',
+        'placar_texto': '15x0'
+    })
+
+    # -- Editar Ponto pelo Professor --
+    print('\n--- Editar Ponto pelo Professor ---')
+    with app.app_context():
+        ponto_recente = PontoPartida.query.filter_by(partida_id=pid1).order_by(PontoPartida.id.desc()).first()
+        ponto_id = ponto_recente.id if ponto_recente else None
+
+    if ponto_id:
+        test_route(f'/admin/partidas/pontos/{ponto_id}/editar', method='POST', data={
+            'sacador': '3',
+            'saque_dificil': '1',
+            'dupla_vencedora': '1',
+            'tipo_desfecho': 'forcou_erro',
+            'atleta_finalizador': '2',
+            'tipo_golpe': 'Lob Chutado',
+            'set_num': '1',
+            'placar_texto': '30x0'
+        })
 
     print()
     print('=' * 60)

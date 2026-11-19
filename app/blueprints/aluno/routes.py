@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import current_user
 from app.extensions import db
 from app.models import (Aluno, Turma, TurmaAluno, Aula, AulaExercicio,
-                        Presenca, Avaliacao, MetaAluno, Exercicio, Partida)
+                        Presenca, Avaliacao, MetaAluno, Exercicio, Partida, PontoPartida)
 from app.models.exercicio import CATEGORIAS_EXERCICIO, NIVEIS_EXERCICIO
 from app.utils.decorators import aluno_required
 from app.utils.analytics import get_aluno_analytics
@@ -387,4 +387,80 @@ def partida_pdf(id):
         mimetype='application/pdf',
         headers={'Content-Disposition': f'attachment; filename="{nome_arquivo}"'}
     )
+
+
+@aluno_bp.route('/partidas/<int:id>/pontos/novo', methods=['POST'])
+@aluno_required
+def partida_ponto_adicionar(id):
+    """O aluno lança um novo ponto no scout de sua partida."""
+    aluno = get_current_aluno()
+    partida = db.get_or_404(Partida, id)
+
+    # Verifica se o aluno tem relação com a partida
+    is_autor = (partida.criada_por_aluno_id == aluno.id or
+                partida.jogador1_aluno_id == aluno.id or
+                partida.jogador2_aluno_id == aluno.id)
+    if not is_autor:
+        flash('Você não tem permissão para lançar pontos nesta partida.', 'danger')
+        return redirect(url_for('aluno.partidas_lista'))
+
+    from app.blueprints.admin.routes import _processar_dados_ponto
+    numero = len(partida.pontos) + 1
+    dados = _processar_dados_ponto(partida, request.form)
+
+    ponto = PontoPartida(
+        partida_id=partida.id,
+        numero_ponto=numero,
+        **dados
+    )
+    db.session.add(ponto)
+    db.session.commit()
+    flash(f'Ponto #{numero} registrado com sucesso!', 'success')
+    return redirect(url_for('aluno.partida_detalhes', id=partida.id))
+
+
+@aluno_bp.route('/partidas/pontos/<int:ponto_id>/editar', methods=['POST'])
+@aluno_required
+def partida_ponto_editar(ponto_id):
+    """O aluno edita um ponto no scout de sua partida."""
+    aluno = get_current_aluno()
+    ponto = db.get_or_404(PontoPartida, ponto_id)
+    partida = ponto.partida
+
+    is_autor = (partida.criada_por_aluno_id == aluno.id or
+                partida.jogador1_aluno_id == aluno.id or
+                partida.jogador2_aluno_id == aluno.id)
+    if not is_autor:
+        flash('Você não tem permissão para editar pontos nesta partida.', 'danger')
+        return redirect(url_for('aluno.partidas_lista'))
+
+    from app.blueprints.admin.routes import _processar_dados_ponto
+    dados = _processar_dados_ponto(partida, request.form)
+    for chave, valor in dados.items():
+        setattr(ponto, chave, valor)
+
+    db.session.commit()
+    flash(f'Ponto #{ponto.numero_ponto} atualizado com sucesso!', 'success')
+    return redirect(url_for('aluno.partida_detalhes', id=partida.id))
+
+
+@aluno_bp.route('/partidas/pontos/<int:ponto_id>/excluir', methods=['POST'])
+@aluno_required
+def partida_ponto_excluir(ponto_id):
+    """O aluno remove um ponto do scout de sua partida."""
+    aluno = get_current_aluno()
+    ponto = db.get_or_404(PontoPartida, ponto_id)
+    partida = ponto.partida
+
+    is_autor = (partida.criada_por_aluno_id == aluno.id or
+                partida.jogador1_aluno_id == aluno.id or
+                partida.jogador2_aluno_id == aluno.id)
+    if not is_autor:
+        flash('Você não tem permissão para remover pontos desta partida.', 'danger')
+        return redirect(url_for('aluno.partidas_lista'))
+
+    db.session.delete(ponto)
+    db.session.commit()
+    flash('Ponto removido com sucesso.', 'info')
+    return redirect(url_for('aluno.partida_detalhes', id=partida.id))
 
