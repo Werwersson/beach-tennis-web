@@ -2,10 +2,13 @@
 
 {% block title %}{{ cfg.titulo_hero }} — Prof. {{ cfg.nome_professor }}{% endblock %}
 
-{% block meta_description %}Aulas profissionais de Beach Tennis em Itabuna (BA) com o Prof. Everson Vicktor Silva Silveira, líder do ranking AIBT 2026 em 3 categorias. Metodologia moderna, análise técnica e acompanhamento de evolução.{% endblock %}
+{% block meta_description %}Aulas profissionais de Beach Tennis em Itabuna (BA) com o Prof. Everson Vicktor Silva
+Silveira, líder do ranking AIBT 2026 em 3 categorias. Metodologia moderna, análise técnica e acompanhamento de
+evolução.{% endblock %}
 
 {% block og_title %}{{ cfg.titulo_hero }} — Prof. {{ cfg.nome_professor }}{% endblock %}
-{% block og_description %}Aulas de Beach Tennis em Itabuna (BA). Evolua seu jogo com atleta líder do ranking AIBT 2026. Aulas individuais, em duplas e turmas com análise periódica.{% endblock %}
+{% block og_description %}Aulas de Beach Tennis em Itabuna (BA). Evolua seu jogo com atleta líder do ranking AIBT 2026.
+Aulas individuais, em duplas e turmas com análise periódica.{% endblock %}
 
 {% block extra_css %}
 <!-- Schema.org Dados Estruturados (SportsActivityLocation) -->
@@ -36,6 +39,7 @@
   html {
     scroll-behavior: smooth;
   }
+
   .hero-section {
     background: linear-gradient(135deg, #003B5C 0%, #005F8E 50%, #0077B6 100%);
     color: #FFFFFF;
@@ -43,29 +47,37 @@
     position: relative;
     overflow: hidden;
   }
+
   .hero-section::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: radial-gradient(circle at 80% 20%, rgba(247, 127, 0, 0.22) 0%, transparent 60%);
     pointer-events: none;
   }
+
   .stat-counter-box {
     background: #FFFFFF;
     border-radius: 16px;
     padding: 1.5rem 1rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     text-align: center;
     border-bottom: 4px solid var(--bt-laranja);
     transition: transform 0.2s ease;
   }
+
   .stat-counter-box:hover {
     transform: translateY(-4px);
   }
+
   .timeline-conquista {
     position: relative;
     padding-left: 2rem;
   }
+
   .timeline-conquista::before {
     content: '';
     position: absolute;
@@ -75,10 +87,12 @@
     width: 2px;
     background: #E0D7CC;
   }
+
   .timeline-item {
     position: relative;
     margin-bottom: 1.25rem;
   }
+
   .timeline-dot {
     position: absolute;
     left: -2rem;
@@ -90,6 +104,7 @@
     border: 3px solid #FFF;
     box-shadow: 0 0 0 2px var(--bt-laranja);
   }
+
   .badge-atleta-professor {
     background: rgba(247, 127, 0, 0.15);
     color: #D95D00;
@@ -102,28 +117,33 @@
     gap: 0.4rem;
     font-size: 0.85rem;
   }
+
   .card-modalidade {
     border-radius: 16px;
     border: 1px solid #E8E2D9;
     background: #FFFFFF;
     transition: all 0.25s ease;
   }
+
   .card-modalidade:hover {
     border-color: var(--bt-ocean);
     box-shadow: 0 8px 25px rgba(0, 95, 142, 0.12);
     transform: translateY(-3px);
   }
+
   .card-plano {
     border-radius: 18px;
     border: 2px solid #E8E2D9;
     background: #FFFFFF;
     transition: all 0.25s ease;
   }
+
   .card-plano.destaque {
     border-color: var(--bt-laranja);
     box-shadow: 0 10px 30px rgba(247, 127, 0, 0.18);
     position: relative;
   }
+
   .card-passo {
     border-radius: 16px;
     background: #FAF8F5;
@@ -132,10 +152,12 @@
     text-align: center;
     height: 100%;
   }
+
   .honeypot-field {
     display: none !important;
     visibility: hidden !important;
   }
+
   .vantagem-card {
     border-radius: 16px;
     background: #FFFFFF;
@@ -146,6 +168,7 @@
     position: relative;
     overflow: hidden;
   }
+
   .vantagem-card::before {
     content: '';
     position: absolute;
@@ -158,14 +181,17 @@
     transition: transform 0.3s ease;
     transform-origin: left;
   }
+
   .vantagem-card:hover {
     border-color: var(--bt-ocean);
     box-shadow: 0 10px 30px rgba(0, 95, 142, 0.12);
     transform: translateY(-5px);
   }
+
   .vantagem-card:hover::before {
     transform: scaleX(1);
   }
+
   .vantagem-icon {
     width: 60px;
     height: 60px;
@@ -177,9 +203,11 @@
     margin-bottom: 1.2rem;
     transition: transform 0.3s ease;
   }
+
   .vantagem-card:hover .vantagem-icon {
     transform: scale(1.1);
   }
+
   .vantagem-badge {
     display: inline-block;
     font-size: 0.7rem;
@@ -190,6 +218,7 @@
     border-radius: 20px;
     margin-bottom: 0.6rem;
   }
+
   .cta-plataforma {
     background: linear-gradient(135deg, #003B5C 0%, #005F8E 50%, #0077B6 100%);
     border-radius: 20px;
@@ -198,10 +227,14 @@
     position: relative;
     overflow: hidden;
   }
+
   .cta-plataforma::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: radial-gradient(circle at 90% 10%, rgba(247, 127, 0, 0.2) 0%, transparent 50%);
     pointer-events: none;
   }
@@ -214,10 +247,12 @@
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('public.index') }}">
       <i class="bi bi-tsunami text-laranja fs-3"></i>
-      <span>Beach<span class="text-laranja">Tennis</span> <span class="badge bg-light text-dark ms-1 d-none d-sm-inline" style="font-size:0.7rem;">Itabuna</span></span>
+      <span>Beach<span class="text-laranja">Tennis</span> <span class="badge bg-light text-dark ms-1 d-none d-sm-inline"
+          style="font-size:0.7rem;">Itabuna</span></span>
     </a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPublic" aria-controls="navPublic" aria-expanded="false" aria-label="Menu">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPublic"
+      aria-controls="navPublic" aria-expanded="false" aria-label="Menu">
       <span class="navbar-toggler-icon"></span>
     </button>
 
@@ -235,19 +270,19 @@
 
         <li class="nav-item ms-lg-2">
           {% if current_user.is_authenticated %}
-            {% if current_user.is_admin %}
-              <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-cta">
-                <i class="bi bi-speedometer2 me-1"></i>Painel Aluno
-              </a>
-            {% else %}
-              <a href="{{ url_for('aluno.painel') }}" class="btn btn-sm btn-cta">
-                <i class="bi bi-person-circle me-1"></i>Meu Painel
-              </a>
-            {% endif %}
+          {% if current_user.is_admin %}
+          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-cta">
+            <i class="bi bi-speedometer2 me-1"></i>Painel Aluno
+          </a>
           {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-cta">
-              <i class="bi bi-box-arrow-in-right me-1"></i>Área do Aluno
-            </a>
+          <a href="{{ url_for('aluno.painel') }}" class="btn btn-sm btn-cta">
+            <i class="bi bi-person-circle me-1"></i>Meu Painel
+          </a>
+          {% endif %}
+          {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-cta">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Área do Aluno
+          </a>
           {% endif %}
         </li>
       </ul>
@@ -275,15 +310,16 @@
 
         <div class="d-flex flex-wrap gap-3">
           {% if whatsapp_link %}
-            <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
-              <i class="bi bi-whatsapp fs-5"></i>
-              <span>Agendar Aula Experimental</span>
-            </a>
+          <a href="{{ whatsapp_link }}" target="_blank"
+            class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
+            <i class="bi bi-whatsapp fs-5"></i>
+            <span>Agendar Aula Experimental</span>
+          </a>
           {% else %}
-            <a href="#contato" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
-              <i class="bi bi-calendar2-check-fill fs-5"></i>
-              <span>Agendar Aula Experimental</span>
-            </a>
+          <a href="#contato" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
+            <i class="bi bi-calendar2-check-fill fs-5"></i>
+            <span>Agendar Aula Experimental</span>
+          </a>
           {% endif %}
 
           <a href="#horarios" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
@@ -297,15 +333,18 @@
       <div class="col-lg-5 text-center">
         <div class="position-relative d-inline-block">
           <div class="avatar-circle mx-auto shadow-lg"
-               style="width: 250px; height: 250px; font-size: 5rem; background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%); border: 6px solid rgba(255,255,255,0.25);">
+            style="width: 250px; height: 250px; font-size: 5rem; background: linear-gradient(135deg, #0077B6 0%, #0096C7 100%); border: 6px solid rgba(255,255,255,0.25);">
             {% if cfg.foto_professor %}
-              <img src="{{ upload_url(cfg.foto_professor) }}" alt="{{ cfg.nome_professor }}" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+            <img src="{{ upload_url(cfg.foto_professor) }}" alt="{{ cfg.nome_professor }}"
+              class="w-100 h-100 rounded-circle" style="object-fit: cover;">
             {% else %}
-              <i class="bi bi-tsunami text-white"></i>
+            <i class="bi bi-tsunami text-white"></i>
             {% endif %}
           </div>
-          
-          <div class="bg-white text-dark p-3 rounded-4 shadow position-absolute bottom-0 start-50 translate-middle-x text-nowrap" style="border: 2px solid var(--bt-laranja);">
+
+          <div
+            class="bg-white text-dark p-3 rounded-4 shadow position-absolute bottom-0 start-50 translate-middle-x text-nowrap"
+            style="border: 2px solid var(--bt-laranja);">
             <div class="fw-bold fs-6">{{ cfg.nome_professor }}</div>
             <div class="text-ocean fw-bold" style="font-size:0.75rem;">Atleta Competitivo & Professor</div>
           </div>
@@ -338,7 +377,8 @@
         <div class="row g-3">
           <div class="col-6">
             <div class="stat-counter-box">
-              <div class="fs-1 fw-bold text-laranja stat-number" data-target="{{ total_titulos }}">{{ total_titulos }}</div>
+              <div class="fs-1 fw-bold text-laranja stat-number" data-target="{{ total_titulos }}">{{ total_titulos }}
+              </div>
               <div class="fw-bold text-dark mt-1" style="font-size:0.9rem;">Títulos de Campeão</div>
               <div class="text-muted" style="font-size:0.75rem;">Circuito AIBT 2025/2026</div>
             </div>
@@ -354,7 +394,8 @@
 
           <div class="col-6">
             <div class="stat-counter-box" style="border-bottom-color: #2E7D32;">
-              <div class="fs-1 fw-bold text-success stat-number" data-target="{{ total_podios }}">{{ total_podios }}</div>
+              <div class="fs-1 fw-bold text-success stat-number" data-target="{{ total_podios }}">{{ total_podios }}
+              </div>
               <div class="fw-bold text-dark mt-1" style="font-size:0.9rem;">Total de Pódios</div>
               <div class="text-muted" style="font-size:0.75rem;">Regularidade de elite</div>
             </div>
@@ -362,7 +403,8 @@
 
           <div class="col-6">
             <div class="stat-counter-box" style="border-bottom-color: #005F8E;">
-              <div class="fs-1 fw-bold text-primary stat-number" data-target="{{ rankings_lider }}">{{ rankings_lider }}</div>
+              <div class="fs-1 fw-bold text-primary stat-number" data-target="{{ rankings_lider }}">{{ rankings_lider }}
+              </div>
               <div class="fw-bold text-dark mt-1" style="font-size:0.9rem;">Rankings em 1º Lugar</div>
               <div class="text-muted" style="font-size:0.75rem;">Líder AIBT 2026 (3 cats)</div>
             </div>
@@ -390,31 +432,32 @@
       <div class="col-lg-10">
         <div class="timeline-conquista">
           {% for conq in conquistas %}
-            <div class="timeline-item">
-              <div class="timeline-dot"></div>
-              <div class="bg-white p-3 rounded-4 shadow-sm border d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                  <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-dark fw-bold" style="font-size:0.75rem;">{{ conq.ano }}</span>
-                    <span class="badge {{ conq.badge_class }}" style="font-size:0.75rem;">
-                      <i class="bi {{ conq.icone }} me-1"></i>{{ conq.titulo }}
-                    </span>
-                  </div>
-                  <div class="text-muted" style="font-size:0.85rem;">
-                    Categoria: <strong>{{ conq.categoria }}</strong> · Torneio: {{ conq.torneio or 'Circuito Oficial' }}
-                  </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div
+              class="bg-white p-3 rounded-4 shadow-sm border d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-dark fw-bold" style="font-size:0.75rem;">{{ conq.ano }}</span>
+                  <span class="badge {{ conq.badge_class }}" style="font-size:0.75rem;">
+                    <i class="bi {{ conq.icone }} me-1"></i>{{ conq.titulo }}
+                  </span>
                 </div>
-                <div class="text-muted" style="font-size:0.8rem;">
-                  {% if conq.colocacao == 'campeao' %}
-                    <span class="badge bg-warning text-dark"><i class="bi bi-trophy-fill me-1"></i>Ouro</span>
-                  {% elif conq.colocacao == 'vice' %}
-                    <span class="badge bg-secondary text-white"><i class="bi bi-award-fill me-1"></i>Prata</span>
-                  {% else %}
-                    <span class="badge bg-light text-dark border"><i class="bi bi-award me-1"></i>Bronze</span>
-                  {% endif %}
+                <div class="text-muted" style="font-size:0.85rem;">
+                  Categoria: <strong>{{ conq.categoria }}</strong> · Torneio: {{ conq.torneio or 'Circuito Oficial' }}
                 </div>
               </div>
+              <div class="text-muted" style="font-size:0.8rem;">
+                {% if conq.colocacao == 'campeao' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-trophy-fill me-1"></i>Ouro</span>
+                {% elif conq.colocacao == 'vice' %}
+                <span class="badge bg-secondary text-white"><i class="bi bi-award-fill me-1"></i>Prata</span>
+                {% else %}
+                <span class="badge bg-light text-dark border"><i class="bi bi-award me-1"></i>Bronze</span>
+                {% endif %}
+              </div>
             </div>
+          </div>
           {% endfor %}
         </div>
       </div>
@@ -437,30 +480,30 @@
 
     <div class="row g-4">
       {% for mod in modalidades %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card-modalidade p-4 h-100 d-flex flex-column">
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="rounded-circle d-flex align-items-center justify-content-center text-white"
-                   style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%); font-size:1.4rem;">
-                <i class="bi {{ mod.icone }}"></i>
-              </div>
-              <div>
-                <h5 class="fw-bold text-dark mb-0">{{ mod.nome }}</h5>
-                <span class="text-muted" style="font-size:0.75rem;">{{ mod.duracao_estimada }}</span>
-              </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card-modalidade p-4 h-100 d-flex flex-column">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white"
+              style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--bt-ocean) 0%, #0077B6 100%); font-size:1.4rem;">
+              <i class="bi {{ mod.icone }}"></i>
             </div>
-
-            <p class="text-muted flex-grow-1" style="font-size:0.88rem; line-height:1.6;">
-              {{ mod.descricao }}
-            </p>
-
-            {% if mod.publico_alvo %}
-              <div class="pt-2 border-top text-ocean fw-bold" style="font-size:0.8rem;">
-                <i class="bi bi-check2-circle me-1"></i>Foco: {{ mod.publico_alvo }}
-              </div>
-            {% endif %}
+            <div>
+              <h5 class="fw-bold text-dark mb-0">{{ mod.nome }}</h5>
+              <span class="text-muted" style="font-size:0.75rem;">{{ mod.duracao_estimada }}</span>
+            </div>
           </div>
+
+          <p class="text-muted flex-grow-1" style="font-size:0.88rem; line-height:1.6;">
+            {{ mod.descricao }}
+          </p>
+
+          {% if mod.publico_alvo %}
+          <div class="pt-2 border-top text-ocean fw-bold" style="font-size:0.8rem;">
+            <i class="bi bi-check2-circle me-1"></i>Foco: {{ mod.publico_alvo }}
+          </div>
+          {% endif %}
         </div>
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -480,42 +523,44 @@
     </div>
 
     {% if turmas %}
-      <div class="row g-4">
-        {% for t in turmas %}
-          <div class="col-md-6 col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge badge-nivel badge-{{ t.nivel }}">{{ t.nivel|capitalize }}</span>
-                <span class="badge bg-{{ 'success' if t.vagas_disponiveis > 0 else 'danger' }}">
-                  {{ t.vagas_disponiveis }} vaga(s) restante(s)
-                </span>
-              </div>
-
-              <h5 class="fw-bold text-dark mt-2 mb-1">{{ t.nome }}</h5>
-              <div class="text-ocean fw-bold mb-3" style="font-size:0.9rem;">
-                <i class="bi bi-calendar-event me-1"></i>{{ t.dias_semana_texto }} às {{ t.horario_inicio.strftime('%H:%M') }}
-              </div>
-
-              <div class="text-muted mt-auto pt-3 border-top" style="font-size:0.82rem;">
-                <i class="bi bi-geo-alt-fill text-danger me-1"></i>Local: <strong>{{ t.local }}</strong>
-              </div>
-            </div>
+    <div class="row g-4">
+      {% for t in turmas %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge badge-nivel badge-{{ t.nivel }}">{{ t.nivel|capitalize }}</span>
+            <span class="badge bg-{{ 'success' if t.vagas_disponiveis > 0 else 'danger' }}">
+              {{ t.vagas_disponiveis }} vaga(s) restante(s)
+            </span>
           </div>
-        {% endfor %}
+
+          <h5 class="fw-bold text-dark mt-2 mb-1">{{ t.nome }}</h5>
+          <div class="text-ocean fw-bold mb-3" style="font-size:0.9rem;">
+            <i class="bi bi-calendar-event me-1"></i>{{ t.dias_semana_texto }} às {{ t.horario_inicio.strftime('%H:%M')
+            }}
+          </div>
+
+          <div class="text-muted mt-auto pt-3 border-top" style="font-size:0.82rem;">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i>Local: <strong>{{ t.local }}</strong>
+          </div>
+        </div>
       </div>
+      {% endfor %}
+    </div>
     {% else %}
-      <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white" style="max-width: 650px; margin: 0 auto;">
-        <i class="bi bi-clock-history text-ocean" style="font-size:3rem;"></i>
-        <h5 class="mt-3 text-dark">Novos horários sendo organizados!</h5>
-        <p class="text-muted mb-4" style="font-size:0.9rem;">
-          Estamos montando novas turmas de manhã e à noite em Itabuna. Entre em contato para reservar seu horário de preferência.
-        </p>
-        {% if whatsapp_link %}
-          <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-laranja fw-bold px-4 py-2 mx-auto">
-            <i class="bi bi-whatsapp me-2"></i>Consultar Horários no WhatsApp
-          </a>
-        {% endif %}
-      </div>
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white" style="max-width: 650px; margin: 0 auto;">
+      <i class="bi bi-clock-history text-ocean" style="font-size:3rem;"></i>
+      <h5 class="mt-3 text-dark">Novos horários sendo organizados!</h5>
+      <p class="text-muted mb-4" style="font-size:0.9rem;">
+        Estamos montando novas turmas de manhã e à noite em Itabuna. Entre em contato para reservar seu horário de
+        preferência.
+      </p>
+      {% if whatsapp_link %}
+      <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-laranja fw-bold px-4 py-2 mx-auto">
+        <i class="bi bi-whatsapp me-2"></i>Consultar Horários no WhatsApp
+      </a>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 </section>
@@ -525,7 +570,8 @@
 <section id="planos" class="py-5" style="background:#FFFFFF;">
   <div class="container py-4">
     <div class="text-center mb-5">
-      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2" style="font-size:0.75rem;">
+      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2"
+        style="font-size:0.75rem;">
         Investimento
       </span>
       <h2 class="fw-bold text-dark">Planos & Valores</h2>
@@ -536,45 +582,47 @@
 
     <div class="row g-4 justify-content-center">
       {% for p in planos %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card-plano p-4 h-100 d-flex flex-column {{ 'destaque' if p.destaque else '' }}">
-            {% if p.destaque %}
-              <div class="badge bg-laranja text-white position-absolute top-0 start-50 translate-middle px-3 py-1 fw-bold shadow-sm" style="font-size:0.75rem;">
-                MAIS POPULAR
-              </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card-plano p-4 h-100 d-flex flex-column {{ 'destaque' if p.destaque else '' }}">
+          {% if p.destaque %}
+          <div
+            class="badge bg-laranja text-white position-absolute top-0 start-50 translate-middle px-3 py-1 fw-bold shadow-sm"
+            style="font-size:0.75rem;">
+            MAIS POPULAR
+          </div>
+          {% endif %}
+
+          <h5 class="fw-bold text-dark mb-1">{{ p.nome }}</h5>
+          <div class="text-muted mb-3" style="font-size:0.85rem;">{{ p.periodo|capitalize }}</div>
+
+          <div class="mb-3">
+            <span class="fs-1 fw-bold text-ocean">R$ {{ "%.2f"|format(p.preco) }}</span>
+            <span class="text-muted" style="font-size:0.85rem;">/ {{ p.periodo }}</span>
+          </div>
+
+          <p class="text-muted flex-grow-1" style="font-size:0.88rem; line-height: 1.6;">
+            {{ p.descricao }}
+          </p>
+
+          {% if p.aulas_por_semana %}
+          <div class="text-dark fw-bold mb-3" style="font-size:0.85rem;">
+            <i class="bi bi-check-circle-fill text-success me-1"></i>{{ p.aulas_por_semana }} aula(s) por semana
+          </div>
+          {% endif %}
+
+          <div class="pt-3 border-top mt-auto">
+            {% if whatsapp_link %}
+            <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-ocean w-100 fw-bold">
+              Quero este plano
+            </a>
+            {% else %}
+            <a href="#contato" class="btn btn-ocean w-100 fw-bold">
+              Quero este plano
+            </a>
             {% endif %}
-
-            <h5 class="fw-bold text-dark mb-1">{{ p.nome }}</h5>
-            <div class="text-muted mb-3" style="font-size:0.85rem;">{{ p.periodo|capitalize }}</div>
-
-            <div class="mb-3">
-              <span class="fs-1 fw-bold text-ocean">R$ {{ "%.2f"|format(p.preco) }}</span>
-              <span class="text-muted" style="font-size:0.85rem;">/ {{ p.periodo }}</span>
-            </div>
-
-            <p class="text-muted flex-grow-1" style="font-size:0.88rem; line-height: 1.6;">
-              {{ p.descricao }}
-            </p>
-
-            {% if p.aulas_por_semana %}
-              <div class="text-dark fw-bold mb-3" style="font-size:0.85rem;">
-                <i class="bi bi-check-circle-fill text-success me-1"></i>{{ p.aulas_por_semana }} aula(s) por semana
-              </div>
-            {% endif %}
-
-            <div class="pt-3 border-top mt-auto">
-              {% if whatsapp_link %}
-                <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-ocean w-100 fw-bold">
-                  Quero este plano
-                </a>
-              {% else %}
-                <a href="#contato" class="btn btn-ocean w-100 fw-bold">
-                  Quero este plano
-                </a>
-              {% endif %}
-            </div>
           </div>
         </div>
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -595,7 +643,7 @@
       <div class="col-md-4">
         <div class="card-passo">
           <div class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto mb-3"
-               style="width: 55px; height: 55px; background: var(--bt-laranja); font-size:1.5rem; font-weight:800;">
+            style="width: 55px; height: 55px; background: var(--bt-laranja); font-size:1.5rem; font-weight:800;">
             1
           </div>
           <h5 class="fw-bold text-dark mb-2">Aula Experimental</h5>
@@ -608,12 +656,13 @@
       <div class="col-md-4">
         <div class="card-passo">
           <div class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto mb-3"
-               style="width: 55px; height: 55px; background: var(--bt-ocean); font-size:1.5rem; font-weight:800;">
+            style="width: 55px; height: 55px; background: var(--bt-ocean); font-size:1.5rem; font-weight:800;">
             2
           </div>
           <h5 class="fw-bold text-dark mb-2">Treinos Estruturados</h5>
           <p class="text-muted mb-0" style="font-size:0.88rem; line-height: 1.6;">
-            Planos de aula focados em repetição com qualidade técnica (saque, voleio, smash, defesa e posicionamento em dupla).
+            Planos de aula focados em repetição com qualidade técnica (saque, voleio, smash, defesa e posicionamento em
+            dupla).
           </p>
         </div>
       </div>
@@ -621,7 +670,7 @@
       <div class="col-md-4">
         <div class="card-passo">
           <div class="rounded-circle d-flex align-items-center justify-content-center text-white mx-auto mb-3"
-               style="width: 55px; height: 55px; background: #2E7D32; font-size:1.5rem; font-weight:800;">
+            style="width: 55px; height: 55px; background: #2E7D32; font-size:1.5rem; font-weight:800;">
             3
           </div>
           <h5 class="fw-bold text-dark mb-2">Acompanhamento Digital</h5>
@@ -638,7 +687,8 @@
 <section id="vantagens" class="py-5" style="background:#FFFFFF;">
   <div class="container py-4">
     <div class="text-center mb-5">
-      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2" style="font-size:0.75rem;">
+      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2"
+        style="font-size:0.75rem;">
         <i class="bi bi-stars me-1"></i>Exclusivo para Alunos
       </span>
       <h2 class="fw-bold text-dark">Vantagens de Ser Aluno</h2>
@@ -686,7 +736,7 @@
             <i class="bi bi-radar"></i>
           </div>
           <span class="vantagem-badge bg-warning-subtle text-dark">Análise Tática</span>
-          <h5 class="fw-bold text-dark mb-2">BT Tracker — Scout de Partidas</h5>
+          <h5 class="fw-bold text-dark mb-2">BT Insight — Scout de Partidas</h5>
           <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
             Registre seus jogos ponto a ponto diretamente pelo celular. Analise winners, erros,
             eficiência de saque e heatmaps de posicionamento — como os profissionais fazem.
@@ -807,26 +857,29 @@
           </p>
           <div class="d-flex justify-content-center gap-3 flex-wrap">
             {% if whatsapp_link %}
-              <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
-                <i class="bi bi-whatsapp fs-5"></i>
-                <span>Quero Ser Aluno</span>
-              </a>
+            <a href="{{ whatsapp_link }}" target="_blank"
+              class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
+              <i class="bi bi-whatsapp fs-5"></i>
+              <span>Quero Ser Aluno</span>
+            </a>
             {% else %}
-              <a href="#contato" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
-                <i class="bi bi-chat-dots-fill fs-5"></i>
-                <span>Quero Ser Aluno</span>
-              </a>
+            <a href="#contato" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
+              <i class="bi bi-chat-dots-fill fs-5"></i>
+              <span>Quero Ser Aluno</span>
+            </a>
             {% endif %}
             {% if current_user.is_authenticated %}
-              <a href="{{ url_for('aluno.painel') }}" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
-                <i class="bi bi-person-circle"></i>
-                <span>Acessar Meu Painel</span>
-              </a>
+            <a href="{{ url_for('aluno.painel') }}"
+              class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-person-circle"></i>
+              <span>Acessar Meu Painel</span>
+            </a>
             {% else %}
-              <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
-                <i class="bi bi-box-arrow-in-right"></i>
-                <span>Já sou aluno — Entrar</span>
-              </a>
+            <a href="{{ url_for('auth.login') }}"
+              class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-box-arrow-in-right"></i>
+              <span>Já sou aluno — Entrar</span>
+            </a>
             {% endif %}
           </div>
         </div>
@@ -848,24 +901,25 @@
 
     <div class="row g-4">
       {% for dep in depoimentos %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-light">
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                   style="width:42px; height:42px; background: var(--bt-ocean); font-size:0.9rem;">
-                {% if dep.foto %}
-                  <img src="{{ upload_url(dep.foto) }}" alt="{{ dep.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
-                {% else %}
-                  {{ dep.nome[:2].upper() }}
-                {% endif %}
-              </div>
-              <strong class="text-dark">{{ dep.nome }}</strong>
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-light">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+              style="width:42px; height:42px; background: var(--bt-ocean); font-size:0.9rem;">
+              {% if dep.foto %}
+              <img src="{{ upload_url(dep.foto) }}" alt="{{ dep.nome }}" class="w-100 h-100 rounded-circle"
+                style="object-fit:cover;">
+              {% else %}
+              {{ dep.nome[:2].upper() }}
+              {% endif %}
             </div>
-            <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.6; font-style:italic;">
-              "{{ dep.texto }}"
-            </p>
+            <strong class="text-dark">{{ dep.nome }}</strong>
           </div>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.6; font-style:italic;">
+            "{{ dep.texto }}"
+          </p>
         </div>
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -877,7 +931,8 @@
 <section id="galeria" class="py-5" style="background:#F8F6F2;">
   <div class="container py-4">
     <div class="text-center mb-5">
-      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2" style="font-size:0.75rem;">
+      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2"
+        style="font-size:0.75rem;">
         Momentos na Areia
       </span>
       <h2 class="fw-bold text-dark">Galeria de Fotos & Vídeos</h2>
@@ -885,23 +940,24 @@
 
     <div class="row g-4">
       {% for item in galeria %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
-            {% if item.tipo == 'imagem' and item.arquivo %}
-              <img src="{{ upload_url(item.arquivo) }}" alt="{{ item.titulo }}" class="w-100" style="height:220px; object-fit:cover;" loading="lazy">
-            {% elif item.url_video %}
-              <div class="ratio ratio-16x9">
-                <iframe src="{{ item.url_video }}" title="{{ item.titulo }}" allowfullscreen loading="lazy"></iframe>
-              </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
+          {% if item.tipo == 'imagem' and item.arquivo %}
+          <img src="{{ upload_url(item.arquivo) }}" alt="{{ item.titulo }}" class="w-100"
+            style="height:220px; object-fit:cover;" loading="lazy">
+          {% elif item.url_video %}
+          <div class="ratio ratio-16x9">
+            <iframe src="{{ item.url_video }}" title="{{ item.titulo }}" allowfullscreen loading="lazy"></iframe>
+          </div>
+          {% endif %}
+          <div class="p-3">
+            <strong class="text-dark" style="font-size:0.9rem;">{{ item.titulo }}</strong>
+            {% if item.legenda %}
+            <p class="text-muted mb-0 mt-1" style="font-size:0.8rem;">{{ item.legenda }}</p>
             {% endif %}
-            <div class="p-3">
-              <strong class="text-dark" style="font-size:0.9rem;">{{ item.titulo }}</strong>
-              {% if item.legenda %}
-                <p class="text-muted mb-0 mt-1" style="font-size:0.8rem;">{{ item.legenda }}</p>
-              {% endif %}
-            </div>
           </div>
         </div>
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -912,7 +968,7 @@
 <section id="contato" class="py-5" style="background:#FFFFFF;">
   <div class="container py-4">
     <div class="row g-5 align-items-center">
-      
+
       <!-- Formulário de Mensagem -->
       <div class="col-lg-6">
         <span class="badge bg-ocean-subtle text-ocean fw-bold text-uppercase px-3 py-2 mb-2" style="font-size:0.75rem;">
@@ -932,18 +988,24 @@
           </div>
 
           <div class="mb-3">
-            <label for="contatoNome" class="form-label fw-bold" style="font-size:0.85rem;">Seu Nome <span class="text-danger">*</span></label>
-            <input type="text" name="nome" id="contatoNome" class="form-control" placeholder="Como podemos te chamar?" required>
+            <label for="contatoNome" class="form-label fw-bold" style="font-size:0.85rem;">Seu Nome <span
+                class="text-danger">*</span></label>
+            <input type="text" name="nome" id="contatoNome" class="form-control" placeholder="Como podemos te chamar?"
+              required>
           </div>
 
           <div class="mb-3">
-            <label for="contatoTelefone" class="form-label fw-bold" style="font-size:0.85rem;">WhatsApp / Telefone <span class="text-danger">*</span></label>
-            <input type="tel" name="telefone" id="contatoTelefone" class="form-control" placeholder="(73) 98765-4321" required>
+            <label for="contatoTelefone" class="form-label fw-bold" style="font-size:0.85rem;">WhatsApp / Telefone <span
+                class="text-danger">*</span></label>
+            <input type="tel" name="telefone" id="contatoTelefone" class="form-control" placeholder="(73) 98765-4321"
+              required>
           </div>
 
           <div class="mb-4">
-            <label for="contatoMensagem" class="form-label fw-bold" style="font-size:0.85rem;">Mensagem / Interesse <span class="text-danger">*</span></label>
-            <textarea name="mensagem" id="contatoMensagem" rows="3" class="form-control" placeholder="Gostaria de saber sobre horários, valores ou aula experimental..." required></textarea>
+            <label for="contatoMensagem" class="form-label fw-bold" style="font-size:0.85rem;">Mensagem / Interesse
+              <span class="text-danger">*</span></label>
+            <textarea name="mensagem" id="contatoMensagem" rows="3" class="form-control"
+              placeholder="Gostaria de saber sobre horários, valores ou aula experimental..." required></textarea>
           </div>
 
           <button type="submit" class="btn btn-ocean btn-lg w-100 fw-bold shadow-sm">
@@ -958,41 +1020,45 @@
           <h4 class="fw-bold text-dark mb-3">Informações de Atendimento</h4>
 
           <div class="mb-4">
-            <div class="text-muted" style="font-size:0.8rem; font-weight:700; text-transform:uppercase;">Local das Aulas</div>
+            <div class="text-muted" style="font-size:0.8rem; font-weight:700; text-transform:uppercase;">Local das Aulas
+            </div>
             <div class="fs-5 fw-bold text-ocean mt-1">
               <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ cfg.cidade }}, {{ cfg.estado }}
             </div>
             {% if cfg.nome_quadra %}
-              <div class="text-dark fw-bold mt-1">{{ cfg.nome_quadra }}</div>
+            <div class="text-dark fw-bold mt-1">{{ cfg.nome_quadra }}</div>
             {% endif %}
             {% if cfg.endereco_quadra %}
-              <div class="text-muted mt-1" style="font-size:0.88rem;">{{ cfg.endereco_quadra }}</div>
+            <div class="text-muted mt-1" style="font-size:0.88rem;">{{ cfg.endereco_quadra }}</div>
             {% endif %}
             {% if cfg.link_google_maps %}
-              <div class="mt-2">
-                <a href="{{ cfg.link_google_maps }}" target="_blank" class="btn btn-sm btn-outline-ocean">
-                  <i class="bi bi-map-fill me-1"></i>Ver no Google Maps
-                </a>
-              </div>
+            <div class="mt-2">
+              <a href="{{ cfg.link_google_maps }}" target="_blank" class="btn btn-sm btn-outline-ocean">
+                <i class="bi bi-map-fill me-1"></i>Ver no Google Maps
+              </a>
+            </div>
             {% endif %}
           </div>
 
           <div class="mb-4">
-            <div class="text-muted" style="font-size:0.8rem; font-weight:700; text-transform:uppercase;">Contato Direto</div>
+            <div class="text-muted" style="font-size:0.8rem; font-weight:700; text-transform:uppercase;">Contato Direto
+            </div>
             {% if whatsapp_link %}
-              <div class="mt-2">
-                <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-success fw-bold px-3 py-2 d-inline-flex align-items-center gap-2">
-                  <i class="bi bi-whatsapp fs-5"></i>
-                  <span>Falar no WhatsApp</span>
-                </a>
-              </div>
+            <div class="mt-2">
+              <a href="{{ whatsapp_link }}" target="_blank"
+                class="btn btn-success fw-bold px-3 py-2 d-inline-flex align-items-center gap-2">
+                <i class="bi bi-whatsapp fs-5"></i>
+                <span>Falar no WhatsApp</span>
+              </a>
+            </div>
             {% endif %}
             {% if cfg.instagram %}
-              <div class="mt-2">
-                <a href="https://instagram.com/{{ cfg.instagram|replace('@','') }}" target="_blank" class="text-ocean fw-bold text-decoration-none">
-                  <i class="bi bi-instagram me-1"></i>{{ cfg.instagram }}
-                </a>
-              </div>
+            <div class="mt-2">
+              <a href="https://instagram.com/{{ cfg.instagram|replace('@','') }}" target="_blank"
+                class="text-ocean fw-bold text-decoration-none">
+                <i class="bi bi-instagram me-1"></i>{{ cfg.instagram }}
+              </a>
+            </div>
             {% endif %}
           </div>
         </div>
@@ -1012,17 +1078,20 @@
           <span class="fs-5 fw-bold text-white">Beach<span class="text-laranja">Tennis</span></span>
         </div>
         <p class="text-white-50 mb-0" style="font-size:0.85rem; max-width: 420px;">
-          Plataforma oficial de aulas do Professor {{ cfg.nome_professor }}. Itabuna - BA. Aulas para todas as idades com metodologia esportiva moderna.
+          Plataforma oficial de aulas do Professor {{ cfg.nome_professor }}. Itabuna - BA. Aulas para todas as idades
+          com metodologia esportiva moderna.
         </p>
       </div>
 
       <div class="col-md-6 text-md-end">
         <div class="d-flex justify-content-md-end gap-3 mb-3">
           {% if whatsapp_link %}
-            <a href="{{ whatsapp_link }}" target="_blank" class="text-white-50 fs-5" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <a href="{{ whatsapp_link }}" target="_blank" class="text-white-50 fs-5" title="WhatsApp"><i
+              class="bi bi-whatsapp"></i></a>
           {% endif %}
           {% if cfg.instagram %}
-            <a href="https://instagram.com/{{ cfg.instagram|replace('@','') }}" target="_blank" class="text-white-50 fs-5" title="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="https://instagram.com/{{ cfg.instagram|replace('@','') }}" target="_blank" class="text-white-50 fs-5"
+            title="Instagram"><i class="bi bi-instagram"></i></a>
           {% endif %}
         </div>
         <div>
@@ -1034,7 +1103,8 @@
     </div>
 
     <div class="border-top border-secondary mt-4 pt-3 text-center text-white-50" style="font-size:0.75rem;">
-      &copy; {{ date.today().year if date is defined else 2026 }} {{ cfg.nome_professor }}. Todos os direitos reservados.
+      &copy; {{ date.today().year if date is defined else 2026 }} {{ cfg.nome_professor }}. Todos os direitos
+      reservados.
     </div>
   </div>
 </footer>
