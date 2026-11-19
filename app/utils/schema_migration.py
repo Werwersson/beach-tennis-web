@@ -34,6 +34,9 @@ def garantir_esquema_banco():
                 ('placar_detalhado', "VARCHAR(100)"),
                 ('duracao_minutos', "INTEGER"),
                 ('observacoes', "TEXT"),
+                ('set4_dupla1', 'INTEGER DEFAULT 0'),
+                ('set4_dupla2', 'INTEGER DEFAULT 0'),
+                ('video_url', "VARCHAR(200)"),
             ]
 
             with db.engine.begin() as conn:

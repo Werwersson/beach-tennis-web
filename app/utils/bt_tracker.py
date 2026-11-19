@@ -224,15 +224,48 @@ def calcular_estatisticas_partida(partida):
     pct_erros_saque_d1 = round((erros_saque_d1 / saques_tot_d1 * 100), 1) if saques_tot_d1 > 0 else 0
     pct_erros_saque_d2 = round((erros_saque_d2 / saques_tot_d2 * 100), 1) if saques_tot_d2 > 0 else 0
 
-    # Estimativa de confirmações e break points a partir dos games
-    conf_saque_d1 = 5
-    conf_saque_tot_d1 = 9
-    conf_saque_d2 = 7
-    conf_saque_tot_d2 = 10
-    break_d1 = 4
-    break_tot_d1 = 9
-    break_d2 = 6
-    break_tot_d2 = 12
+    # ----- Calcula confirmações de saque e break points -----
+    # Contadores de serviços (serve) por dupla
+    servos_dupla1 = 0
+    servos_dupla2 = 0
+    confirmacoes_dupla1 = 0  # pontos ganhos pelo sacador da dupla 1
+    confirmacoes_dupla2 = 0
+    breakpoints_dupla1 = 0   # pontos ganhos pela dupla 1 quando sacado pela dupla 2 (break)
+    breakpoints_dupla2 = 0   # pontos ganhos pela dupla 2 quando sacado pela dupla 1
+
+    for p in pontos:
+        sacador = p.sacador
+        if sacador in jogadores:
+            dupla_sacador = jogadores[sacador]['dupla']
+            # conta o serviço
+            if dupla_sacador == 1:
+                servos_dupla1 += 1
+            else:
+                servos_dupla2 += 1
+
+            # Se o ponto terminou em winner ou ace consideramos como ponto decisivo de saque
+            if p.tipo_desfecho in ('winner', 'ace'):
+                # confirmação de saque quando a dupla vencedora é a mesma do sacador
+                if p.dupla_vencedora == dupla_sacador:
+                    if dupla_sacador == 1:
+                        confirmacoes_dupla1 += 1
+                    else:
+                        confirmacoes_dupla2 += 1
+                else:
+                    # break point quando a dupla vencedora é a adversária
+                    if dupla_sacador == 1:
+                        breakpoints_dupla2 += 1
+                    else:
+                        breakpoints_dupla1 += 1
+    # Guardamos os valores para uso posterior na renderização
+    conf_saque_d1 = confirmacoes_dupla1
+    conf_saque_tot_d1 = servos_dupla1
+    conf_saque_d2 = confirmacoes_dupla2
+    conf_saque_tot_d2 = servos_dupla2
+    break_d1 = breakpoints_dupla1
+    break_tot_d1 = servos_dupla1  # total de serviços da dupla 1
+    break_d2 = breakpoints_dupla2
+    break_tot_d2 = servos_dupla2
 
     # Ajustar estatísticas por atleta (totais formatados)
     for j in [1, 2, 3, 4]:
@@ -293,15 +326,15 @@ def calcular_estatisticas_partida(partida):
         },
         {
             'nome': 'Confirmações de saque',
-            'dupla1': f"{conf_saque_d1} / {conf_saque_tot_d1} ({int(conf_saque_d1/conf_saque_tot_d1*100)}%)",
-            'dupla2': f"{conf_saque_d2} / {conf_saque_tot_d2} ({int(conf_saque_d2/conf_saque_tot_d2*100)}%)",
-            'destaque': 'dupla1' if (conf_saque_d1/conf_saque_tot_d1) > (conf_saque_d2/conf_saque_tot_d2) else 'dupla2'
+            'dupla1': f"{conf_saque_d1} / {conf_saque_tot_d1} ({int(conf_saque_d1/conf_saque_tot_d1*100) if conf_saque_tot_d1 else 0}%)",
+            'dupla2': f"{conf_saque_d2} / {conf_saque_tot_d2} ({int(conf_saque_d2/conf_saque_tot_d2*100) if conf_saque_tot_d2 else 0}%)",
+            'destaque': 'dupla1' if (conf_saque_d1/(conf_saque_tot_d1 or 1)) > (conf_saque_d2/(conf_saque_tot_d2 or 1)) else 'dupla2'
         },
         {
             'nome': 'Break Points Convertidos',
-            'dupla1': f"{break_d1} / {break_tot_d1} ({int(break_d1/break_tot_d1*100)}%)",
-            'dupla2': f"{break_d2} / {break_tot_d2} ({int(break_d2/break_tot_d2*100)}%)",
-            'destaque': 'dupla1' if (break_d1/break_tot_d1) > (break_d2/break_tot_d2) else 'dupla2'
+            'dupla1': f"{break_d1} / {break_tot_d1} ({int(break_d1/break_tot_d1*100) if break_tot_d1 else 0}%)",
+            'dupla2': f"{break_d2} / {break_tot_d2} ({int(break_d2/break_tot_d2*100) if break_tot_d2 else 0}%)",
+            'destaque': 'dupla1' if (break_d1/(break_tot_d1 or 1)) > (break_d2/(break_tot_d2 or 1)) else 'dupla2'
         },
         {
             'nome': 'Pontos com Rede ou Linha',

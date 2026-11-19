@@ -78,13 +78,13 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="small fw-bold text-truncate" style="max-width:70%;">🟢 {{ p.dupla1_label }}</span>
               <span class="badge bg-white text-dark border px-2 py-1 fw-bold fs-6">
-                {{ p.set1_dupla1 or 0 }} {{ p.set2_dupla1 or 0 }} {% if p.set3_dupla1 %}{{ p.set3_dupla1 }}{% endif %}
+                {{ p.set1_dupla1 or 0 }} {{ p.set2_dupla1 or 0 }} {% if p.set3_dupla1 %}{{ p.set3_dupla1 }}{% endif %} {% if p.set4_dupla1 %}{{ p.set4_dupla1 }}{% endif %}
               </span>
             </div>
             <div class="d-flex justify-content-between align-items-center">
               <span class="small fw-bold text-truncate" style="max-width:70%;">🔵 {{ p.dupla2_label }}</span>
               <span class="badge bg-white text-dark border px-2 py-1 fw-bold fs-6">
-                {{ p.set1_dupla2 or 0 }} {{ p.set2_dupla2 or 0 }} {% if p.set3_dupla2 %}{{ p.set3_dupla2 }}{% endif %}
+                {{ p.set1_dupla2 or 0 }} {{ p.set2_dupla2 or 0 }} {% if p.set3_dupla2 %}{{ p.set3_dupla2 }}{% endif %} {% if p.set4_dupla2 %}{{ p.set4_dupla2 }}{% endif %}
               </span>
             </div>
             {% if p.placar_detalhado %}

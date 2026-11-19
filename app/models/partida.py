@@ -33,11 +33,13 @@ class Partida(db.Model):
     set2_dupla2 = db.Column(db.Integer, nullable=True, default=0)
     set3_dupla1 = db.Column(db.Integer, nullable=True, default=0)
     set3_dupla2 = db.Column(db.Integer, nullable=True, default=0)
+    set4_dupla1 = db.Column(db.Integer, nullable=True, default=0)
+    set4_dupla2 = db.Column(db.Integer, nullable=True, default=0)
 
     placar_detalhado = db.Column(db.String(100), nullable=True)
     dupla_vencedora = db.Column(db.Integer, default=1)  # 1 ou 2
     duracao_minutos = db.Column(db.Integer, nullable=True)
-    observacoes = db.Column(db.Text, nullable=True)
+    video_url = db.Column(db.String(200), nullable=True)  # optional link (YouTube, Vimeo, etc.)
     
     # Validação e Correções do Professor
     status = db.Column(db.String(20), default='aprovada', index=True)  # 'aprovada', 'pendente', 'rejeitada'
@@ -71,6 +73,18 @@ class Partida(db.Model):
 
     @property
     def placar_resumo(self):
+        partes = []
+        if self.set1_dupla1 is not None and self.set1_dupla2 is not None and (self.set1_dupla1 > 0 or self.set1_dupla2 > 0):
+            partes.append(f"{self.set1_dupla1}x{self.set1_dupla2}")
+        if self.set2_dupla1 is not None and self.set2_dupla2 is not None and (self.set2_dupla1 > 0 or self.set2_dupla2 > 0):
+            partes.append(f"{self.set2_dupla1}x{self.set2_dupla2}")
+        if self.set3_dupla1 is not None and self.set3_dupla2 is not None and (self.set3_dupla1 > 0 or self.set3_dupla2 > 0):
+            partes.append(f"{self.set3_dupla1}x{self.set3_dupla2}")
+        if self.set4_dupla1 is not None and self.set4_dupla2 is not None and (self.set4_dupla1 > 0 or self.set4_dupla2 > 0):
+            partes.append(f"{self.set4_dupla1}x{self.set4_dupla2}")
+        if self.placar_detalhado:
+            return self.placar_detalhado
+        return ' | '.join(partes) if partes else '0x0'
         partes = []
         if self.set1_dupla1 is not None and self.set1_dupla2 is not None and (self.set1_dupla1 > 0 or self.set1_dupla2 > 0):
             partes.append(f"{self.set1_dupla1}x{self.set1_dupla2}")

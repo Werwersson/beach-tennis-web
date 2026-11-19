@@ -15,8 +15,8 @@ app = create_app(os.environ.get('FLASK_ENV', 'development'))
 with app.app_context():
     try:
         db.create_all()
-        from seed import seed_database
-        seed_database()
+        from app.utils.schema_migration import garantir_esquema_banco
+        garantir_esquema_banco()
     except Exception as e:
         print(f">> Aviso na verificação inicial: {e}")
 

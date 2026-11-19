@@ -120,12 +120,12 @@
                 {{ form.set2_dupla2(class="form-control text-center", type="number") }}
               </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label small fw-bold">Set 3 / Match Tiebreak (opcional)</label>
+            <div class="col-md-4" id="set4_container">
+              <label class="form-label small fw-bold">Set 4 (Dupla 1 x Dupla 2) - Opcional (para semifinais/finais)</label>
               <div class="input-group">
-                {{ form.set3_dupla1(class="form-control text-center", type="number") }}
+                {{ form.set4_dupla1(class="form-control text-center", type="number") }}
                 <span class="input-group-text">x</span>
-                {{ form.set3_dupla2(class="form-control text-center", type="number") }}
+                {{ form.set4_dupla2(class="form-control text-center", type="number") }}
               </div>
             </div>
 
@@ -169,7 +169,27 @@
               <i class="bi bi-check-lg me-1"></i> {{ 'Salvar Alterações' if partida else 'Criar Partida & Ir ao Scout' }}
             </button>
           </div>
-        </form>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+  const faseField = document.getElementById('fase');
+  const set4Container = document.getElementById('set4_container');
+  function toggleSet4() {
+    const val = (faseField.value || '').toLowerCase();
+    if (val.includes('semifinal') || val.includes('final')) {
+      set4Container.style.display = 'block';
+    } else {
+      set4Container.style.display = 'none';
+      // opcionalmente limpar valores
+      const inputs = set4Container.querySelectorAll('input');
+      inputs.forEach(i => i.value = 0);
+    }
+  }
+  // inicial
+  toggleSet4();
+  // escuta mudanças
+  faseField.addEventListener('input', toggleSet4);
+});
+</script>
       </div>
     </div>
   </div>

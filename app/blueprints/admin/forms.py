@@ -444,6 +444,8 @@ class PartidaForm(FlaskForm):
     set2_dupla2 = IntegerField('Set 2 - Dupla 2', default=0)
     set3_dupla1 = IntegerField('Set 3 - Dupla 1', default=0)
     set3_dupla2 = IntegerField('Set 3 - Dupla 2', default=0)
+    set4_dupla1 = IntegerField('Set 4 - Dupla 1', default=0)
+    set4_dupla2 = IntegerField('Set 4 - Dupla 2', default=0)
 
     placar_detalhado = StringField('Placar Detalhado (ex: 6x4 | 4x6 | 10x8)', validators=[Optional(), Length(max=100)])
     dupla_vencedora = SelectField('Dupla Vencedora', choices=[(1, 'Dupla 1'), (2, 'Dupla 2')], coerce=int, default=1)
@@ -459,4 +461,26 @@ class PartidaForm(FlaskForm):
     comentario_professor = TextAreaField('Correções e Feedbacks do Professor (opcional)', validators=[Optional()])
 
     submit = SubmitField('Salvar Partida')
+
+    # ---------- Validações customizadas para Set 4 ----------
+    def validate_set4_dupla1(form, field):
+        fase = (form.fase.data or '').lower()
+        if fase in ('semifinal', 'final'):
+            # nas fases avançadas, permite 0 ou positivo, mas não None
+            if field.data is None:
+                raise ValidationError('Set 4 deve ser informado nas semifinais/finais.')
+        else:
+            # nas demais fases, exige que seja 0 ou não preenchido
+            if field.data not in (None, 0):
+                raise ValidationError('Set 4 só pode ser preenchido nas semifinais/finais.')
+
+    def validate_set4_dupla2(form, field):
+        fase = (form.fase.data or '').lower()
+        if fase in ('semifinal', 'final'):
+            if field.data is None:
+                raise ValidationError('Set 4 deve ser informado nas semifinais/finais.')
+        else:
+            if field.data not in (None, 0):
+                raise ValidationError('Set 4 só pode ser preenchido nas semifinais/finais.')
+
 

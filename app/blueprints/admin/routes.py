@@ -205,6 +205,79 @@ def dashboard():
         alunos_evolucao=alunos_evolucao[:5]
     )
 
+# ── PARTIDAS – NOVAS FUNCIONALIDADES ────────────────────────────────────────
+
+@admin_bp.route('/partidas/comparar', methods=['GET', 'POST'])
+@admin_required
+def partidas_comparar():
+    """Página para comparar duas partidas lado a lado."""
+    if request.method == 'POST':
+        id1 = request.form.get('partida1')
+        id2 = request.form.get('partida2')
+        if not id1 or not id2:
+            flash('Selecione duas partidas para comparar.', 'warning')
+            return redirect(url_for('admin.partidas_comparar'))
+        partida1 = db.get_or_404(Partida, int(id1))
+        partida2 = db.get_or_404(Partida, int(id2))
+        stats1 = calcular_estatisticas_partida(partida1)
+        stats2 = calcular_estatisticas_partida(partida2)
+        return render_template('admin/partidas/comparar_resultado.html',
+            partida1=partida1, partida2=partida2, stats1=stats1, stats2=stats2)
+    # GET: exibir formulário de seleção
+    partidas = Partida.query.order_by(Partida.id.desc()).all()
+    return render_template('admin/partidas/comparar.html', partidas=partidas)
+
+@admin_bp.route('/partidas/set_score_summary')
+@admin_required
+def partidas_set_score_summary():
+    """Resumo de número de sets por fase."""
+    # Agrupa por fase e calcula média de sets (contando sets diferentes de zero)
+    phases = db.session.query(
+        Partida.fase,
+        db.func.count(Partida.id),
+        db.func.avg(
+            (db.case((Partida.set1_dupla1 != 0, 1), else_=0) +
+             db.case((Partida.set2_dupla1 != 0, 1), else_=0) +
+             db.case((Partida.set3_dupla1 != 0, 1), else_=0) +
+             db.case((Partida.set4_dupla1 != 0, 1), else_=0))
+        ).label('avg_sets')
+    ).group_by(Partida.fase).all()
+    return render_template('admin/partidas/set_score_summary.html', phases=phases)
+
+@admin_bp.route('/partidas/<int:id>/heatmap_json')
+@admin_required
+def partida_heatmap_json(id):
+    """Retorna os pontos da partida filtrados por set (query param ?set=1)."""
+    set_num = request.args.get('set', type=int, default=1)
+    partida = db.get_or_404(Partida, id)
+    pontos = PontoPartida.query.filter_by(partida_id=id, set_num=set_num).all()
+    data = [
+        {
+            'origem_x': p.origem_x,
+            'origem_y': p.origem_y,
+            'destino_x': p.destino_x,
+            'destino_y': p.destino_y,
+            'tipo_desfecho': p.tipo_desfecho
+        } for p in pontos if p.origem_x is not None and p.origem_y is not None
+    ]
+    return jsonify(data)
+
+@admin_bp.route('/partidas/<int:id>/set_<int:set_num>_csv')
+@admin_required
+def partida_set_csv(id, set_num):
+    """Exporta CSV contendo apenas os pontos do set especificado."""
+    partida = db.get_or_404(Partida, id)
+    pontos = PontoPartida.query.filter_by(partida_id=id, set_num=set_num).all()
+    # Construir CSV simples
+    header = 'numero_ponto,origem_x,origem_y,destino_x,destino_y,tipo_desfecho\n'
+    rows = []
+    for p in pontos:
+        rows.append(f"{p.numero_ponto},{p.origem_x or ''},{p.origem_y or ''},{p.destino_x or ''},{p.destino_y or ''},{p.tipo_desfecho}")
+    csv_content = header + '\n'.join(rows)
+    response = Response(csv_content, mimetype='text/csv')
+    response.headers.set('Content-Disposition', f'attachment; filename=partida_{id}_set{set_num}.csv')
+    return response
+
 
 # ── ALUNOS ────────────────────────────────────────────────────────────────
 @admin_bp.route('/alunos')
