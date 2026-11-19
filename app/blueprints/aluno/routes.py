@@ -308,16 +308,16 @@ def partidas_lista():
 
     try:
         partidas = _buscar_partidas()
+        return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
     except Exception:
         db.session.rollback()
         try:
             garantir_esquema_banco()
             partidas = _buscar_partidas()
+            return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
         except Exception:
             db.session.rollback()
-            partidas = []
-
-    return render_template('aluno/partidas.html', aluno=aluno, partidas=partidas)
+            return render_template('aluno/partidas.html', aluno=aluno, partidas=[])
 
 
 @aluno_bp.route('/partidas/nova', methods=['GET', 'POST'])

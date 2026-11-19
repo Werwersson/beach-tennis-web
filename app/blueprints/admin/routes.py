@@ -1961,16 +1961,16 @@ def partidas_lista():
 
     try:
         partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+        return render_template('admin/partidas/lista.html', partidas=partidas, busca=busca, categoria=categoria)
     except Exception:
         db.session.rollback()
         try:
             garantir_esquema_banco()
             partidas = query.order_by(Partida.data.desc(), Partida.id.desc()).all()
+            return render_template('admin/partidas/lista.html', partidas=partidas, busca=busca, categoria=categoria)
         except Exception:
             db.session.rollback()
-            partidas = []
-
-    return render_template('admin/partidas/lista.html', partidas=partidas, busca=busca, categoria=categoria)
+            return render_template('admin/partidas/lista.html', partidas=[], busca=busca, categoria=categoria)
 
 
 @admin_bp.route('/partidas/nova', methods=['GET', 'POST'])

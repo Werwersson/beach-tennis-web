@@ -5,9 +5,8 @@ from ..extensions import db
 def garantir_esquema_banco():
     """
     Garante que todas as tabelas e colunas necessárias existam no banco de dados.
-    Resolve o erro 'UndefinedColumn: column partidas.status does not exist' no PostgreSQL
-    (Neon/Supabase/Vercel Postgres) e SQLite, onde db.create_all() não adiciona colunas a tabelas
-    que já foram criadas anteriormente.
+    Resolve o erro 'UndefinedColumn' no PostgreSQL (Neon/Supabase/Vercel Postgres)
+    e SQLite, onde db.create_all() não adiciona colunas a tabelas já criadas.
     """
     try:
         # 1. Cria tabelas que ainda não existem
@@ -22,6 +21,7 @@ def garantir_esquema_banco():
         inspector = inspect(db.engine)
         tables = inspector.get_table_names()
         dialect = db.engine.dialect.name.lower()
+        is_postgres = 'postgres' in dialect
 
         # 2. Atualiza tabela 'partidas' com colunas faltantes
         if 'partidas' in tables:
@@ -30,37 +30,39 @@ def garantir_esquema_banco():
                 ('status', "VARCHAR(20) DEFAULT 'aprovada'"),
                 ('criada_por_aluno_id', "INTEGER"),
                 ('comentario_professor', "TEXT"),
-                ('validada_em', "TIMESTAMP" if 'postgres' in dialect else "DATETIME"),
+                ('validada_em', "TIMESTAMP" if is_postgres else "DATETIME"),
                 ('placar_detalhado', "VARCHAR(100)"),
                 ('duracao_minutos', "INTEGER"),
                 ('observacoes', "TEXT"),
-                ('set4_dupla1', 'INTEGER DEFAULT 0'),
-                ('set4_dupla2', 'INTEGER DEFAULT 0'),
+                ('set4_dupla1', "INTEGER DEFAULT 0"),
+                ('set4_dupla2', "INTEGER DEFAULT 0"),
                 ('video_url', "VARCHAR(200)"),
             ]
 
-            with db.engine.begin() as conn:
-                for col_name, col_def in comandos_partidas:
-                    if col_name not in cols_partidas:
-                        try:
-                            if 'postgres' in dialect:
+            for col_name, col_def in comandos_partidas:
+                if col_name not in cols_partidas:
+                    try:
+                        with db.engine.begin() as conn:
+                            if is_postgres:
                                 conn.execute(text(f"ALTER TABLE partidas ADD COLUMN IF NOT EXISTS {col_name} {col_def};"))
                             else:
                                 conn.execute(text(f"ALTER TABLE partidas ADD COLUMN {col_name} {col_def};"))
-                        except Exception:
-                            pass
-
-                if 'postgres' in dialect:
-                    try:
-                        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_partidas_status ON partidas (status);"))
-                        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_partidas_criada_por_aluno_id ON partidas (criada_por_aluno_id);"))
                     except Exception:
                         pass
 
-        # 3. Atualiza tabela 'pontos_partida' com colunas faltantes se necessário
+            if is_postgres:
+                try:
+                    with db.engine.begin() as conn:
+                        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_partidas_status ON partidas (status);"))
+                        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_partidas_criada_por_aluno_id ON partidas (criada_por_aluno_id);"))
+                except Exception:
+                    pass
+
+        # 3. Atualiza tabela 'pontos_partida' com colunas faltantes
         if 'pontos_partida' in tables:
             cols_pontos = [c['name'] for c in inspector.get_columns('pontos_partida')]
             comandos_pontos = [
+                ('set_num', "INTEGER DEFAULT 1"),
                 ('placar_texto', "VARCHAR(50)"),
                 ('tipo_golpe', "VARCHAR(80)"),
                 ('posicao_sacador', "VARCHAR(20)"),
@@ -68,7 +70,7 @@ def garantir_esquema_banco():
                 ('qualidade_saque', "VARCHAR(20)"),
                 ('direcao_devolucao', "VARCHAR(30)"),
                 ('qualidade_devolucao', "VARCHAR(20)"),
-                ('saque_dificil', "BOOLEAN DEFAULT 0"),
+                ('saque_dificil', "BOOLEAN DEFAULT FALSE" if is_postgres else "BOOLEAN DEFAULT 0"),
                 ('situacao_adicional', "VARCHAR(50)"),
                 ('duracao_ponto', "VARCHAR(20)"),
                 ('x_origem', "FLOAT"),
@@ -77,18 +79,33 @@ def garantir_esquema_banco():
                 ('y_destino', "FLOAT"),
                 ('x_quique', "FLOAT"),
                 ('y_quique', "FLOAT"),
+                ('origem_x', "FLOAT"),
+                ('origem_y', "FLOAT"),
+                ('destino_x', "FLOAT"),
+                ('destino_y', "FLOAT"),
+                ('descricao_lance', "VARCHAR(250)"),
             ]
 
-            with db.engine.begin() as conn:
-                for col_name, col_def in comandos_pontos:
-                    if col_name not in cols_pontos:
-                        try:
-                            if 'postgres' in dialect:
+            for col_name, col_def in comandos_pontos:
+                if col_name not in cols_pontos:
+                    try:
+                        with db.engine.begin() as conn:
+                            if is_postgres:
                                 conn.execute(text(f"ALTER TABLE pontos_partida ADD COLUMN IF NOT EXISTS {col_name} {col_def};"))
                             else:
                                 conn.execute(text(f"ALTER TABLE pontos_partida ADD COLUMN {col_name} {col_def};"))
-                        except Exception:
-                            pass
+                    except Exception:
+                        pass
+
+            # Fallback explícito e direto para saque_dificil (garante mesmo se cache de colunas falhar)
+            try:
+                with db.engine.begin() as conn:
+                    if is_postgres:
+                        conn.execute(text("ALTER TABLE pontos_partida ADD COLUMN IF NOT EXISTS saque_dificil BOOLEAN DEFAULT FALSE;"))
+                    else:
+                        conn.execute(text("ALTER TABLE pontos_partida ADD COLUMN saque_dificil BOOLEAN DEFAULT 0;"))
+            except Exception:
+                pass
 
     except Exception:
         try:
