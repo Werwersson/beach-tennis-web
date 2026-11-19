@@ -136,6 +136,75 @@
     display: none !important;
     visibility: hidden !important;
   }
+  .vantagem-card {
+    border-radius: 16px;
+    background: #FFFFFF;
+    border: 1px solid #E8E2D9;
+    padding: 2rem 1.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .vantagem-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--bt-ocean) 0%, var(--bt-laranja) 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+  .vantagem-card:hover {
+    border-color: var(--bt-ocean);
+    box-shadow: 0 10px 30px rgba(0, 95, 142, 0.12);
+    transform: translateY(-5px);
+  }
+  .vantagem-card:hover::before {
+    transform: scaleX(1);
+  }
+  .vantagem-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+    transition: transform 0.3s ease;
+  }
+  .vantagem-card:hover .vantagem-icon {
+    transform: scale(1.1);
+  }
+  .vantagem-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    margin-bottom: 0.6rem;
+  }
+  .cta-plataforma {
+    background: linear-gradient(135deg, #003B5C 0%, #005F8E 50%, #0077B6 100%);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-plataforma::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 90% 10%, rgba(247, 127, 0, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+  }
 </style>
 {% endblock %}
 
@@ -157,6 +226,7 @@
         <li class="nav-item"><a class="nav-link" href="#sobre">Sobre</a></li>
         <li class="nav-item"><a class="nav-link" href="#conquistas">Conquistas</a></li>
         <li class="nav-item"><a class="nav-link" href="#modalidades">Modalidades</a></li>
+        <li class="nav-item"><a class="nav-link" href="#vantagens">Vantagens</a></li>
         <li class="nav-item"><a class="nav-link" href="#horarios">Horários</a></li>
         {% if planos %}<li class="nav-item"><a class="nav-link" href="#planos">Planos</a></li>{% endif %}
         {% if depoimentos %}<li class="nav-item"><a class="nav-link" href="#depoimentos">Depoimentos</a></li>{% endif %}
@@ -558,6 +628,207 @@
           <p class="text-muted mb-0" style="font-size:0.88rem; line-height: 1.6;">
             Acesso à plataforma para consultar gráficos radar de evolução, metas do ciclo e receber relatórios em PDF.
           </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8.5. SEÇÃO: VANTAGENS DA PLATAFORMA PARA O ALUNO -->
+<section id="vantagens" class="py-5" style="background:#FFFFFF;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="badge bg-laranja-subtle text-laranja fw-bold text-uppercase px-3 py-2 mb-2" style="font-size:0.75rem;">
+        <i class="bi bi-stars me-1"></i>Exclusivo para Alunos
+      </span>
+      <h2 class="fw-bold text-dark">Vantagens de Ser Aluno</h2>
+      <p class="text-muted col-md-9 mx-auto" style="font-size:0.95rem;">
+        Muito além das aulas na quadra: ao se tornar aluno, você ganha acesso a uma plataforma digital completa
+        para acompanhar sua evolução técnica, tática e competitiva em tempo real.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Vantagem 1: Painel Digital Exclusivo -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #005F8E, #0077B6);">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <span class="vantagem-badge bg-ocean-subtle text-ocean">Painel Pessoal</span>
+          <h5 class="fw-bold text-dark mb-2">Painel Digital Exclusivo</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Acesse seu painel personalizado de qualquer dispositivo. Veja sua próxima aula, confirme presença,
+            acompanhe metas definidas pelo professor e tenha uma visão completa do seu progresso.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 2: Gráficos Radar de Evolução -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #2E7D32, #43A047);">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <span class="vantagem-badge bg-success-subtle text-success">Evolução Visual</span>
+          <h5 class="fw-bold text-dark mb-2">Gráficos Radar de Evolução</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Visualize sua evolução técnica com gráficos radar comparativos: saque, forehand, backhand,
+            voleio, smash e mobilidade. Compare sua nota inicial com a atual e veja o quanto evoluiu.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 3: BT Tracker (Análise Tática) -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #D95D00, #F77F00);">
+            <i class="bi bi-radar"></i>
+          </div>
+          <span class="vantagem-badge bg-warning-subtle text-dark">Análise Tática</span>
+          <h5 class="fw-bold text-dark mb-2">BT Tracker — Scout de Partidas</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Registre seus jogos ponto a ponto diretamente pelo celular. Analise winners, erros,
+            eficiência de saque e heatmaps de posicionamento — como os profissionais fazem.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 4: Relatórios em PDF -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #C62828, #E53935);">
+            <i class="bi bi-file-earmark-pdf-fill"></i>
+          </div>
+          <span class="vantagem-badge bg-danger-subtle text-danger">Relatórios Oficiais</span>
+          <h5 class="fw-bold text-dark mb-2">Relatórios Automáticos em PDF</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Exporte relatórios completos de desempenho em PDF a qualquer momento: notas por critério,
+            gráficos de evolução, pareceres do professor e estatísticas de partidas.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 5: Controle de Presença -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #6A1B9A, #8E24AA);">
+            <i class="bi bi-calendar-check-fill"></i>
+          </div>
+          <span class="vantagem-badge" style="background: rgba(106,27,154,0.12); color: #6A1B9A;">Frequência</span>
+          <h5 class="fw-bold text-dark mb-2">Controle de Presença Inteligente</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Confirme presença, avise ausências com antecedência e acompanhe sua taxa de frequência.
+            O professor é notificado em tempo real para organizar melhor a quadra.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 6: Biblioteca de Exercícios -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #00695C, #00897B);">
+            <i class="bi bi-collection-play-fill"></i>
+          </div>
+          <span class="vantagem-badge bg-info-subtle text-info">Treinos em Casa</span>
+          <h5 class="fw-bold text-dark mb-2">Biblioteca de Exercícios & Vídeos</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Acesse exercícios recomendados com vídeos explicativos para treinar fora da quadra.
+            Filtre por categoria e nível para focar exatamente no que precisa melhorar.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 7: Avaliações Periódicas -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #1565C0, #1E88E5);">
+            <i class="bi bi-clipboard2-data-fill"></i>
+          </div>
+          <span class="vantagem-badge bg-primary-subtle text-primary">Notas Técnicas</span>
+          <h5 class="fw-bold text-dark mb-2">Avaliações Periódicas do Professor</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Receba notas de 0 a 10 em cada fundamento técnico a cada ciclo de avaliação,
+            com pareceres escritos, pontos fortes identificados e metas objetivas para o próximo período.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 8: Metas e Objetivos -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #E65100, #EF6C00);">
+            <i class="bi bi-bullseye"></i>
+          </div>
+          <span class="vantagem-badge bg-warning-subtle text-dark">Metas Personalizadas</span>
+          <h5 class="fw-bold text-dark mb-2">Metas & Plano de Evolução</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            O professor define metas personalizadas para o seu nível: melhorar o saque,
+            trabalhar posicionamento de rede, ganhar consistência no backhand. Acompanhe o progresso de cada uma.
+          </p>
+        </div>
+      </div>
+
+      <!-- Vantagem 9: Acesso Multi-dispositivo -->
+      <div class="col-md-6 col-lg-4">
+        <div class="vantagem-card">
+          <div class="vantagem-icon text-white" style="background: linear-gradient(135deg, #37474F, #546E7A);">
+            <i class="bi bi-phone-fill"></i>
+          </div>
+          <span class="vantagem-badge bg-secondary-subtle text-dark">Acessibilidade</span>
+          <h5 class="fw-bold text-dark mb-2">Acesso pelo Celular ou Computador</h5>
+          <p class="text-muted mb-0" style="font-size:0.88rem; line-height:1.65;">
+            Plataforma 100% responsiva — use do celular na quadra para registrar scouts em tempo real
+            ou do computador em casa para analisar seus gráficos e baixar relatórios com calma.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA: Chamada para Ação -->
+    <div class="mt-5">
+      <div class="cta-plataforma text-center position-relative">
+        <div class="position-relative">
+          <div class="d-flex justify-content-center gap-3 mb-3 flex-wrap">
+            <span class="badge bg-white text-ocean fw-bold px-3 py-2" style="font-size:0.8rem;">
+              <i class="bi bi-shield-check me-1"></i>Acesso Seguro
+            </span>
+            <span class="badge bg-white text-ocean fw-bold px-3 py-2" style="font-size:0.8rem;">
+              <i class="bi bi-infinity me-1"></i>Incluído no Plano
+            </span>
+            <span class="badge bg-white text-ocean fw-bold px-3 py-2" style="font-size:0.8rem;">
+              <i class="bi bi-phone me-1"></i>100% Online
+            </span>
+          </div>
+          <h3 class="fw-bold text-white mb-2">Tudo isso está incluído nas suas aulas</h3>
+          <p class="text-white opacity-85 col-md-8 mx-auto mb-4" style="font-size:0.95rem;">
+            A plataforma digital é um diferencial exclusivo para todos os alunos matriculados.
+            Sem custo adicional — faz parte da sua experiência de evolução no Beach Tennis.
+          </p>
+          <div class="d-flex justify-content-center gap-3 flex-wrap">
+            {% if whatsapp_link %}
+              <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
+                <i class="bi bi-whatsapp fs-5"></i>
+                <span>Quero Ser Aluno</span>
+              </a>
+            {% else %}
+              <a href="#contato" class="btn btn-laranja btn-lg px-4 py-3 fw-bold shadow d-flex align-items-center gap-2">
+                <i class="bi bi-chat-dots-fill fs-5"></i>
+                <span>Quero Ser Aluno</span>
+              </a>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+              <a href="{{ url_for('aluno.painel') }}" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-person-circle"></i>
+                <span>Acessar Meu Painel</span>
+              </a>
+            {% else %}
+              <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Já sou aluno — Entrar</span>
+              </a>
+            {% endif %}
+          </div>
         </div>
       </div>
     </div>
