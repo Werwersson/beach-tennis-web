@@ -1,0 +1,231 @@
+{% extends 'base_aluno.html' %}
+{% block aluno_title %}Meu Perfil & Segurança — {{ aluno.nome }}{% endblock %}
+
+{% block aluno_content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">
+      <i class="bi bi-person-gear text-laranja me-2"></i>Meu Perfil & Segurança
+    </h3>
+    <p class="text-muted mb-0" style="font-size:0.95rem;">
+      Consulte suas informações cadastradas de atleta e altere sua senha de acesso.
+    </p>
+  </div>
+  <a href="{{ url_for('aluno.painel') }}" class="btn btn-outline-secondary d-flex align-items-center gap-1 shadow-sm">
+    <i class="bi bi-arrow-left"></i> Voltar ao Painel
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- COLUNA 1: DADOS CADASTRAIS DO ALUNO -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+      <div class="aluno-card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-person-vcard text-laranja fs-5"></i>
+          <span>Dados do Atleta</span>
+        </div>
+        <span class="badge bg-white text-ocean fw-bold">Cadastro Oficial</span>
+      </div>
+
+      <div class="p-4 bg-white">
+        <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+          <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+               style="width: 64px; height: 64px; background: var(--bt-laranja); font-size: 1.5rem;">
+            {% if aluno.foto %}
+              <img src="{{ upload_url(aluno.foto) }}" alt="{{ aluno.nome }}" class="w-100 h-100 rounded-circle" style="object-fit:cover;">
+            {% else %}
+              {{ aluno.nome[:2].upper() }}
+            {% endif %}
+          </div>
+          <div>
+            <h5 class="fw-bold text-dark mb-0">{{ aluno.nome }}</h5>
+            <div class="text-muted small"><i class="bi bi-envelope me-1"></i>{{ aluno.usuario.email }}</div>
+            <div class="mt-1 d-flex flex-wrap gap-1">
+              <span class="badge bg-ocean" style="font-size:0.75rem;">
+                Categoria {{ aluno.categoria_label }}
+              </span>
+              <span class="badge bg-secondary-subtle text-dark border" style="font-size:0.75rem;">
+                Nível {{ aluno.nivel|capitalize }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label text-muted small mb-1 fw-bold">E-MAIL DE ACESSO</label>
+            <div class="form-control-plaintext py-1 px-2 rounded bg-light border text-dark fw-semibold" style="font-size:0.9rem;">
+              {{ aluno.usuario.email }}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label text-muted small mb-1 fw-bold">TELEFONE / WHATSAPP</label>
+            <div class="form-control-plaintext py-1 px-2 rounded bg-light border text-dark fw-semibold" style="font-size:0.9rem;">
+              {{ aluno.telefone or 'Não informado' }}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label text-muted small mb-1 fw-bold">LADO DOMINANTE</label>
+            <div class="form-control-plaintext py-1 px-2 rounded bg-light border text-dark fw-semibold" style="font-size:0.9rem;">
+              <i class="bi bi-hand-index-thumb me-1 text-ocean"></i>{{ aluno.lado_dominante|capitalize }}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label text-muted small mb-1 fw-bold">OBJETIVO PRINCIPAL</label>
+            <div class="form-control-plaintext py-1 px-2 rounded bg-light border text-dark fw-semibold" style="font-size:0.9rem;">
+              <i class="bi bi-bullseye me-1 text-laranja"></i>{{ aluno.objetivo|capitalize }}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted small mb-1 fw-bold">DATA DE NASCIMENTO</label>
+            <div class="form-control-plaintext py-1 px-2 rounded bg-light border text-dark fw-semibold" style="font-size:0.9rem;">
+              {{ aluno.data_nascimento.strftime('%d/%m/%Y') if aluno.data_nascimento else 'Não informada' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- TURMAS DO ALUNO -->
+        <div class="mt-4 pt-3 border-top">
+          <label class="form-label text-muted small mb-2 fw-bold text-uppercase">Minhas Turmas Ativas</label>
+          {% if aluno.turmas %}
+            <div class="list-group list-group-flush gap-2">
+              {% for ta in aluno.turmas if ta.ativo %}
+                <div class="p-2 px-3 rounded border bg-light d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-bold text-dark" style="font-size:0.9rem;">{{ ta.turma.nome }}</div>
+                    <div class="text-muted" style="font-size:0.78rem;">
+                      <i class="bi bi-geo-alt text-ocean me-1"></i>{{ ta.turma.local }}
+                    </div>
+                  </div>
+                  <span class="badge bg-ocean" style="font-size:0.75rem;">Ativo</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">Você ainda não está matriculado em turmas ativas.</p>
+          {% endif %}
+        </div>
+
+        <div class="alert alert-light border mt-4 mb-0 py-2 px-3 text-muted small d-flex align-items-center gap-2">
+          <i class="bi bi-info-circle-fill text-ocean fs-5"></i>
+          <div>
+            Para atualizar informações cadastrais como turmas ou categoria, solicite diretamente ao professor Everson.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUNA 2: FORMULÁRIO DE ALTERAÇÃO DE SENHA -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+      <div class="aluno-card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-shield-lock-fill text-laranja fs-5"></i>
+          <span>Alterar Senha de Acesso</span>
+        </div>
+        <span class="badge bg-white text-dark fw-bold">Segurança</span>
+      </div>
+
+      <div class="p-4 bg-white d-flex flex-column justify-content-between">
+        <div>
+          <div class="alert alert-info border-0 py-2 px-3 mb-4 rounded-3 d-flex align-items-start gap-2" style="font-size:0.88rem;">
+            <i class="bi bi-shield-check text-ocean fs-5 mt-0"></i>
+            <div>
+              <strong>Dica de segurança:</strong> Escolha uma senha segura com no mínimo 6 caracteres. Você usará esta senha para entrar no sistema em qualquer dispositivo.
+            </div>
+          </div>
+
+          <form method="POST" action="{{ url_for('aluno.perfil') }}" novalidate>
+            {{ form.hidden_tag() }}
+
+            <!-- SENHA ATUAL -->
+            <div class="mb-3">
+              <label for="{{ form.senha_atual.id }}" class="form-label fw-bold text-dark" style="font-size:0.88rem;">
+                <i class="bi bi-key me-1 text-ocean"></i>{{ form.senha_atual.label.text }}
+              </label>
+              <div class="input-group">
+                {{ form.senha_atual(class="form-control" + (" is-invalid" if form.senha_atual.errors else ""), placeholder="Digite sua senha atual") }}
+                <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="{{ form.senha_atual.id }}" title="Mostrar/Ocultar Senha">
+                  <i class="bi bi-eye"></i>
+                </button>
+                {% for error in form.senha_atual.errors %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- NOVA SENHA -->
+            <div class="mb-3">
+              <label for="{{ form.nova_senha.id }}" class="form-label fw-bold text-dark" style="font-size:0.88rem;">
+                <i class="bi bi-lock me-1 text-laranja"></i>{{ form.nova_senha.label.text }}
+              </label>
+              <div class="input-group">
+                {{ form.nova_senha(class="form-control" + (" is-invalid" if form.nova_senha.errors else ""), placeholder="Mínimo de 6 caracteres") }}
+                <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="{{ form.nova_senha.id }}" title="Mostrar/Ocultar Senha">
+                  <i class="bi bi-eye"></i>
+                </button>
+                {% for error in form.nova_senha.errors %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="form-text" style="font-size:0.78rem;">A nova senha não pode ser igual à senha atual.</div>
+            </div>
+
+            <!-- CONFIRMAR NOVA SENHA -->
+            <div class="mb-4">
+              <label for="{{ form.confirmar_senha.id }}" class="form-label fw-bold text-dark" style="font-size:0.88rem;">
+                <i class="bi bi-check2-circle me-1 text-success"></i>{{ form.confirmar_senha.label.text }}
+              </label>
+              <div class="input-group">
+                {{ form.confirmar_senha(class="form-control" + (" is-invalid" if form.confirmar_senha.errors else ""), placeholder="Repita a nova senha") }}
+                <button class="btn btn-outline-secondary btn-toggle-password" type="button" data-target="{{ form.confirmar_senha.id }}" title="Mostrar/Ocultar Senha">
+                  <i class="bi bi-eye"></i>
+                </button>
+                {% for error in form.confirmar_senha.errors %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-laranja fw-bold py-2 shadow-sm fs-6">
+                <i class="bi bi-check-lg me-1"></i>Salvar Nova Senha
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="mt-4 pt-3 border-top text-center text-muted" style="font-size:0.8rem;">
+          <i class="bi bi-lock-fill text-muted me-1"></i>Suas credenciais são criptografadas com hash de segurança padrão da indústria.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block aluno_js %}
+<script>
+  // Alternar visualização de senha nos campos com botão do olho
+  document.querySelectorAll('.btn-toggle-password').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      const icon = this.querySelector('i');
+      if (input) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.classList.remove('bi-eye');
+          icon.classList.add('bi-eye-slash');
+        } else {
+          input.type = 'password';
+          icon.classList.remove('bi-eye-slash');
+          icon.classList.add('bi-eye');
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

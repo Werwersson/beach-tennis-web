@@ -12,7 +12,7 @@ from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
 from app.utils.bt_tracker import calcular_estatisticas_partida
 from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
 from app.utils.schema_migration import garantir_esquema_banco
-from .forms import AlunoPartidaForm
+from .forms import AlunoPartidaForm, AlterarSenhaForm
 
 aluno_bp = Blueprint('aluno', __name__)
 
@@ -279,6 +279,35 @@ def relatorio_pdf():
         mimetype='application/pdf',
         headers={'Content-Disposition': f'attachment; filename="{nome_arquivo}"'}
     )
+
+
+# ── MEU PERFIL & ALTERAR SENHA ─────────────────────────────────────────────
+@aluno_bp.route('/perfil', methods=['GET', 'POST'], endpoint='perfil')
+@aluno_bp.route('/alterar-senha', methods=['GET', 'POST'], endpoint='alterar_senha')
+@aluno_required
+def perfil():
+    """
+    Tela de Perfil e Alteração de Senha do Aluno.
+    Permite visualizar os dados cadastrais do atleta e atualizar a senha com validação.
+    """
+    aluno = get_current_aluno()
+    form = AlterarSenhaForm()
+
+    if form.validate_on_submit():
+        senha_atual = form.senha_atual.data.strip()
+        nova_senha = form.nova_senha.data.strip()
+
+        if not current_user.check_senha(senha_atual):
+            flash('Senha atual incorreta. Por favor, digite sua senha atual corretamente.', 'danger')
+        elif senha_atual == nova_senha:
+            flash('A nova senha deve ser diferente da senha atual.', 'warning')
+        else:
+            current_user.set_senha(nova_senha)
+            db.session.commit()
+            flash('Sua senha foi alterada com sucesso! Utilize a nova senha em seus próximos acessos.', 'success')
+            return redirect(url_for('aluno.perfil'))
+
+    return render_template('aluno/perfil.html', aluno=aluno, form=form)
 
 
 # ── BT TRACKER DO ALUNO ───────────────────────────────────────────────────

@@ -5,7 +5,7 @@ Uso:  python -u test_routes.py
 """
 import re
 from app import create_app
-from app.models import Partida, Usuario, PontoPartida
+from app.models import Partida, Usuario, PontoPartida, Aluno
 from app.extensions import db
 from app.utils.schema_migration import garantir_esquema_banco
 
@@ -45,6 +45,33 @@ with app.app_context():
         print('[OK] Usuário admin criado: admin@test.com / admin123')
     else:
         print('[OK] Usuário admin já existe.')
+
+    # Aluno
+    aluno_user = Usuario.query.filter_by(email='aluno@test.com').first()
+    if not aluno_user:
+        aluno_user = Usuario(
+            nome='Aluno Teste',
+            email='aluno@test.com',
+            perfil='aluno',
+            ativo=True,
+        )
+        aluno_user.set_senha('aluno123')
+        db.session.add(aluno_user)
+        db.session.flush()
+        aluno_obj = Aluno(
+            usuario_id=aluno_user.id,
+            nome='Aluno Teste',
+            nivel='iniciante',
+            categoria='D',
+            ativo=True
+        )
+        db.session.add(aluno_obj)
+        db.session.commit()
+        print('[OK] Usuário aluno criado: aluno@test.com / aluno123')
+    else:
+        aluno_user.set_senha('aluno123')
+        db.session.commit()
+        print('[OK] Usuário aluno já existe (senha resetada para aluno123).')
 
     # Partidas
     total = Partida.query.count()
@@ -170,6 +197,62 @@ if __name__ == '__main__':
             'set_num': '1',
             'placar_texto': '30x0'
         })
+
+    # -- Testes do Aluno: Perfil e Alteração de Senha --
+    print('\n--- Aluno: Login, Perfil e Alteração de Senha ---')
+    # Logout do admin
+    client.get('/auth/logout')
+    
+    # Login como aluno
+    resp_aluno_login = client.post('/auth/login', data={'email': 'aluno@test.com', 'senha': 'aluno123'}, follow_redirects=True)
+    assert resp_aluno_login.status_code == 200, f"Erro no login do aluno: {resp_aluno_login.status_code}"
+    print('  ✓ Login do Aluno realizado com sucesso (200)')
+
+    # Acessar Perfil e Alterar Senha (GET)
+    test_route('/aluno/perfil')
+    test_route('/aluno/alterar-senha')
+
+    # Teste de tentativa com senha atual incorreta
+    resp_errada = client.post('/aluno/alterar-senha', data={
+        'senha_atual': 'senha_errada_xyz',
+        'nova_senha': 'novasenha456',
+        'confirmar_senha': 'novasenha456'
+    }, follow_redirects=True)
+    assert 'Senha atual incorreta' in resp_errada.get_data(as_text=True)
+    print('  ✓ Validação de senha atual incorreta funcionou')
+
+    # Teste de tentativa com confirmação divergente
+    resp_dif = client.post('/aluno/alterar-senha', data={
+        'senha_atual': 'aluno123',
+        'nova_senha': 'novasenha456',
+        'confirmar_senha': 'outrasenha789'
+    }, follow_redirects=True)
+    assert resp_dif.status_code == 200
+    print('  ✓ Validação de confirmação de senha divergente funcionou')
+
+    # Teste de tentativa com nova senha igual à atual
+    resp_igual = client.post('/aluno/alterar-senha', data={
+        'senha_atual': 'aluno123',
+        'nova_senha': 'aluno123',
+        'confirmar_senha': 'aluno123'
+    }, follow_redirects=True)
+    assert 'diferente da senha atual' in resp_igual.get_data(as_text=True)
+    print('  ✓ Validação de nova senha igual à atual funcionou')
+
+    # Sucesso na alteração da senha
+    resp_ok = client.post('/aluno/alterar-senha', data={
+        'senha_atual': 'aluno123',
+        'nova_senha': 'novasenha456',
+        'confirmar_senha': 'novasenha456'
+    }, follow_redirects=True)
+    assert 'senha foi alterada com sucesso' in resp_ok.get_data(as_text=True).lower()
+    print('  ✓ Alteração de senha realizada com sucesso')
+
+    # Testar login com a NOVA senha
+    client.get('/auth/logout')
+    resp_novo_login = client.post('/auth/login', data={'email': 'aluno@test.com', 'senha': 'novasenha456'}, follow_redirects=True)
+    assert resp_novo_login.status_code == 200 and 'Olá, Aluno' in resp_novo_login.get_data(as_text=True)
+    print('  ✓ Novo login com a nova senha validado com sucesso (200)')
 
     print()
     print('=' * 60)

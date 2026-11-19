@@ -20,6 +20,10 @@
     <span class="badge bg-light text-dark border fs-6 px-3 py-2">
       Lado {{ aluno.lado_dominante|capitalize }}
     </span>
+    <a href="{{ url_for('aluno.perfil') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 shadow-sm px-3 py-2 ms-1" title="Visualizar Perfil e Alterar Senha">
+      <i class="bi bi-key-fill text-laranja"></i>
+      <span class="d-none d-md-inline">Alterar Senha</span>
+    </a>
   </div>
 </div>
 
@@ -320,6 +324,24 @@
         </p>
         <a href="{{ url_for('aluno.exercicios') }}" class="btn btn-laranja fw-bold px-4 py-2 shadow-sm">
           Acessar Biblioteca
+        </a>
+      </div>
+    </div>
+
+    <!-- CARD: SEGURANÇA E ACESSO -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden bg-white">
+      <div class="p-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle bg-light d-flex align-items-center justify-content-center p-2 text-ocean">
+            <i class="bi bi-shield-lock-fill fs-5"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark" style="font-size:0.88rem;">Segurança da Conta</div>
+            <div class="text-muted" style="font-size:0.75rem;">Mantenha sua senha atualizada</div>
+          </div>
+        </div>
+        <a href="{{ url_for('aluno.alterar_senha') }}" class="btn btn-sm btn-outline-ocean fw-bold" style="font-size:0.8rem;">
+          Alterar Senha
         </a>
       </div>
     </div>

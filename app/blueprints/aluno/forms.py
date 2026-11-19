@@ -1,8 +1,24 @@
 from datetime import date
 from flask_wtf import FlaskForm
 from wtforms import (StringField, TextAreaField, SelectField, DateField,
-                     IntegerField, SubmitField)
-from wtforms.validators import DataRequired, Length, Optional
+                     IntegerField, PasswordField, SubmitField)
+from wtforms.validators import DataRequired, Length, Optional, EqualTo
+
+
+class AlterarSenhaForm(FlaskForm):
+    """Formulário para o aluno alterar sua senha de acesso."""
+    senha_atual = PasswordField('Senha Atual *', validators=[
+        DataRequired(message='Informe sua senha atual.')
+    ])
+    nova_senha = PasswordField('Nova Senha *', validators=[
+        DataRequired(message='Informe a nova senha.'),
+        Length(min=6, message='A nova senha deve ter no mínimo 6 caracteres.')
+    ])
+    confirmar_senha = PasswordField('Confirmar Nova Senha *', validators=[
+        DataRequired(message='Confirme a nova senha.'),
+        EqualTo('nova_senha', message='A confirmação de senha não confere com a nova senha.')
+    ])
+    submit = SubmitField('Salvar Nova Senha')
 
 
 class AlunoPartidaForm(FlaskForm):
