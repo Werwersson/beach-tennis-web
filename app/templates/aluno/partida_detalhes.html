@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}BT Tracker — {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
+{% block title %}BT INSIGHT— {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -11,17 +11,21 @@
     position: relative;
     overflow: hidden;
   }
+
   .stat-card-row {
     border-bottom: 1px solid #E2E8F0;
     padding: 10px 0;
   }
+
   .stat-card-row:hover {
     background: #F8FAFC;
   }
+
   .stat-highlight {
     font-weight: 800;
     color: #0284C7;
   }
+
   .nav-tabs-bt .nav-link {
     font-weight: 700;
     font-size: 0.9rem;
@@ -31,11 +35,13 @@
     padding: 12px 18px;
     transition: all 0.2s;
   }
+
   .nav-tabs-bt .nav-link.active {
     color: #0284C7;
     background: transparent;
     border-bottom-color: #0284C7;
   }
+
   .quadra-svg-container {
     background: #F8FAFC;
     border: 2px solid #CBD5E1;
@@ -50,9 +56,10 @@
 {% block body %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25">
   <div class="container">
-    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2" href="{{ url_for('aluno.painel') }}">
+    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2"
+      href="{{ url_for('aluno.painel') }}">
       <i class="bi bi-radar text-warning"></i>
-      <span>BT TRACKER</span>
+      <span>BT INSIGHT/span>
     </a>
     <div class="d-flex align-items-center gap-2">
       <a href="{{ url_for('aluno.partidas_lista') }}" class="btn btn-sm btn-outline-light">
@@ -71,7 +78,7 @@
     <div class="row align-items-center">
       <div class="col-lg-8">
         <div class="d-flex align-items-center gap-2 mb-2">
-          <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT TRACKER</span>
+          <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT INSIGHT</span>
           <span class="text-white-50 small text-uppercase">O SEU OLHAR FORA DA QUADRA</span>
           <div>{{ partida.status_badge_html | safe }}</div>
         </div>
@@ -109,10 +116,12 @@
 
       <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
         <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-          <button type="button" class="btn btn-warning text-dark fw-bold shadow-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalNovoPontoAluno">
+          <button type="button" class="btn btn-warning text-dark fw-bold shadow-sm px-3 py-2" data-bs-toggle="modal"
+            data-bs-target="#modalNovoPontoAluno">
             <i class="bi bi-plus-circle-fill me-1"></i> Lançar Ponto
           </button>
-          <a href="{{ url_for('aluno.partida_pdf', id=partida.id) }}" class="btn btn-danger fw-bold shadow-sm px-3 py-2">
+          <a href="{{ url_for('aluno.partida_pdf', id=partida.id) }}"
+            class="btn btn-danger fw-bold shadow-sm px-3 py-2">
             <i class="bi bi-file-earmark-pdf-fill me-1"></i> Baixar Relatório PDF
           </a>
         </div>
@@ -121,7 +130,8 @@
   </div>
 
   {% if partida.comentario_professor %}
-  <div class="alert alert-info border-start border-4 border-info shadow-sm rounded-3 mb-4 p-3 d-flex align-items-start gap-3">
+  <div
+    class="alert alert-info border-start border-4 border-info shadow-sm rounded-3 mb-4 p-3 d-flex align-items-start gap-3">
     <i class="bi bi-chat-quote-fill fs-2 text-primary"></i>
     <div>
       <h6 class="fw-bold mb-1 text-primary">Feedback & Orientações do Professor Everson:</h6>
@@ -132,11 +142,13 @@
     </div>
   </div>
   {% elif partida.status == 'pendente' %}
-  <div class="alert alert-warning border-start border-4 border-warning shadow-sm rounded-3 mb-4 p-3 d-flex align-items-center gap-3">
+  <div
+    class="alert alert-warning border-start border-4 border-warning shadow-sm rounded-3 mb-4 p-3 d-flex align-items-center gap-3">
     <i class="bi bi-clock-history fs-2 text-warning"></i>
     <div>
       <h6 class="fw-bold mb-1 text-dark">Partida Aguardando Validação</h6>
-      <p class="mb-0 text-muted small">Os dados foram submetidos e o professor Everson está analisando para validar e incluir eventuais apontamentos técnicos.</p>
+      <p class="mb-0 text-muted small">Os dados foram submetidos e o professor Everson está analisando para validar e
+        incluir eventuais apontamentos técnicos.</p>
     </div>
   </div>
   {% endif %}
@@ -299,38 +311,43 @@
       <div class="tab-pane fade text-center" id="tabMapaCalor" role="tabpanel">
         <h5 class="fw-bold text-ocean mb-3">Mapa de Calor da Quadra</h5>
         <div class="quadra-svg-container shadow-sm">
-          <svg id="quadraSvg" width="340" height="520" viewBox="0 0 340 520" style="background:#FCE7C8; border-radius:8px;">
-            <rect x="30" y="30" width="280" height="460" fill="#F8FAFC" stroke="#0F172A" stroke-width="4"/>
-            <line x1="15" y1="260" x2="325" y2="260" stroke="#0284C7" stroke-width="5" stroke-dasharray="6,4"/>
-            <circle cx="15" cy="260" r="5" fill="#0284C7"/>
-            <circle cx="325" cy="260" r="5" fill="#0284C7"/>
-            <line x1="30" y1="145" x2="310" y2="145" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
-            <line x1="30" y1="375" x2="310" y2="375" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
-            <line x1="170" y1="30" x2="170" y2="490" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4"/>
+          <svg id="quadraSvg" width="340" height="520" viewBox="0 0 340 520"
+            style="background:#FCE7C8; border-radius:8px;">
+            <rect x="30" y="30" width="280" height="460" fill="#F8FAFC" stroke="#0F172A" stroke-width="4" />
+            <line x1="15" y1="260" x2="325" y2="260" stroke="#0284C7" stroke-width="5" stroke-dasharray="6,4" />
+            <circle cx="15" cy="260" r="5" fill="#0284C7" />
+            <circle cx="325" cy="260" r="5" fill="#0284C7" />
+            <line x1="30" y1="145" x2="310" y2="145" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4" />
+            <line x1="30" y1="375" x2="310" y2="375" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4" />
+            <line x1="170" y1="30" x2="170" y2="490" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4,4" />
 
             <defs>
-              <marker id="arrow-winner" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981"/>
+              <marker id="arrow-winner" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981" />
               </marker>
-              <marker id="arrow-forcou" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284C7"/>
+              <marker id="arrow-forcou" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284C7" />
               </marker>
-              <marker id="arrow-erro" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444"/>
+              <marker id="arrow-erro" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#EF4444" />
               </marker>
             </defs>
 
             {% for pt in stats.mapa_calor.todos %}
-              {% set cor = '#10B981' if pt.tipo == 'winner' else ('#0284C7' if pt.tipo == 'forcou_erro' else '#EF4444') %}
-              {% set marker = 'arrow-winner' if pt.tipo == 'winner' else ('arrow-forcou' if pt.tipo == 'forcou_erro' else 'arrow-erro') %}
-              {% set x1 = 30 + (pt.origem_x * 2.8) %}
-              {% set y1 = 30 + (pt.origem_y * 4.6) %}
-              {% set x2 = 30 + (pt.destino_x * 2.8) %}
-              {% set y2 = 30 + (pt.destino_y * 4.6) %}
-              <line x1="{{ x1 }}" y1="{{ y1 }}" x2="{{ x2 }}" y2="{{ y2 }}"
-                    stroke="{{ cor }}" stroke-width="2.5" marker-end="url(#{{ marker }})" opacity="0.85">
-                <title>{{ pt.descricao }}</title>
-              </line>
+            {% set cor = '#10B981' if pt.tipo == 'winner' else ('#0284C7' if pt.tipo == 'forcou_erro' else '#EF4444') %}
+            {% set marker = 'arrow-winner' if pt.tipo == 'winner' else ('arrow-forcou' if pt.tipo == 'forcou_erro' else
+            'arrow-erro') %}
+            {% set x1 = 30 + (pt.origem_x * 2.8) %}
+            {% set y1 = 30 + (pt.origem_y * 4.6) %}
+            {% set x2 = 30 + (pt.destino_x * 2.8) %}
+            {% set y2 = 30 + (pt.destino_y * 4.6) %}
+            <line x1="{{ x1 }}" y1="{{ y1 }}" x2="{{ x2 }}" y2="{{ y2 }}" stroke="{{ cor }}" stroke-width="2.5"
+              marker-end="url(#{{ marker }})" opacity="0.85">
+              <title>{{ pt.descricao }}</title>
+            </line>
             {% endfor %}
           </svg>
         </div>
@@ -343,7 +360,8 @@
             <h5 class="fw-bold text-ocean mb-0"><i class="bi bi-clock-history me-2"></i>Histórico Lance a Lance</h5>
             <p class="text-muted small mb-0">Cada lance registrado com a ação da sua dupla</p>
           </div>
-          <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modalNovoPontoAluno">
+          <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal"
+            data-bs-target="#modalNovoPontoAluno">
             <i class="bi bi-plus-lg me-1"></i> Lançar Ponto
           </button>
         </div>
@@ -355,8 +373,10 @@
             <div class="d-flex align-items-start gap-3">
               <span class="badge bg-dark rounded-circle p-2 mt-1">#{{ p.numero_ponto }}</span>
               <div>
-                <span class="fw-bold small {% if p.dupla_vencedora == 1 %}text-success{% else %}text-primary{% endif %}">
-                  {% if p.dupla_vencedora == 1 %}🟢 Vencido por {{ partida.jogador1_nome }} e {{ partida.jogador2_nome }}{% else %}🔵 Vencido por {{ partida.jogador3_nome }} e {{ partida.jogador4_nome }}{% endif %}
+                <span
+                  class="fw-bold small {% if p.dupla_vencedora == 1 %}text-success{% else %}text-primary{% endif %}">
+                  {% if p.dupla_vencedora == 1 %}🟢 Vencido por {{ partida.jogador1_nome }} e {{ partida.jogador2_nome
+                  }}{% else %}🔵 Vencido por {{ partida.jogador3_nome }} e {{ partida.jogador4_nome }}{% endif %}
                 </span>
                 <div class="text-muted small">
                   Sacador: <b>{{ partida.get_jogador_nome(p.sacador) }}</b> | Lance: <b>{{ p.descricao_lance }}</b>
@@ -369,25 +389,17 @@
 
             <div class="d-flex align-items-center gap-2">
               <button type="button" class="btn btn-sm btn-outline-primary border-0 btn-editar-ponto-aluno"
-                      data-ponto-id="{{ p.id }}"
-                      data-numero="{{ p.numero_ponto }}"
-                      data-sacador="{{ p.sacador }}"
-                      data-dupla-venc="{{ p.dupla_vencedora }}"
-                      data-desfecho="{{ p.tipo_desfecho }}"
-                      data-golpe="{{ p.tipo_golpe or '' }}"
-                      data-finalizador="{{ p.atleta_finalizador or 1 }}"
-                      data-posicao="{{ p.posicao_sacador or 'Direita' }}"
-                      data-direcao="{{ p.direcao_saque or '3' }}"
-                      data-qualidade="{{ p.qualidade_saque or 'Bom' }}"
-                      data-saque-dificil="{{ 1 if p.saque_dificil else 0 }}"
-                      data-placar="{{ p.placar_texto or '' }}"
-                      data-situacao="{{ p.situacao_adicional or '' }}"
-                      data-duracao="{{ p.duracao_ponto or 'Médio' }}"
-                      data-set="{{ p.set_num or 1 }}"
-                      title="Editar Ponto">
+                data-ponto-id="{{ p.id }}" data-numero="{{ p.numero_ponto }}" data-sacador="{{ p.sacador }}"
+                data-dupla-venc="{{ p.dupla_vencedora }}" data-desfecho="{{ p.tipo_desfecho }}"
+                data-golpe="{{ p.tipo_golpe or '' }}" data-finalizador="{{ p.atleta_finalizador or 1 }}"
+                data-posicao="{{ p.posicao_sacador or 'Direita' }}" data-direcao="{{ p.direcao_saque or '3' }}"
+                data-qualidade="{{ p.qualidade_saque or 'Bom' }}" data-saque-dificil="{{ 1 if p.saque_dificil else 0 }}"
+                data-placar="{{ p.placar_texto or '' }}" data-situacao="{{ p.situacao_adicional or '' }}"
+                data-duracao="{{ p.duracao_ponto or 'Médio' }}" data-set="{{ p.set_num or 1 }}" title="Editar Ponto">
                 <i class="bi bi-pencil-square fs-6"></i>
               </button>
-              <form method="POST" action="{{ url_for('aluno.partida_ponto_excluir', ponto_id=p.id) }}" class="d-inline" onsubmit="return confirm('Remover este lance?');">
+              <form method="POST" action="{{ url_for('aluno.partida_ponto_excluir', ponto_id=p.id) }}" class="d-inline"
+                onsubmit="return confirm('Remover este lance?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Excluir Lance">
                   <i class="bi bi-trash fs-6"></i>
@@ -409,7 +421,8 @@
 </div>
 
 <!-- MODAL: ALUNO REGISTRAR NOVO PONTO -->
-<div class="modal fade" id="modalNovoPontoAluno" tabindex="-1" aria-labelledby="modalNovoPontoAlunoLabel" aria-hidden="true">
+<div class="modal fade" id="modalNovoPontoAluno" tabindex="-1" aria-labelledby="modalNovoPontoAlunoLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-ocean text-white">
@@ -421,15 +434,18 @@
       <form method="POST" action="{{ url_for('aluno.partida_ponto_adicionar', id=partida.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-body p-4">
-          <div class="alert alert-info py-2 px-3 small mb-3 border-0 bg-info bg-opacity-10 text-dark d-flex align-items-center gap-2">
+          <div
+            class="alert alert-info py-2 px-3 small mb-3 border-0 bg-info bg-opacity-10 text-dark d-flex align-items-center gap-2">
             <i class="bi bi-info-circle-fill text-primary fs-5"></i>
-            <span><b>Scout simplificado:</b> você só precisa registrar as ações da sua dupla. Quando o adversário sacar, apenas indique se o saque foi difícil.</span>
+            <span><b>Scout simplificado:</b> você só precisa registrar as ações da sua dupla. Quando o adversário sacar,
+              apenas indique se o saque foi difícil.</span>
           </div>
 
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-bold small text-dark">Quem está sacando? *</label>
-              <select name="sacador" id="alunoSacadorNovo" class="form-select border-primary" onchange="alternarCamposSaqueAluno(this.value, '')">
+              <select name="sacador" id="alunoSacadorNovo" class="form-select border-primary"
+                onchange="alternarCamposSaqueAluno(this.value, '')">
                 <option value="1">🟢 {{ partida.jogador1_nome }} (Você)</option>
                 <option value="2">🟢 {{ partida.jogador2_nome }} (Seu Parceiro)</option>
                 <option value="3">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
@@ -495,15 +511,19 @@
             <div id="aluno_boxSaqueAdversario" class="col-12 d-none">
               <div class="p-3 rounded-3 border border-warning-subtle bg-warning bg-opacity-10">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                  <span class="fw-bold text-dark small"><i class="bi bi-shield-exclamation text-warning fs-5"></i> Saque dos Adversários:</span>
+                  <span class="fw-bold text-dark small"><i class="bi bi-shield-exclamation text-warning fs-5"></i> Saque
+                    dos Adversários:</span>
                   <div class="d-flex gap-3">
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoSaqueNormalNovo" value="0" checked>
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoSaqueNormalNovo"
+                        value="0" checked>
                       <label class="form-check-label small" for="alunoSaqueNormalNovo">Saque Normal</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoSaqueDificilNovo" value="1">
-                      <label class="form-check-label small fw-bold text-danger" for="alunoSaqueDificilNovo">🔥 Saque Difícil / Pesado</label>
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoSaqueDificilNovo"
+                        value="1">
+                      <label class="form-check-label small fw-bold text-danger" for="alunoSaqueDificilNovo">🔥 Saque
+                        Difícil / Pesado</label>
                     </div>
                   </div>
                 </div>
@@ -513,7 +533,8 @@
             <!-- Vencedor e Desfecho -->
             <div class="col-md-6">
               <label class="form-label fw-bold small text-dark">Ponto Vencido Por *</label>
-              <select name="dupla_vencedora" id="alunoDuplaVencNovo" class="form-select fw-bold" onchange="atualizarOpcoesDesfechoAluno(this.value, '')">
+              <select name="dupla_vencedora" id="alunoDuplaVencNovo" class="form-select fw-bold"
+                onchange="atualizarOpcoesDesfechoAluno(this.value, '')">
                 <option value="1">🟢 Sua Dupla ({{ partida.dupla1_label }})</option>
                 <option value="2">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
               </select>
@@ -521,7 +542,8 @@
 
             <div class="col-md-6">
               <label class="form-label fw-bold small text-dark">Desfecho do Ponto *</label>
-              <select name="tipo_desfecho" id="alunoTipoDesfechoNovo" class="form-select fw-bold" onchange="alternarAcaoNossaDuplaAluno(this.value, '')">
+              <select name="tipo_desfecho" id="alunoTipoDesfechoNovo" class="form-select fw-bold"
+                onchange="alternarAcaoNossaDuplaAluno(this.value, '')">
                 <optgroup label="✅ Pontos da Nossa Dupla">
                   <option value="winner">Winner da Nossa Dupla</option>
                   <option value="forcou_erro">Nossa Dupla Forçou o Erro</option>
@@ -551,7 +573,8 @@
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold text-dark">Golpe Executado</label>
-                    <input type="text" name="tipo_golpe" class="form-control" placeholder="Ex: Smash, Gancho, Curta, Lob, Voleio">
+                    <input type="text" name="tipo_golpe" class="form-control"
+                      placeholder="Ex: Smash, Gancho, Curta, Lob, Voleio">
                   </div>
                 </div>
               </div>
@@ -590,7 +613,8 @@
 </div>
 
 <!-- MODAL: ALUNO EDITAR PONTO -->
-<div class="modal fade" id="modalEditarPontoAluno" tabindex="-1" aria-labelledby="modalEditarPontoAlunoLabel" aria-hidden="true">
+<div class="modal fade" id="modalEditarPontoAluno" tabindex="-1" aria-labelledby="modalEditarPontoAlunoLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-primary text-white">
@@ -605,7 +629,8 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-bold small text-dark">Quem estava sacando? *</label>
-              <select name="sacador" id="alunoEditSacador" class="form-select border-primary" onchange="alternarCamposSaqueAluno(this.value, 'edit_')">
+              <select name="sacador" id="alunoEditSacador" class="form-select border-primary"
+                onchange="alternarCamposSaqueAluno(this.value, 'edit_')">
                 <option value="1">🟢 {{ partida.jogador1_nome }} (Você)</option>
                 <option value="2">🟢 {{ partida.jogador2_nome }} (Seu Parceiro)</option>
                 <option value="3">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
@@ -671,15 +696,19 @@
             <div id="aluno_edit_boxSaqueAdversario" class="col-12 d-none">
               <div class="p-3 rounded-3 border border-warning-subtle bg-warning bg-opacity-10">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                  <span class="fw-bold text-dark small"><i class="bi bi-shield-exclamation text-warning fs-5"></i> Saque dos Adversários:</span>
+                  <span class="fw-bold text-dark small"><i class="bi bi-shield-exclamation text-warning fs-5"></i> Saque
+                    dos Adversários:</span>
                   <div class="d-flex gap-3">
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoEditSaqueNormal" value="0">
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoEditSaqueNormal"
+                        value="0">
                       <label class="form-check-label small" for="alunoEditSaqueNormal">Saque Normal</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoEditSaqueDificil" value="1">
-                      <label class="form-check-label small fw-bold text-danger" for="alunoEditSaqueDificil">🔥 Saque Difícil / Pesado</label>
+                      <input class="form-check-input" type="radio" name="saque_dificil" id="alunoEditSaqueDificil"
+                        value="1">
+                      <label class="form-check-label small fw-bold text-danger" for="alunoEditSaqueDificil">🔥 Saque
+                        Difícil / Pesado</label>
                     </div>
                   </div>
                 </div>
@@ -689,7 +718,8 @@
             <!-- Vencedor e Desfecho -->
             <div class="col-md-6">
               <label class="form-label fw-bold small text-dark">Ponto Vencido Por *</label>
-              <select name="dupla_vencedora" id="alunoEditDuplaVenc" class="form-select fw-bold" onchange="atualizarOpcoesDesfechoAluno(this.value, 'edit_')">
+              <select name="dupla_vencedora" id="alunoEditDuplaVenc" class="form-select fw-bold"
+                onchange="atualizarOpcoesDesfechoAluno(this.value, 'edit_')">
                 <option value="1">🟢 Sua Dupla ({{ partida.dupla1_label }})</option>
                 <option value="2">🔵 Dupla Adversária ({{ partida.dupla2_label }})</option>
               </select>
@@ -697,7 +727,8 @@
 
             <div class="col-md-6">
               <label class="form-label fw-bold small text-dark">Desfecho *</label>
-              <select name="tipo_desfecho" id="alunoEditTipoDesfecho" class="form-select fw-bold" onchange="alternarAcaoNossaDuplaAluno(this.value, 'edit_')">
+              <select name="tipo_desfecho" id="alunoEditTipoDesfecho" class="form-select fw-bold"
+                onchange="alternarAcaoNossaDuplaAluno(this.value, 'edit_')">
                 <optgroup label="✅ Pontos da Nossa Dupla">
                   <option value="winner">Winner da Nossa Dupla</option>
                   <option value="forcou_erro">Nossa Dupla Forçou o Erro</option>
@@ -868,50 +899,52 @@
 
     // Gráficos de Saque
     {% for j in [1, 2, 3, 4] %}
-    const ctxSaque{{ j }} = document.getElementById('chartSaqueAtleta{{ j }}');
-    if (ctxSaque{{ j }}) {
-      const dirData{{ j }} = {{ stats.stats_atleta[j].saque_direcoes | tojson }};
-      const labels{{ j }} = Object.keys(dirData{{ j }}).length ? Object.keys(dirData{{ j }}) : ['Direita-1', 'Direita-2', 'Direita-3', 'Direita-4', 'Direita-5'];
-      const acertos{{ j }} = labels{{ j }}.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].acertos : 0);
-      const erros{{ j }} = labels{{ j }}.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].erros : 0);
+    const ctxSaque{{ j }
+  } = document.getElementById('chartSaqueAtleta{{ j }}');
+  if (ctxSaque{ { j } }) {
+    const dirData{{ j }
+  } = { { stats.stats_atleta[j].saque_direcoes | tojson } };
+  const labels{{ j }} = Object.keys(dirData{{ j }}).length ? Object.keys(dirData{{ j }}) : ['Direita-1', 'Direita-2', 'Direita-3', 'Direita-4', 'Direita-5'];
+  const acertos{{ j }} = labels{ { j } }.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].acertos : 0);
+  const erros{{ j }} = labels{ { j } }.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].erros : 0);
 
-      new Chart(ctxSaque{{ j }}, {
-        type: 'bar',
-        data: {
-          labels: labels{{ j }},
-          datasets: [
-            { label: 'Acertos', data: acertos{{ j }}, backgroundColor: '#10B981' },
-            { label: 'Erros', data: erros{{ j }}, backgroundColor: '#EF4444' }
-          ]
+  new Chart(ctxSaque{{ j }}, {
+    type: 'bar',
+    data: {
+      labels: labels{{ j }},
+    datasets: [
+    { label: 'Acertos', data: acertos{{ j }}, backgroundColor: '#10B981' },
+    { label: 'Erros', data: erros{{ j }}, backgroundColor: '#EF4444' }
+  ]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false
-        }
+    options: {
+    responsive: true,
+    maintainAspectRatio: false
+  }
       });
     }
-    {% endfor %}
+  {% endfor %}
 
-    // Gráfico de Dinâmica
-    const ctxDin = document.getElementById('chartDinamicaJogo');
-    if (ctxDin) {
-      new Chart(ctxDin, {
-        type: 'line',
-        data: {
-          labels: {{ stats.dinamica_labels | tojson }},
-          datasets: [{
-            label: 'Saldo de Pontos',
-            data: {{ stats.dinamica_saldo | tojson }},
-            borderColor: '#0284C7',
-            backgroundColor: 'rgba(2, 132, 199, 0.25)',
-            fill: true,
-            tension: 0.3
+  // Gráfico de Dinâmica
+  const ctxDin = document.getElementById('chartDinamicaJogo');
+  if (ctxDin) {
+    new Chart(ctxDin, {
+      type: 'line',
+      data: {
+        labels: {{ stats.dinamica_labels | tojson }},
+  datasets: [{
+    label: 'Saldo de Pontos',
+    data: {{ stats.dinamica_saldo | tojson }},
+    borderColor: '#0284C7',
+    backgroundColor: 'rgba(2, 132, 199, 0.25)',
+    fill: true,
+    tension: 0.3
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false
-        }
+  options: {
+    responsive: true,
+      maintainAspectRatio: false
+  }
       });
     }
   });

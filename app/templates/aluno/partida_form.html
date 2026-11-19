@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Registrar Partida — BT Tracker{% endblock %}
+{% block title %}Registrar Partida — BT Insight{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -11,6 +11,7 @@
     position: relative;
     overflow: hidden;
   }
+
   .card-form-bt {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
@@ -23,9 +24,10 @@
 {% block body %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25">
   <div class="container">
-    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2" href="{{ url_for('aluno.painel') }}">
+    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2"
+      href="{{ url_for('aluno.painel') }}">
       <i class="bi bi-radar text-warning"></i>
-      <span>BT TRACKER <span class="badge bg-ocean fs-6 fw-normal">Área do Aluno</span></span>
+      <span>BT Insight <span class="badge bg-ocean fs-6 fw-normal">Área do Aluno</span></span>
     </a>
     <div class="d-flex align-items-center gap-2">
       <a href="{{ url_for('aluno.partidas_lista') }}" class="btn btn-sm btn-outline-light">
@@ -47,7 +49,8 @@
         </div>
         <h3 class="fw-extrabold mb-1">Registrar Minha Partida</h3>
         <p class="text-white-50 mb-0 small">
-          Informe os dados da sua partida competitiva ou treino. Após o envio, o <b>Professor Everson</b> analisará seu jogo, validará o scout e adicionará orientações técnicas personalizadas.
+          Informe os dados da sua partida competitiva ou treino. Após o envio, o <b>Professor Everson</b> analisará seu
+          jogo, validará o scout e adicionará orientações técnicas personalizadas.
         </p>
       </div>
       <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
@@ -75,7 +78,8 @@
             <div class="row g-3">
               <div class="col-md-8">
                 <label class="form-label fw-bold small" for="titulo">Título da Partida / Confronto *</label>
-                {{ form.titulo(class="form-control" + (" is-invalid" if form.titulo.errors else ""), id="titulo", placeholder="Ex: Final Torneio Arena — Eu & Lucas vs Carlos & Rafael") }}
+                {{ form.titulo(class="form-control" + (" is-invalid" if form.titulo.errors else ""), id="titulo",
+                placeholder="Ex: Final Torneio Arena — Eu & Lucas vs Carlos & Rafael") }}
                 {% for e in form.titulo.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
               </div>
               <div class="col-md-4">
@@ -93,7 +97,8 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label fw-bold small" for="fase">Fase</label>
-                {{ form.fase(class="form-control", id="fase", placeholder="Ex: Fase de Grupos, Semifinal, Final, Treino") }}
+                {{ form.fase(class="form-control", id="fase", placeholder="Ex: Fase de Grupos, Semifinal, Final,
+                Treino") }}
               </div>
               <div class="col-12">
                 <label class="form-label fw-bold small" for="local">Local / Quadra</label>
@@ -122,7 +127,8 @@
                   </div>
                   <div>
                     <label class="form-label small fw-bold" for="parceiro_nome">Seu Parceiro de Dupla (Nome) *</label>
-                    {{ form.parceiro_nome(class="form-control" + (" is-invalid" if form.parceiro_nome.errors else ""), id="parceiro_nome", placeholder="Nome do seu parceiro") }}
+                    {{ form.parceiro_nome(class="form-control" + (" is-invalid" if form.parceiro_nome.errors else ""),
+                    id="parceiro_nome", placeholder="Nome do seu parceiro") }}
                     {% for e in form.parceiro_nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
                   </div>
                 </div>
@@ -137,12 +143,14 @@
                   </div>
                   <div class="mb-3">
                     <label class="form-label small fw-bold" for="jogador3_nome">Adversário 1 (Nome) *</label>
-                    {{ form.jogador3_nome(class="form-control" + (" is-invalid" if form.jogador3_nome.errors else ""), id="jogador3_nome", placeholder="Nome do 1º adversário") }}
+                    {{ form.jogador3_nome(class="form-control" + (" is-invalid" if form.jogador3_nome.errors else ""),
+                    id="jogador3_nome", placeholder="Nome do 1º adversário") }}
                     {% for e in form.jogador3_nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
                   </div>
                   <div>
                     <label class="form-label small fw-bold" for="jogador4_nome">Adversário 2 (Nome) *</label>
-                    {{ form.jogador4_nome(class="form-control" + (" is-invalid" if form.jogador4_nome.errors else ""), id="jogador4_nome", placeholder="Nome do 2º adversário") }}
+                    {{ form.jogador4_nome(class="form-control" + (" is-invalid" if form.jogador4_nome.errors else ""),
+                    id="jogador4_nome", placeholder="Nome do 2º adversário") }}
                     {% for e in form.jogador4_nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
                   </div>
                 </div>
@@ -185,7 +193,8 @@
 
               <div class="col-md-6">
                 <label class="form-label small fw-bold" for="placar_detalhado">Placar Detalhado (Opcional)</label>
-                {{ form.placar_detalhado(class="form-control", id="placar_detalhado", placeholder="Ex: 6x4 | 4x6 | 10x8") }}
+                {{ form.placar_detalhado(class="form-control", id="placar_detalhado", placeholder="Ex: 6x4 | 4x6 |
+                10x8") }}
               </div>
 
               <div class="col-md-3">
@@ -200,8 +209,11 @@
 
               <div class="col-12">
                 <label class="form-label small fw-bold" for="observacoes">Suas observações e relato do jogo</label>
-                {{ form.observacoes(class="form-control", id="observacoes", rows=3, placeholder="Conte como foi o jogo: o que funcionou bem (ex: saque aberto, smash no fundo), pontos difíceis, momentos de virada ou dúvidas táticas...") }}
-                <div class="form-text">Essas anotações ajudarão o professor Everson a contextualizar a análise e fornecer orientações pontuais.</div>
+                {{ form.observacoes(class="form-control", id="observacoes", rows=3, placeholder="Conte como foi o jogo:
+                o que funcionou bem (ex: saque aberto, smash no fundo), pontos difíceis, momentos de virada ou dúvidas
+                táticas...") }}
+                <div class="form-text">Essas anotações ajudarão o professor Everson a contextualizar a análise e
+                  fornecer orientações pontuais.</div>
               </div>
             </div>
           </div>

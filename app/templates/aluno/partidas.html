@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}Meus Jogos & Scouts — BT Tracker{% endblock %}
+{% block title %}Meus Jogos & Scouts — BT Insight{% endblock %}
 
 {% block body %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 border-bottom border-secondary border-opacity-25">
   <div class="container">
-    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2" href="{{ url_for('aluno.painel') }}">
+    <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2"
+      href="{{ url_for('aluno.painel') }}">
       <i class="bi bi-radar text-warning"></i>
-      <span>BT TRACKER <span class="badge bg-ocean fs-6 fw-normal">Área do Aluno</span></span>
+      <span>BT Insight <span class="badge bg-ocean fs-6 fw-normal">Área do Aluno</span></span>
     </a>
     <div class="d-flex align-items-center gap-3">
       <a href="{{ url_for('aluno.painel') }}" class="btn btn-sm btn-outline-light">
@@ -78,19 +79,21 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="small fw-bold text-truncate" style="max-width:70%;">🟢 {{ p.dupla1_label }}</span>
               <span class="badge bg-white text-dark border px-2 py-1 fw-bold fs-6">
-                {{ p.set1_dupla1 or 0 }} {{ p.set2_dupla1 or 0 }} {% if p.set3_dupla1 %}{{ p.set3_dupla1 }}{% endif %} {% if p.set4_dupla1 %}{{ p.set4_dupla1 }}{% endif %}
+                {{ p.set1_dupla1 or 0 }} {{ p.set2_dupla1 or 0 }} {% if p.set3_dupla1 %}{{ p.set3_dupla1 }}{% endif %}
+                {% if p.set4_dupla1 %}{{ p.set4_dupla1 }}{% endif %}
               </span>
             </div>
             <div class="d-flex justify-content-between align-items-center">
               <span class="small fw-bold text-truncate" style="max-width:70%;">🔵 {{ p.dupla2_label }}</span>
               <span class="badge bg-white text-dark border px-2 py-1 fw-bold fs-6">
-                {{ p.set1_dupla2 or 0 }} {{ p.set2_dupla2 or 0 }} {% if p.set3_dupla2 %}{{ p.set3_dupla2 }}{% endif %} {% if p.set4_dupla2 %}{{ p.set4_dupla2 }}{% endif %}
+                {{ p.set1_dupla2 or 0 }} {{ p.set2_dupla2 or 0 }} {% if p.set3_dupla2 %}{{ p.set3_dupla2 }}{% endif %}
+                {% if p.set4_dupla2 %}{{ p.set4_dupla2 }}{% endif %}
               </span>
             </div>
             {% if p.placar_detalhado %}
-              <div class="text-center text-muted small mt-2 pt-2 border-top">
-                Placar: <span class="fw-bold text-dark">{{ p.placar_detalhado }}</span>
-              </div>
+            <div class="text-center text-muted small mt-2 pt-2 border-top">
+              Placar: <span class="fw-bold text-dark">{{ p.placar_detalhado }}</span>
+            </div>
             {% endif %}
           </div>
 
@@ -105,7 +108,8 @@
             <a href="{{ url_for('aluno.partida_detalhes', id=p.id) }}" class="btn btn-sm btn-ocean flex-grow-1 fw-bold">
               <i class="bi bi-bar-chart-fill me-1"></i> Ver Análise
             </a>
-            <a href="{{ url_for('aluno.partida_pdf', id=p.id) }}" class="btn btn-sm btn-outline-danger fw-bold" title="Baixar Relatório PDF">
+            <a href="{{ url_for('aluno.partida_pdf', id=p.id) }}" class="btn btn-sm btn-outline-danger fw-bold"
+              title="Baixar Relatório PDF">
               <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
             </a>
           </div>
@@ -120,7 +124,8 @@
       <div class="display-4 text-ocean mb-3"><i class="bi bi-radar"></i></div>
       <h5 class="fw-bold">Nenhum jogo cadastrado ainda</h5>
       <p class="text-muted mx-auto mb-4" style="max-width:480px;">
-        Você pode cadastrar uma partida jogada para que o professor Everson faça a validação técnica, forneça correções e elabore o relatório completo.
+        Você pode cadastrar uma partida jogada para que o professor Everson faça a validação técnica, forneça correções
+        e elabore o relatório completo.
       </p>
       <a href="{{ url_for('aluno.partida_nova') }}" class="btn btn-laranja fw-bold px-4 py-2 shadow-sm">
         <i class="bi bi-plus-circle me-1"></i> Adicionar Minha Primeira Partida
