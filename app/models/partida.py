@@ -40,6 +40,7 @@ class Partida(db.Model):
     dupla_vencedora = db.Column(db.Integer, default=1)  # 1 ou 2
     duracao_minutos = db.Column(db.Integer, nullable=True)
     video_url = db.Column(db.String(200), nullable=True)  # optional link (YouTube, Vimeo, etc.)
+    observacoes = db.Column(db.Text, nullable=True)
     
     # Validação e Correções do Professor
     status = db.Column(db.String(20), default='aprovada', index=True)  # 'aprovada', 'pendente', 'rejeitada'

@@ -120,6 +120,7 @@ if __name__ == '__main__':
     print('\n--- Rotas existentes ---')
     test_route('/admin/dashboard')
     test_route('/admin/partidas')
+    test_route('/admin/partidas/carregar-partida-exemplo', expect_status=302)
 
     # -- Novas rotas GET --
     print('\n--- Novas rotas (GET) ---')
