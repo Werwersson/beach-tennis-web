@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}BT INSIGHT— {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
+{% block title %}BT INSIGHT — {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -59,7 +59,7 @@
     <a class="navbar-brand fw-extrabold text-white d-flex align-items-center gap-2"
       href="{{ url_for('aluno.painel') }}">
       <i class="bi bi-radar text-warning"></i>
-      <span>BT INSIGHT/span>
+      <span>BT INSIGHT</span>
     </a>
     <div class="d-flex align-items-center gap-2">
       <a href="{{ url_for('aluno.partidas_lista') }}" class="btn btn-sm btn-outline-light">
@@ -897,32 +897,32 @@
       });
     });
 
-    // Gráficos de Saque
+    // Gráficos de Saque (uma função isolada por atleta)
     {% for j in [1, 2, 3, 4] %}
-    const ctxSaque{{ j }
-  } = document.getElementById('chartSaqueAtleta{{ j }}');
-  if (ctxSaque{ { j } }) {
-    const dirData{{ j }
-  } = { { stats.stats_atleta[j].saque_direcoes | tojson } };
-  const labels{{ j }} = Object.keys(dirData{{ j }}).length ? Object.keys(dirData{{ j }}) : ['Direita-1', 'Direita-2', 'Direita-3', 'Direita-4', 'Direita-5'];
-  const acertos{{ j }} = labels{ { j } }.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].acertos : 0);
-  const erros{{ j }} = labels{ { j } }.map(k => dirData{{ j }}[k] ? dirData{{ j }}[k].erros : 0);
+    (function () {
+      const ctx = document.getElementById('chartSaqueAtleta{{ j }}');
+      if (!ctx) return;
 
-  new Chart(ctxSaque{{ j }}, {
+      const dirData = {{ stats.stats_atleta[j].saque_direcoes | tojson
+    }};
+  const labels = Object.keys(dirData).length
+    ? Object.keys(dirData)
+    : ['Direita-1', 'Direita-2', 'Direita-3', 'Direita-4', 'Direita-5'];
+  const acertos = labels.map(k => dirData[k] ? dirData[k].acertos : 0);
+  const erros = labels.map(k => dirData[k] ? dirData[k].erros : 0);
+
+  new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labels{{ j }},
-    datasets: [
-    { label: 'Acertos', data: acertos{{ j }}, backgroundColor: '#10B981' },
-    { label: 'Erros', data: erros{{ j }}, backgroundColor: '#EF4444' }
-  ]
-        },
-    options: {
-    responsive: true,
-    maintainAspectRatio: false
-  }
-      });
-    }
+      labels: labels,
+      datasets: [
+        { label: 'Acertos', data: acertos, backgroundColor: '#10B981' },
+        { label: 'Erros', data: erros, backgroundColor: '#EF4444' }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+    }) ();
   {% endfor %}
 
   // Gráfico de Dinâmica
@@ -941,10 +941,7 @@
     tension: 0.3
           }]
         },
-  options: {
-    responsive: true,
-      maintainAspectRatio: false
-  }
+  options: { responsive: true, maintainAspectRatio: false }
       });
     }
   });
