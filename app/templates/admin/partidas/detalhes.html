@@ -1,6 +1,6 @@
 {% extends 'base_admin.html' %}
-{% block title %}BT Tracker — {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
-{% block page_title %}BT Tracker — Análise de Jogo{% endblock %}
+{% block title %}BT Insight — {{ partida.dupla1_label }} vs {{ partida.dupla2_label }}{% endblock %}
+{% block page_title %}BT Insight — Análise de Jogo{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -84,14 +84,14 @@
 {% endblock %}
 
 {% block content %}
-<!-- 1. HEADER OFICIAL DO BT TRACKER -->
+<!-- 1. HEADER OFICIAL DO BT INSIGHT -->
 <div class="bt-brand-box mb-4 shadow">
   <div class="row align-items-center">
     <div class="col-lg-7">
       <div class="d-flex align-items-center gap-2 mb-2">
-        <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT TRACKER</span>
+        <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT INSIGHT</span>
         <span class="text-white-50 small text-uppercase tracking-wider">O SEU OLHAR FORA DA QUADRA</span>
-        <div>{{ partida.status_badge_html | safe }}</div>
+        <div><span class="badge {{ partida.status_badge_class }}">{{ partida.status_label }}</span></div>
       </div>
       <h3 class="fw-extrabold mb-1">{{ partida.titulo or 'Relatório Completo de Jogo' }}</h3>
       <p class="text-white-50 mb-3 small">
@@ -141,8 +141,8 @@
         {% if not partida.pontos %}
           <form method="POST" action="{{ url_for('admin.partida_carregar_amostra', id=partida.id) }}" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-warning text-dark fw-bold px-3 py-2" title="Carrega todos os 42 lances dos PDFs do BT Tracker">
-              <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Amostra BT Tracker
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-3 py-2" title="Carrega todos os 42 lances dos PDFs do BT Insight">
+              <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Amostra BT Insight
             </button>
           </form>
         {% endif %}
@@ -192,10 +192,10 @@
 </div>
 {% endif %}
 
-<!-- 2. NAVEGAÇÃO EM ABAS (SEGUINDO O MENU DO BT TRACKER) -->
+<!-- 2. NAVEGAÇÃO EM ABAS (SEGUINDO O MENU DO BT INSIGHT) -->
 <div class="card-bt mb-4">
   <div class="border-bottom px-3 pt-2">
-    <ul class="nav nav-tabs nav-tabs-bt border-0" id="btTrackerTabs" role="tablist">
+    <ul class="nav nav-tabs nav-tabs-bt border-0" id="btInsightTabs" role="tablist">
       <li class="nav-item">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabGerais" type="button">
           <i class="bi bi-bar-chart-steps me-1"></i> Estatísticas Gerais & Atleta
@@ -229,7 +229,7 @@
     </ul>
   </div>
 
-  <div class="p-4 tab-content" id="btTrackerTabsContent">
+  <div class="p-4 tab-content" id="btInsightTabsContent">
     
     <!-- ── ABA 1: ESTATÍSTICAS GERAIS E POR ATLETA ── -->
     <div class="tab-pane fade show active" id="tabGerais" role="tabpanel">
@@ -624,7 +624,7 @@
       {% else %}
       <div class="text-center py-5 text-muted">
         <i class="bi bi-clipboard2-x fs-1 d-block mb-2 text-secondary"></i>
-        Nenhum ponto registrado ainda. Clique em "Lançar Ponto" ou "Carregar Amostra BT Tracker" para começar!
+        Nenhum ponto registrado ainda. Clique em "Lançar Ponto" ou "Carregar Amostra BT Insight" para começar!
       </div>
       {% endif %}
     </div>

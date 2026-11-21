@@ -310,16 +310,17 @@ def perfil():
     return render_template('aluno/perfil.html', aluno=aluno, form=form)
 
 
-# ── BT TRACKER DO ALUNO ───────────────────────────────────────────────────
+# ── BT INSIGHT DO ALUNO ───────────────────────────────────────────────────
 @aluno_bp.route('/partidas')
 @aluno_required
 def partidas_lista():
-    """Visualização das partidas e scouts (BT Tracker) do aluno."""
+    """Visualização das partidas e scouts (BT Insight) do aluno."""
     aluno = get_current_aluno()
 
     def _buscar_partidas():
         pts = Partida.query.filter(
             db.or_(
+                Partida.criada_por_aluno_id == aluno.id,
                 Partida.jogador1_aluno_id == aluno.id,
                 Partida.jogador2_aluno_id == aluno.id,
                 Partida.jogador3_aluno_id == aluno.id,
@@ -331,8 +332,6 @@ def partidas_lista():
             )
         ).order_by(Partida.data.desc(), Partida.id.desc()).all()
 
-        if not pts:
-            pts = Partida.query.order_by(Partida.data.desc(), Partida.id.desc()).all()
         return pts
 
     try:
@@ -395,9 +394,26 @@ def partida_nova():
 @aluno_bp.route('/partidas/<int:id>')
 @aluno_required
 def partida_detalhes(id):
-    """Visualização da análise da partida pelo aluno no formato BT Tracker."""
+    """Visualização da análise da partida pelo aluno no formato BT Insight."""
     aluno = get_current_aluno()
     partida = db.get_or_404(Partida, id)
+
+    # Validação de autorização do aluno
+    is_participante = (
+        partida.criada_por_aluno_id == aluno.id or
+        partida.jogador1_aluno_id == aluno.id or
+        partida.jogador2_aluno_id == aluno.id or
+        partida.jogador3_aluno_id == aluno.id or
+        partida.jogador4_aluno_id == aluno.id or
+        (aluno.nome.lower() in (partida.jogador1_nome or '').lower()) or
+        (aluno.nome.lower() in (partida.jogador2_nome or '').lower()) or
+        (aluno.nome.lower() in (partida.jogador3_nome or '').lower()) or
+        (aluno.nome.lower() in (partida.jogador4_nome or '').lower())
+    )
+    if not is_participante and partida.status != 'aprovada':
+        flash('Você não tem permissão para visualizar esta partida.', 'danger')
+        return redirect(url_for('aluno.partidas_lista'))
+
     stats = calcular_estatisticas_partida(partida)
     return render_template('aluno/partida_detalhes.html', aluno=aluno, partida=partida, stats=stats)
 
@@ -405,12 +421,28 @@ def partida_detalhes(id):
 @aluno_bp.route('/partidas/<int:id>/pdf')
 @aluno_required
 def partida_pdf(id):
-    """Download do relatório oficial em PDF da partida."""
+    """Download do relatório oficial em PDF da partida (BT Insight)."""
     aluno = get_current_aluno()
     partida = db.get_or_404(Partida, id)
+
+    is_participante = (
+        partida.criada_por_aluno_id == aluno.id or
+        partida.jogador1_aluno_id == aluno.id or
+        partida.jogador2_aluno_id == aluno.id or
+        partida.jogador3_aluno_id == aluno.id or
+        partida.jogador4_aluno_id == aluno.id or
+        (aluno.nome.lower() in (partida.jogador1_nome or '').lower()) or
+        (aluno.nome.lower() in (partida.jogador2_nome or '').lower()) or
+        (aluno.nome.lower() in (partida.jogador3_nome or '').lower()) or
+        (aluno.nome.lower() in (partida.jogador4_nome or '').lower())
+    )
+    if not is_participante and partida.status != 'aprovada':
+        flash('Você não tem permissão para exportar esta partida.', 'danger')
+        return redirect(url_for('aluno.partidas_lista'))
+
     pdf_bytes = gerar_pdf_bt_tracker(partida)
 
-    nome_arquivo = f"BT_Tracker_{partida.id}_{date.today().strftime('%Y-%m-%d')}.pdf"
+    nome_arquivo = f"BT_Insight_{partida.id}_{date.today().strftime('%Y-%m-%d')}.pdf"
     return Response(
         pdf_bytes,
         mimetype='application/pdf',

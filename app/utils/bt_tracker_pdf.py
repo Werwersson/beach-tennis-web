@@ -158,7 +158,7 @@ def gerar_pdf_bt_tracker(partida):
     elements.append(Spacer(1, 10))
     elements.append(Paragraph("O relatório do seu jogo chegou!", subtitle_cover))
     elements.append(Spacer(1, 80))
-    elements.append(Paragraph("BT TRACKER", brand_title))
+    elements.append(Paragraph("BT INSIGHT", brand_title))
     elements.append(Paragraph("O SEU OLHAR FORA DA QUADRA", brand_slogan))
     elements.append(Spacer(1, 60))
     elements.append(Paragraph(f"<b>Partida:</b> {partida.dupla1_label} vs {partida.dupla2_label}", text_center))

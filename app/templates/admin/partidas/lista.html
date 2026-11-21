@@ -1,13 +1,13 @@
 {% extends 'base_admin.html' %}
-{% block title %}BT Tracker — Scout & Análise de Partidas{% endblock %}
-{% block page_title %}BT Tracker — Análise de Partidas{% endblock %}
+{% block title %}BT Insight — Scout & Análise de Partidas{% endblock %}
+{% block page_title %}BT Insight — Análise de Partidas{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
   <div>
     <div class="d-flex align-items-center gap-2">
       <span class="badge bg-ocean px-3 py-2 fs-6">
-        <i class="bi bi-radar me-1"></i> BT TRACKER
+        <i class="bi bi-radar me-1"></i> BT INSIGHT
       </span>
       <span class="text-muted" style="font-size:0.9rem;">O seu olhar fora da quadra</span>
     </div>
@@ -16,8 +16,8 @@
     </p>
   </div>
   <div class="d-flex flex-wrap gap-2">
-    <a href="{{ url_for('admin.partida_carregar_exemplo') }}" class="btn btn-warning text-dark fw-bold px-3 shadow-sm" title="Carregar partida oficial do BT Tracker com 42 lances de exemplo">
-      <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Exemplo BT Tracker
+    <a href="{{ url_for('admin.partida_carregar_exemplo') }}" class="btn btn-warning text-dark fw-bold px-3 shadow-sm" title="Carregar partida oficial do BT Insight com 42 lances de exemplo">
+      <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Exemplo BT Insight
     </a>
     <a href="{{ url_for('admin.sincronizar_banco') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center" title="Sincronizar tabelas do banco">
       <i class="bi bi-database-check me-1"></i> Sincronizar Banco
@@ -138,7 +138,7 @@
           <a href="{{ url_for('admin.partida_detalhes', id=p.id) }}" class="btn btn-sm btn-ocean flex-grow-1 fw-bold">
             <i class="bi bi-bar-chart-fill me-1"></i> Análise Completa
           </a>
-          <a href="{{ url_for('admin.partida_pdf', id=p.id) }}" class="btn btn-sm btn-outline-danger" title="Baixar PDF BT Tracker">
+          <a href="{{ url_for('admin.partida_pdf', id=p.id) }}" class="btn btn-sm btn-outline-danger" title="Baixar PDF BT Insight">
             <i class="bi bi-file-earmark-pdf-fill"></i> PDF
           </a>
           <a href="{{ url_for('admin.partida_editar', id=p.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
@@ -162,11 +162,11 @@
     <div class="display-4 text-ocean mb-3"><i class="bi bi-radar"></i></div>
     <h5 class="fw-bold">Nenhuma partida cadastrada</h5>
     <p class="text-muted mx-auto mb-4" style="max-width:500px;">
-      Cadastre partidas para registrar scout profissional lance a lance, mapas de calor e gerar relatórios no padrão do <b>BT Tracker</b>.
+      Cadastre partidas para registrar scout profissional lance a lance, mapas de calor e gerar relatórios no padrão do <b>BT Insight</b>.
     </p>
     <div class="d-flex justify-content-center gap-3 flex-wrap">
       <a href="{{ url_for('admin.partida_carregar_exemplo') }}" class="btn btn-warning text-dark fw-bold px-4 py-2 shadow-sm">
-        <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Exemplo Oficial BT Tracker
+        <i class="bi bi-lightning-charge-fill me-1"></i> Carregar Exemplo Oficial BT Insight
       </a>
       <a href="{{ url_for('admin.partida_nova') }}" class="btn btn-laranja fw-bold px-4 py-2">
         <i class="bi bi-plus-lg me-1"></i> Cadastrar Primeira Partida

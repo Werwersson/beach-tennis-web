@@ -95,7 +95,10 @@ def remover_imagem(valor):
                 current_app.logger.warning('Falha ao remover imagem remota %s: %s', valor, erro)
         return
 
-    caminho = os.path.join(current_app.config['UPLOAD_FOLDER'], valor)
+    valor_limpo = secure_filename(os.path.basename(valor))
+    if not valor_limpo:
+        return
+    caminho = os.path.join(current_app.config['UPLOAD_FOLDER'], valor_limpo)
     if os.path.exists(caminho):
         try:
             os.remove(caminho)
@@ -2208,14 +2211,14 @@ def partida_carregar_exemplo():
         db.session.add(ponto)
 
     db.session.commit()
-    flash('Partida oficial do BT Tracker com 42 lances carregada com sucesso!', 'success')
+    flash('Partida oficial do BT Insight com 42 lances carregada com sucesso!', 'success')
     return redirect(url_for('admin.partida_detalhes', id=partida.id))
 
 
 @admin_bp.route('/partidas/<int:id>')
 @admin_required
 def partida_detalhes(id):
-    """Dashboard de análise completa da partida no formato BT Tracker."""
+    """Dashboard de análise completa da partida no formato BT Insight."""
     partida = db.get_or_404(Partida, id)
     stats = calcular_estatisticas_partida(partida)
     return render_template('admin/partidas/detalhes.html', partida=partida, stats=stats)
@@ -2224,11 +2227,11 @@ def partida_detalhes(id):
 @admin_bp.route('/partidas/<int:id>/pdf')
 @admin_required
 def partida_pdf(id):
-    """Exporta o relatório completo da partida em PDF no padrão oficial BT Tracker."""
+    """Exporta o relatório completo da partida em PDF no padrão oficial BT Insight."""
     partida = db.get_or_404(Partida, id)
     pdf_bytes = gerar_pdf_bt_tracker(partida)
 
-    nome_arquivo = f"BT_Tracker_{secure_filename(partida.dupla1_label)}_vs_{secure_filename(partida.dupla2_label)}.pdf"
+    nome_arquivo = f"BT_Insight_{secure_filename(partida.dupla1_label)}_vs_{secure_filename(partida.dupla2_label)}.pdf"
     return Response(
         pdf_bytes,
         mimetype='application/pdf',
@@ -2497,6 +2500,6 @@ def partida_carregar_amostra(id):
     partida.dupla_vencedora = 2
 
     db.session.commit()
-    flash('Amostra oficial de scout (BT Tracker) carregada com sucesso!', 'success')
+    flash('Amostra oficial de scout (BT Insight) carregada com sucesso!', 'success')
     return redirect(url_for('admin.partida_detalhes', id=partida.id))
 

@@ -3,7 +3,7 @@ from ..extensions import db
 
 
 class Partida(db.Model):
-    """Partida de Beach Tennis com scout e estatísticas completas (BT Tracker)."""
+    """Partida de Beach Tennis com scout e estatísticas completas (BT Insight)."""
     __tablename__ = 'partidas'
 
     id = db.Column(db.Integer, primary_key=True)

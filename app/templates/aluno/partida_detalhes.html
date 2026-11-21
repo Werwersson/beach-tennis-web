@@ -80,7 +80,7 @@
         <div class="d-flex align-items-center gap-2 mb-2">
           <span class="badge bg-primary px-3 py-1 fw-bold fs-6">BT INSIGHT</span>
           <span class="text-white-50 small text-uppercase">O SEU OLHAR FORA DA QUADRA</span>
-          <div>{{ partida.status_badge_html | safe }}</div>
+          <div><span class="badge {{ partida.status_badge_class }}">{{ partida.status_label }}</span></div>
         </div>
         <h3 class="fw-extrabold mb-1">{{ partida.titulo or 'Relatório Completo de Jogo' }}</h3>
         <p class="text-white-50 mb-3 small">

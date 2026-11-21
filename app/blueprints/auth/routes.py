@@ -26,8 +26,11 @@ def login():
             db.session.commit()
             flash(f'Olá, {usuario.nome}! Login realizado com sucesso.', 'success')
             next_page = request.args.get('next')
-            if next_page and next_page.startswith('/'):
-                return redirect(next_page)
+            if next_page:
+                from urllib.parse import urlsplit
+                parsed = urlsplit(next_page)
+                if not parsed.netloc and not parsed.scheme and next_page.startswith('/') and not next_page.startswith(('//', '/\\')):
+                    return redirect(next_page)
             if usuario.is_admin:
                 return redirect(url_for('admin.dashboard'))
             return redirect(url_for('aluno.painel'))

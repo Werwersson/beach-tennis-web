@@ -1,5 +1,5 @@
 {% extends 'base_admin.html' %}
-{% block title %}{{ 'Editar' if partida else 'Nova' }} Partida — BT Tracker{% endblock %}
+{% block title %}{{ 'Editar' if partida else 'Nova' }} Partida — BT Insight{% endblock %}
 {% block page_title %}{{ 'Editar Partida' if partida else 'Cadastrar Nova Partida' }}{% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
       <div class="card-header-bt d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
           <i class="bi bi-radar text-warning"></i>
-          <span>{{ 'Editar Dados da Partida' if partida else 'Nova Partida (BT Tracker)' }}</span>
+          <span>{{ 'Editar Dados da Partida' if partida else 'Nova Partida (BT Insight)' }}</span>
         </div>
         <a href="{{ url_for('admin.partidas_lista') }}" class="btn btn-sm btn-outline-light">
           <i class="bi bi-arrow-left me-1"></i>Voltar

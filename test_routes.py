@@ -1,5 +1,5 @@
 """
-test_routes.py – Testa as novas rotas do BT Tracker (comparação, heatmap, CSV, dashboard).
+test_routes.py – Testa as novas rotas do BT Insight (comparação, heatmap, CSV, dashboard).
 
 Uso:  python -u test_routes.py
 """
@@ -140,7 +140,7 @@ def test_route(path, method='GET', data=None, expect_status=200):
 if __name__ == '__main__':
     print()
     print('=' * 60)
-    print('TESTES DAS ROTAS DO BT TRACKER')
+    print('TESTES DAS ROTAS DO BT INSIGHT')
     print('=' * 60)
 
     # -- Rotas existentes --
@@ -253,6 +253,14 @@ if __name__ == '__main__':
     resp_novo_login = client.post('/auth/login', data={'email': 'aluno@test.com', 'senha': 'novasenha456'}, follow_redirects=True)
     assert resp_novo_login.status_code == 200 and 'Olá, Aluno' in resp_novo_login.get_data(as_text=True)
     print('  ✓ Novo login com a nova senha validado com sucesso (200)')
+
+    # Teste de Segurança: Prevenção contra Open Redirect
+    client.get('/auth/logout')
+    resp_open_redirect = client.post('/auth/login?next=//malicious-site.com', data={'email': 'aluno@test.com', 'senha': 'novasenha456'}, follow_redirects=False)
+    # Deve redirecionar internamente para o painel do aluno e NÃO para //malicious-site.com
+    assert resp_open_redirect.headers.get('Location') != '//malicious-site.com'
+    assert not resp_open_redirect.headers.get('Location', '').startswith('//')
+    print('  ✓ Prevenção contra Open Redirect validada com sucesso')
 
     print()
     print('=' * 60)

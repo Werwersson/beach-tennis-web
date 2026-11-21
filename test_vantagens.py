@@ -17,7 +17,7 @@ print('Quero Ser Aluno button:', 'Quero Ser Aluno' in html)
 keywords = [
     'Painel Digital Exclusivo',
     'Gráficos Radar',
-    'BT Tracker',
+    'BT Insight',
     'Relatórios Automáticos em PDF',
     'Controle de Presença',
     'Biblioteca de Exercícios',
