@@ -8,12 +8,47 @@ from app.models import (ConfiguracaoSite, Conquista, Modalidade, Turma,
 
 public_bp = Blueprint('public', __name__)
 
+DATA_NASCIMENTO_PADRAO = date(2004, 3, 10)
+
+
+def calcular_idade_professor(data_nasc_ou_str=None, data_referencia=None):
+    """Calcula a idade dinâmica do professor a partir da data de nascimento (padrão: 10/03/2004)."""
+    if data_referencia is None:
+        data_referencia = date.today()
+
+    data_nasc = None
+    if isinstance(data_nasc_ou_str, (date, datetime)):
+        data_nasc = data_nasc_ou_str if isinstance(data_nasc_ou_str, date) else data_nasc_ou_str.date()
+    elif isinstance(data_nasc_ou_str, str) and data_nasc_ou_str.strip():
+        val = data_nasc_ou_str.strip()
+        for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'):
+            try:
+                data_nasc = datetime.strptime(val, fmt).date()
+                break
+            except ValueError:
+                pass
+
+    if not data_nasc:
+        data_nasc = DATA_NASCIMENTO_PADRAO
+
+    idade = data_referencia.year - data_nasc.year - (
+        (data_referencia.month, data_referencia.day) < (data_nasc.month, data_nasc.day)
+    )
+    return idade
+
 
 def get_config_dict():
     """Retorna um dicionário com todas as configurações do site ou padrões."""
+    configs_db = ConfiguracaoSite.query.all()
+    config_dict = {c.chave: c.valor for c in configs_db if c.valor is not None and c.valor != ''}
+
+    data_nasc_val = config_dict.get('data_nascimento_professor', '2004-03-10')
+    idade_calc = calcular_idade_professor(data_nasc_val)
+
     padroes = {
         'nome_professor': 'Everson Vicktor Silva Silveira',
-        'idade_professor': '22',
+        'data_nascimento_professor': '2004-03-10',
+        'idade_professor': str(idade_calc),
         'formacao_professor': 'Estudante de Sistemas de Informação',
         'destaque_ano': 'Líder do ranking AIBT 2026 em 3 categorias (Masc B, Masc Open e Mista B)',
         'titulo_hero': 'Aulas de Beach Tennis em Itabuna',
@@ -28,7 +63,7 @@ def get_config_dict():
         'instagram': '',
         'email_contato': 'contato@beachtennis.com',
         'bio_resumo': (
-            'Olá, sou Everson Vicktor Silva Silveira, 22 anos, estudante de Sistemas de Informação, '
+            f'Olá, sou Everson Vicktor Silva Silveira, {idade_calc} anos, estudante de Sistemas de Informação, '
             'atleta competitivo de Beach Tennis, professor e criador desta plataforma. '
             'Em 2026, liderei o ranking do Circuito AIBT em 3 categorias simultâneas: Masculina B, '
             'Masculina Open e Mista B. Minha metodologia alia fundamentação técnica precisa, visão tática de jogo em dupla '
@@ -37,14 +72,21 @@ def get_config_dict():
         'foto_professor': ''
     }
 
-    configs_db = ConfiguracaoSite.query.all()
-    config_dict = {c.chave: c.valor for c in configs_db if c.valor is not None and c.valor != ''}
-    
     # Preenche com padrões caso não exista no banco
     for k, v in padroes.items():
         if k not in config_dict:
             config_dict[k] = v
-            
+
+    # Garante idade sempre dinâmica e calculada
+    config_dict['idade_professor'] = str(idade_calc)
+
+    # Atualiza dinamicamente qualquer menção estática à idade em bio_resumo e sobre_texto
+    padrao_idade_frase = re.compile(r'(\b(?:sou\s+[^,]+,\s*|Com\s*))\d+\s*anos', flags=re.IGNORECASE)
+    if 'bio_resumo' in config_dict and config_dict['bio_resumo']:
+        config_dict['bio_resumo'] = padrao_idade_frase.sub(rf'\g<1>{idade_calc} anos', config_dict['bio_resumo'])
+    if 'sobre_texto' in config_dict and config_dict['sobre_texto']:
+        config_dict['sobre_texto'] = padrao_idade_frase.sub(rf'\g<1>{idade_calc} anos', config_dict['sobre_texto'])
+
     return config_dict
 
 

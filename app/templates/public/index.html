@@ -365,7 +365,7 @@ Aulas individuais, em duplas e turmas com análise periódica.{% endblock %}
         <h2 class="fw-bold text-dark mb-3">{{ cfg.nome_professor }}</h2>
         <div class="badge-atleta-professor mb-3">
           <i class="bi bi-mortarboard-fill"></i>
-          <span>22 anos · Estudante de Sistemas de Informação · Atleta & Professor</span>
+          <span>{{ cfg.idade_professor }} anos · {{ cfg.formacao_professor or 'Estudante de Sistemas de Informação' }} · Atleta & Professor</span>
         </div>
         <p class="text-muted" style="font-size:1rem; line-height: 1.7;">
           {{ cfg.bio_resumo }}

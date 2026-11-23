@@ -235,7 +235,13 @@ class ConfiguracaoSiteForm(FlaskForm):
         DataRequired(message='Informe o nome do professor.'),
         Length(max=120)
     ])
-    idade_professor = StringField('Idade / Formação (ex: 22 anos. Estudante de Sistemas de Informação)', validators=[
+    data_nascimento_professor = DateField('Data de Nascimento do Professor', default=date(2004, 3, 10), format='%Y-%m-%d', validators=[
+        Optional()
+    ])
+    formacao_professor = StringField('Formação / Ocupação (ex: Estudante de Sistemas de Informação)', default='Estudante de Sistemas de Informação', validators=[
+        Optional(), Length(max=150)
+    ])
+    idade_professor = StringField('Idade / Formação (legado)', validators=[
         Optional(), Length(max=150)
     ])
     subtitulo_hero = StringField('Subtítulo do Hero', validators=[

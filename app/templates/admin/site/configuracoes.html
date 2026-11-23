@@ -26,15 +26,23 @@
           </div>
 
           <div class="row g-3">
-            <div class="col-md-7">
+            <div class="col-md-5">
               <label class="form-label" for="nome_professor">Nome do Professor *</label>
               {{ form.nome_professor(class="form-control" + (" is-invalid" if form.nome_professor.errors else ""), id="nome_professor", placeholder="Everson Vicktor Silva Silveira") }}
               {% for e in form.nome_professor.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
 
-            <div class="col-md-5">
-              <label class="form-label" for="idade_professor">Perfil / Formação</label>
-              {{ form.idade_professor(class="form-control", id="idade_professor", placeholder="22 anos. Estudante de Sistemas de Informação") }}
+            <div class="col-md-3">
+              <label class="form-label" for="data_nascimento_professor">Data de Nascimento</label>
+              {{ form.data_nascimento_professor(class="form-control", id="data_nascimento_professor", type="date") }}
+              <div class="form-text text-success fw-medium">
+                <i class="bi bi-cake2-fill me-1"></i> Idade atual: <strong>{{ idade_atual }} anos</strong> (atualizada automaticamente)
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label" for="formacao_professor">Formação / Perfil Complementar</label>
+              {{ form.formacao_professor(class="form-control", id="formacao_professor", placeholder="Estudante de Sistemas de Informação") }}
             </div>
 
             <div class="col-12">

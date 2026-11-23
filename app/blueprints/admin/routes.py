@@ -1507,10 +1507,12 @@ def avaliacao_excluir(id):
 @admin_bp.route('/site/configuracoes', methods=['GET', 'POST'])
 @admin_required
 def configuracoes():
+    from app.blueprints.public.routes import calcular_idade_professor
     form = ConfiguracaoSiteForm()
     
     chaves = [
-        'nome_professor', 'idade_professor', 'subtitulo_hero', 'sobre_texto',
+        'nome_professor', 'data_nascimento_professor', 'formacao_professor',
+        'idade_professor', 'subtitulo_hero', 'sobre_texto',
         'whatsapp', 'whatsapp_mensagem', 'instagram', 'nome_quadra',
         'endereco', 'cidade', 'link_google_maps'
     ]
@@ -1519,13 +1521,26 @@ def configuracoes():
         for chave in chaves:
             campo = getattr(form, chave, None)
             if campo:
-                campo.data = ConfiguracaoSite.get(chave, '')
+                val = ConfiguracaoSite.get(chave, '')
+                if chave == 'data_nascimento_professor':
+                    if not val:
+                        val = '2004-03-10'
+                    try:
+                        campo.data = datetime.strptime(val, '%Y-%m-%d').date()
+                    except (ValueError, TypeError):
+                        campo.data = date(2004, 3, 10)
+                else:
+                    campo.data = val
                 
     if form.validate_on_submit():
         for chave in chaves:
             campo = getattr(form, chave, None)
             if campo:
-                ConfiguracaoSite.set(chave, campo.data.strip() if campo.data else '')
+                if chave == 'data_nascimento_professor':
+                    val_str = campo.data.strftime('%Y-%m-%d') if campo.data else '2004-03-10'
+                    ConfiguracaoSite.set(chave, val_str)
+                else:
+                    ConfiguracaoSite.set(chave, campo.data.strip() if campo.data else '')
                 
         if form.foto_professor.data and form.foto_professor.data.filename:
             foto_salva = salvar_imagem(form.foto_professor.data, 'prof')
@@ -1536,7 +1551,9 @@ def configuracoes():
         return redirect(url_for('admin.configuracoes'))
         
     foto_atual = ConfiguracaoSite.get('foto_professor')
-    return render_template('admin/site/configuracoes.html', form=form, foto_atual=foto_atual)
+    data_nasc_salva = ConfiguracaoSite.get('data_nascimento_professor', '2004-03-10')
+    idade_atual = calcular_idade_professor(data_nasc_salva)
+    return render_template('admin/site/configuracoes.html', form=form, foto_atual=foto_atual, idade_atual=idade_atual)
 
 
 # ── CONQUISTAS ──────────────────────────────────────────────────────────

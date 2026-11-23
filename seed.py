@@ -45,7 +45,9 @@ def seed_database():
         # 2. CONFIGURAÇÕES DO SITE
         configs_padrao = {
             'nome_professor': 'Everson Vicktor Silva Silveira',
-            'idade_professor': '22 anos. Estudante de Sistemas de Informação',
+            'data_nascimento_professor': '2004-03-10',
+            'formacao_professor': 'Estudante de Sistemas de Informação',
+            'idade_professor': '22',
             'subtitulo_hero': 'Líder do ranking AIBT 2026 em 3 categorias',
             'sobre_texto': (
                 'Atleta competitivo de Beach Tennis, professor e criador desta plataforma. '
