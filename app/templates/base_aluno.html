@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}{% block aluno_title %}Área do Aluno — Beach Tennis{% endblock %}{% endblock %}
 
+{% block body_class %}{% set cor_aluno = (current_user.aluno.cor_fundo if (current_user.is_authenticated and current_user.aluno and current_user.aluno.cor_fundo) else '#F8F6F2') %}aluno-body aluno-contrast-{{ 'dark' if cor_aluno|is_cor_escura else 'light' }}{% endblock %}
+
 {% block extra_css %}
 <style>
   :root {
-    --aluno-bg-servidor: {{ current_user.aluno.cor_fundo if (current_user.is_authenticated and current_user.aluno and current_user.aluno.cor_fundo) else '#F8F6F2' }};
+    --aluno-bg-servidor: {{ (current_user.aluno.cor_fundo if (current_user.is_authenticated and current_user.aluno and current_user.aluno.cor_fundo) else '#F8F6F2') }};
   }
 
   body {
@@ -66,6 +68,155 @@
     font-size: 0.85rem;
     padding: 1.5rem 0;
     margin-top: auto;
+  }
+
+  /* ========================================================
+     ALTO CONTRASTE E DESTAQUE DE LETRAS (SEMPRE LEGÍVEIS)
+     ======================================================== */
+  .aluno-main-container h1,
+  .aluno-main-container h2,
+  .aluno-main-container h3,
+  .aluno-main-container h4,
+  .aluno-main-container h5,
+  .aluno-main-container h6 {
+    letter-spacing: -0.015em;
+  }
+
+  /* FUNDO ESCURO: Títulos e subtítulos com luz e destaque */
+  body.aluno-contrast-dark,
+  body[data-theme-contrast="dark"] {
+    color: #F8FAFC !important;
+  }
+
+  body.aluno-contrast-dark .aluno-main-container h1:not(.card *),
+  body.aluno-contrast-dark .aluno-main-container h2:not(.card *),
+  body.aluno-contrast-dark .aluno-main-container h3:not(.card *),
+  body.aluno-contrast-dark .aluno-main-container h4:not(.card *),
+  body.aluno-contrast-dark .aluno-main-container h5:not(.card *),
+  body.aluno-contrast-dark .aluno-main-container h6:not(.card *),
+  body.aluno-contrast-dark .aluno-main-container .text-dark:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container h1:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container h2:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container h3:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container h4:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container h5:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container h6:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container .text-dark:not(.card *) {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  body.aluno-contrast-dark .aluno-main-container .text-muted:not(.card *),
+  body[data-theme-contrast="dark"] .aluno-main-container .text-muted:not(.card *) {
+    color: #E2E8F0 !important;
+    font-weight: 500 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  body.aluno-contrast-dark .aluno-main-container .btn-outline-secondary,
+  body[data-theme-contrast="dark"] .aluno-main-container .btn-outline-secondary {
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(4px);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  body.aluno-contrast-dark .aluno-main-container .btn-outline-secondary:hover,
+  body[data-theme-contrast="dark"] .aluno-main-container .btn-outline-secondary:hover {
+    color: #0F172A !important;
+    background-color: #FFFFFF !important;
+    border-color: #FFFFFF !important;
+    text-shadow: none !important;
+  }
+
+  body.aluno-contrast-dark .aluno-main-container .badge.bg-light.text-dark,
+  body[data-theme-contrast="dark"] .aluno-main-container .badge.bg-light.text-dark {
+    background-color: rgba(255, 255, 255, 0.22) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(4px);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  body.aluno-contrast-dark .card,
+  body[data-theme-contrast="dark"] .card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  body.aluno-contrast-dark .aluno-footer,
+  body[data-theme-contrast="dark"] .aluno-footer {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #E2E8F0 !important;
+  }
+
+  body.aluno-contrast-dark .aluno-footer p,
+  body[data-theme-contrast="dark"] .aluno-footer p {
+    color: #E2E8F0 !important;
+  }
+
+  body.aluno-contrast-dark .aluno-footer .text-ocean,
+  body[data-theme-contrast="dark"] .aluno-footer .text-ocean {
+    color: #38BDF8 !important;
+  }
+
+  /* FUNDO CLARO: Títulos e subtítulos nítidos e escuros */
+  body.aluno-contrast-light,
+  body[data-theme-contrast="light"] {
+    color: #0F172A;
+  }
+
+  body.aluno-contrast-light .aluno-main-container h1:not(.card *),
+  body.aluno-contrast-light .aluno-main-container h2:not(.card *),
+  body.aluno-contrast-light .aluno-main-container h3:not(.card *),
+  body.aluno-contrast-light .aluno-main-container h4:not(.card *),
+  body.aluno-contrast-light .aluno-main-container h5:not(.card *),
+  body.aluno-contrast-light .aluno-main-container h6:not(.card *),
+  body.aluno-contrast-light .aluno-main-container .text-dark:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container h1:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container h2:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container h3:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container h4:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container h5:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container h6:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container .text-dark:not(.card *) {
+    color: #0F172A !important;
+    font-weight: 700 !important;
+    text-shadow: none !important;
+  }
+
+  body.aluno-contrast-light .aluno-main-container .text-muted:not(.card *),
+  body[data-theme-contrast="light"] .aluno-main-container .text-muted:not(.card *) {
+    color: #334155 !important;
+    font-weight: 500 !important;
+  }
+
+  body.aluno-contrast-light .card,
+  body[data-theme-contrast="light"] .card {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* INTERIOR DOS CARDS: Sempre fundo branco e letras pretas/escuras de máxima nitidez */
+  .card {
+    background-color: #FFFFFF !important;
+  }
+
+  .card h1, .card h2, .card h3, .card h4, .card h5, .card h6,
+  .card .fw-bold, .card strong, .card .text-dark {
+    color: #0F172A !important;
+  }
+
+  .card .text-muted {
+    color: #475569 !important;
+  }
+
+  .card .form-label {
+    color: #1E293B !important;
+    font-weight: 600 !important;
   }
 </style>
 {% block aluno_css %}{% endblock %}
@@ -215,7 +366,7 @@
 
 {% block extra_js %}
 <script>
-  (function() {
+  (function () {
     var savedBg = localStorage.getItem('bt_aluno_cor_fundo');
     if (savedBg) {
       document.documentElement.style.setProperty('--aluno-bg-custom', savedBg);

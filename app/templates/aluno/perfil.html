@@ -328,12 +328,33 @@
     });
   });
 
-  // Lógica de seleção e pré-visualização de cor de fundo
+  function calcularBrilho(hex) {
+    if (!hex) return 255;
+    hex = hex.replace('#', '').trim();
+    if (hex.length === 3) {
+      hex = hex.split('').map(function (c) { return c + c; }).join('');
+    }
+    if (hex.length !== 6) return 255;
+    var r = parseInt(hex.substring(0, 2), 16) || 0;
+    var g = parseInt(hex.substring(2, 4), 16) || 0;
+    var b = parseInt(hex.substring(4, 6), 16) || 0;
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  }
+
+  // Lógica de seleção e pré-visualização de cor de fundo com alto contraste dinâmico
   function aplicarCorFundo(cor) {
     if (!cor) return;
     document.documentElement.style.setProperty('--aluno-bg-custom', cor);
     document.body.style.backgroundColor = cor;
     localStorage.setItem('bt_aluno_cor_fundo', cor);
+
+    // Ajusta o contraste dinamicamente para manter letras sempre legíveis e em destaque
+    var brilho = calcularBrilho(cor);
+    var contraste = (brilho < 155) ? 'dark' : 'light';
+    document.body.setAttribute('data-theme-contrast', contraste);
+    document.body.classList.remove('aluno-contrast-light', 'aluno-contrast-dark');
+    document.body.classList.add('aluno-contrast-' + contraste);
+    localStorage.setItem('bt_aluno_contrast', contraste);
 
     var inputCor = document.getElementById('cor_fundo_input');
     if (inputCor) inputCor.value = cor;

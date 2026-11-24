@@ -131,6 +131,11 @@ def create_app(config_name=None):
         from app.utils.video import converter_para_embed
         return converter_para_embed(url)
 
+    @app.template_filter('is_cor_escura')
+    def is_cor_escura_filter(valor):
+        from app.utils.tema import is_cor_escura
+        return is_cor_escura(valor)
+
     @app.template_filter('somente_numeros')
     def somente_numeros(valor):
         if not valor:
