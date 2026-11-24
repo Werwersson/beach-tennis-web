@@ -3,7 +3,7 @@ from datetime import datetime, date, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, Response
 from flask_login import current_user
 from app.extensions import db
-from app.models import (Aluno, Turma, TurmaAluno, Aula, AulaExercicio,
+from app.models import (Aluno, Usuario, Turma, TurmaAluno, Aula, AulaExercicio,
                         Presenca, Avaliacao, MetaAluno, Exercicio, Partida, PontoPartida)
 from app.models.exercicio import CATEGORIAS_EXERCICIO, NIVEIS_EXERCICIO
 from app.utils.decorators import aluno_required
@@ -312,16 +312,30 @@ def perfil():
                     db.session.commit()
                     flash('Sua senha foi alterada com sucesso! Utilize a nova senha em seus próximos acessos.', 'success')
                     return redirect(url_for('aluno.perfil'))
-        # Submissão do formulário de dados opcionais (telefone e data de nascimento)
-        elif acao == 'dados' or 'telefone' in request.form or 'data_nascimento' in request.form:
+        # Submissão do formulário de dados cadastrais (email, lado dominante, telefone, data de nascimento)
+        elif acao == 'dados' or 'email' in request.form or 'telefone' in request.form or 'data_nascimento' in request.form:
             if form_dados.validate_on_submit():
-                aluno.telefone = form_dados.telefone.data.strip() if form_dados.telefone.data else None
-                aluno.data_nascimento = form_dados.data_nascimento.data
-                db.session.commit()
-                flash('Seus dados pessoais foram atualizados com sucesso!', 'success')
-                return redirect(url_for('aluno.perfil'))
+                novo_email = form_dados.email.data.strip().lower()
+                # Verifica se o e-mail não está sendo utilizado por outro usuário
+                email_existente = Usuario.query.filter(
+                    Usuario.email == novo_email,
+                    Usuario.id != current_user.id
+                ).first()
+                if email_existente:
+                    flash('Este e-mail já está sendo utilizado por outro usuário no sistema.', 'danger')
+                else:
+                    if aluno.usuario:
+                        aluno.usuario.email = novo_email
+                    aluno.lado_dominante = form_dados.lado_dominante.data
+                    aluno.telefone = form_dados.telefone.data.strip() if form_dados.telefone.data else None
+                    aluno.data_nascimento = form_dados.data_nascimento.data
+                    db.session.commit()
+                    flash('Seus dados cadastrais foram atualizados com sucesso!', 'success')
+                    return redirect(url_for('aluno.perfil'))
 
     if request.method == 'GET':
+        form_dados.email.data = aluno.usuario.email if aluno.usuario else ''
+        form_dados.lado_dominante.data = aluno.lado_dominante or 'destro'
         form_dados.telefone.data = aluno.telefone or ''
         form_dados.data_nascimento.data = aluno.data_nascimento
 

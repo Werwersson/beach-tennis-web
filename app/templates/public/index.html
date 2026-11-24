@@ -947,7 +947,10 @@ Aulas individuais, em duplas e turmas com análise periódica.{% endblock %}
             style="height:220px; object-fit:cover;" loading="lazy">
           {% elif item.url_video %}
           <div class="ratio ratio-16x9">
-            <iframe src="{{ item.url_video }}" title="{{ item.titulo }}" allowfullscreen loading="lazy"></iframe>
+            <iframe src="{{ item.url_video|embed_video }}" title="{{ item.titulo }}"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen loading="lazy"></iframe>
           </div>
           {% endif %}
           <div class="p-3">

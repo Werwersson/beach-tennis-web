@@ -28,6 +28,7 @@ from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
 from app.utils.bt_tracker import calcular_estatisticas_partida
 from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
 from app.utils.schema_migration import garantir_esquema_banco
+from app.utils.video import converter_para_embed
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -321,7 +322,7 @@ def aluno_novo():
             nome=form.nome.data.strip(),
             email=email_limpo,
             perfil='aluno',
-            ativo=form.ativo.data
+            ativo=True  # Sempre ativo ao ser criado pelo professor
         )
         senha_inicial = form.senha.data if form.senha.data else 'beach123'
         usuario.set_senha(senha_inicial)
@@ -341,7 +342,7 @@ def aluno_novo():
             objetivo=form.objetivo.data,
             observacoes=form.observacoes.data.strip() if form.observacoes.data else None,
             foto=foto_nome,
-            ativo=form.ativo.data
+            ativo=True  # Sempre ativo ao ser criado pelo professor
         )
         db.session.add(aluno)
         db.session.commit()
@@ -1839,7 +1840,7 @@ def galeria_novo():
             titulo=form.titulo.data.strip(),
             tipo=form.tipo.data,
             arquivo=arquivo_nome,
-            url_video=form.url_video.data.strip() if form.url_video.data else None,
+            url_video=converter_para_embed(form.url_video.data) if form.url_video.data else None,
             legenda=form.legenda.data.strip() if form.legenda.data else None,
             destaque=form.destaque.data,
             ativo=form.ativo.data,
@@ -1861,7 +1862,7 @@ def galeria_editar(id):
     if form.validate_on_submit():
         item.titulo = form.titulo.data.strip()
         item.tipo = form.tipo.data
-        item.url_video = form.url_video.data.strip() if form.url_video.data else None
+        item.url_video = converter_para_embed(form.url_video.data) if form.url_video.data else None
         item.legenda = form.legenda.data.strip() if form.legenda.data else None
         item.destaque = form.destaque.data
         item.ativo = form.ativo.data

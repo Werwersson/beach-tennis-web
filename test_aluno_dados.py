@@ -38,19 +38,23 @@ def test_aluno_dados_opcionais():
         html = perfil_resp.get_data(as_text=True)
         assert "Telefone / WhatsApp" in html
         assert "Data de Nascimento" in html
-        assert "Campos Opcionais" in html
-        assert "Salvar Dados" in html
+        assert "E-mail de Acesso" in html
+        assert "Lado Dominante" in html
+        assert "Salvar Meus Dados" in html
         print("✓ GET /aluno/perfil exibindo campos opcionais corretamente.")
 
         # 3. Aluno insere telefone e data de nascimento
         post_dados_resp = client.post('/aluno/perfil', data={
             'acao': 'dados',
+            'email': 'aluno@test.com',
+            'lado_dominante': 'destro',
             'telefone': '(73) 98877-6655',
             'data_nascimento': '2001-05-15'
         }, follow_redirects=True)
         assert post_dados_resp.status_code == 200, "Falha no POST com dados"
 
         aluno_db = Aluno.query.filter_by(usuario_id=user.id).first()
+        db.session.refresh(aluno_db)
         assert aluno_db.telefone == '(73) 98877-6655', f"Esperava telefone salvo, obteve {aluno_db.telefone}"
         assert aluno_db.data_nascimento == date(2001, 5, 15), f"Esperava data salva, obteve {aluno_db.data_nascimento}"
         print("✓ Aluno inseriu número e data de nascimento com sucesso!")
@@ -58,6 +62,8 @@ def test_aluno_dados_opcionais():
         # 4. Aluno opta por não inserir (deixa em branco / limpa os campos)
         post_limpar_resp = client.post('/aluno/perfil', data={
             'acao': 'dados',
+            'email': 'aluno@test.com',
+            'lado_dominante': 'destro',
             'telefone': '',
             'data_nascimento': ''
         }, follow_redirects=True)

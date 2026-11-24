@@ -98,14 +98,15 @@
             {{ form.observacoes(class="form-control", id="observacoes", rows=3, placeholder="Lesões, restrições, pontos de atenção...") }}
           </div>
 
-          {% if aluno %}
           <div class="mb-3">
             <div class="form-check form-switch">
-              {{ form.ativo(class="form-check-input", id="ativo", role="switch") }}
-              <label class="form-check-label" for="ativo">Aluno ativo</label>
+              {{ form.ativo(class="form-check-input", id="ativo", role="switch", checked=True if not aluno or aluno.ativo else False) }}
+              <label class="form-check-label fw-semibold" for="ativo">Aluno ativo (acesso liberado ao sistema)</label>
             </div>
+            {% if not aluno %}
+              <div class="form-text" style="font-size:0.75rem;">Novos alunos são criados como ativos por padrão para terem acesso imediato.</div>
+            {% endif %}
           </div>
-          {% endif %}
 
           <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-ocean px-4">

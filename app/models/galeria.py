@@ -16,6 +16,11 @@ class GaleriaItem(db.Model):
     ordem = db.Column(db.Integer, default=0)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
 
+    @property
+    def url_video_embed(self):
+        from app.utils.video import converter_para_embed
+        return converter_para_embed(self.url_video)
+
     def __repr__(self):
         return f'<GaleriaItem {self.titulo} ({self.tipo})>'
 

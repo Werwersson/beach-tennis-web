@@ -126,6 +126,11 @@ def create_app(config_name=None):
         return response
 
     # Filtros úteis no Jinja
+    @app.template_filter('embed_video')
+    def embed_video_filter(url):
+        from app.utils.video import converter_para_embed
+        return converter_para_embed(url)
+
     @app.template_filter('somente_numeros')
     def somente_numeros(valor):
         if not valor:

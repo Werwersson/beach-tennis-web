@@ -2,11 +2,19 @@ from datetime import date
 from flask_wtf import FlaskForm
 from wtforms import (StringField, TextAreaField, SelectField, DateField,
                      IntegerField, PasswordField, SubmitField)
-from wtforms.validators import DataRequired, Length, Optional, EqualTo
+from wtforms.validators import DataRequired, Length, Optional, EqualTo, Regexp
+
+LADOS_CHOICES = [('destro', 'Destro'), ('canhoto', 'Canhoto')]
 
 
 class EditarDadosAlunoForm(FlaskForm):
-    """Formulário para o aluno preencher ou atualizar seus dados pessoais opcionais."""
+    """Formulário para o aluno preencher ou atualizar seus dados pessoais e de acesso."""
+    email = StringField('E-mail de Acesso *', validators=[
+        DataRequired(message='Informe seu e-mail de acesso.'),
+        Regexp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', message='Informe um e-mail válido.'),
+        Length(max=120, message='Máximo de 120 caracteres.')
+    ])
+    lado_dominante = SelectField('Lado Dominante', choices=LADOS_CHOICES, default='destro')
     telefone = StringField('Telefone / WhatsApp', validators=[
         Optional(),
         Length(max=20, message='O telefone deve ter no máximo 20 caracteres.')

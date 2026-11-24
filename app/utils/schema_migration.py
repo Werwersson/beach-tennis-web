@@ -107,6 +107,24 @@ def garantir_esquema_banco():
             except Exception:
                 pass
 
+        # 4. Migração e normalização de vídeos da galeria para o formato de embed
+        if 'galeria_itens' in tables:
+            try:
+                from app.utils.video import converter_para_embed
+                with db.engine.begin() as conn:
+                    res = conn.execute(text("SELECT id, url_video FROM galeria_itens WHERE url_video IS NOT NULL;")).fetchall()
+                    for row in res:
+                        item_id, url = row[0], row[1]
+                        if url:
+                            url_embed = converter_para_embed(url)
+                            if url_embed != url:
+                                conn.execute(
+                                    text("UPDATE galeria_itens SET url_video = :url WHERE id = :id"),
+                                    {'url': url_embed, 'id': item_id}
+                                )
+            except Exception:
+                pass
+
     except Exception:
         try:
             db.session.rollback()
