@@ -17,12 +17,12 @@
           <!-- Foto -->
           <div class="text-center mb-4">
             {% if aluno and aluno.foto %}
-              <img src="{{ upload_url(aluno.foto) }}" id="fotoPreview" class="foto-preview mb-2" alt="Foto do aluno">
+            <img src="{{ upload_url(aluno.foto) }}" id="fotoPreview" class="foto-preview mb-2" alt="Foto do aluno">
             {% else %}
-              <div class="avatar-circle avatar-lg mx-auto mb-2" id="fotoAvatar">
-                {{ aluno.nome[0].upper() if aluno else '?' }}
-              </div>
-              <img src="" id="fotoPreview" class="foto-preview mb-2 d-none" alt="Preview">
+            <div class="avatar-circle avatar-lg mx-auto mb-2" id="fotoAvatar">
+              {{ aluno.nome[0].upper() if aluno else '?' }}
+            </div>
+            <img src="" id="fotoPreview" class="foto-preview mb-2 d-none" alt="Preview">
             {% endif %}
             <div>
               <label for="foto" class="btn btn-sm btn-outline-ocean">
@@ -31,7 +31,7 @@
               {{ form.foto(id="foto", class="d-none", accept="image/*") }}
             </div>
             {% for error in form.foto.errors %}
-              <div class="text-danger" style="font-size:0.8rem;">{{ error }}</div>
+            <div class="text-danger" style="font-size:0.8rem;">{{ error }}</div>
             {% endfor %}
           </div>
 
@@ -39,34 +39,44 @@
           <div class="row g-3">
             <div class="col-12">
               <label class="form-label" for="nome">Nome completo *</label>
-              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome", placeholder="Nome do aluno") }}
+              {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else ""), id="nome",
+              placeholder="Nome do aluno") }}
               {% for e in form.nome.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
               <label class="form-label" for="email">E-mail *</label>
-              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="email@exemplo.com") }}
+              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email",
+              placeholder="email@exemplo.com") }}
               {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
-              <label class="form-label" for="telefone">Telefone / WhatsApp <span class="badge bg-light text-muted border fw-normal" style="font-size:0.75rem;">Opcional</span></label>
-              {{ form.telefone(class="form-control mask-phone" + (" is-invalid" if form.telefone.errors else ""), id="telefone", placeholder="(99) 99999-9999") }}
-              <div class="form-text" style="font-size:0.75rem;">Opcional — o aluno pode preencher diretamente pelo seu perfil.</div>
+              <label class="form-label" for="telefone">Telefone / WhatsApp <span
+                  class="badge bg-light text-muted border fw-normal" style="font-size:0.75rem;">Opcional</span></label>
+              {{ form.telefone(class="form-control mask-phone" + (" is-invalid" if form.telefone.errors else ""),
+              id="telefone", placeholder="(99) 99999-9999") }}
+              <div class="form-text" style="font-size:0.75rem;">Opcional — o aluno pode preencher diretamente pelo seu
+                perfil.</div>
               {% for e in form.telefone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
-              <label class="form-label" for="data_nascimento">Data de Nascimento <span class="badge bg-light text-muted border fw-normal" style="font-size:0.75rem;">Opcional</span></label>
-              {{ form.data_nascimento(class="form-control" + (" is-invalid" if form.data_nascimento.errors else ""), id="data_nascimento", type="date") }}
-              <div class="form-text" style="font-size:0.75rem;">Opcional — o aluno pode preencher diretamente pelo seu perfil.</div>
+              <label class="form-label" for="data_nascimento">Data de Nascimento <span
+                  class="badge bg-light text-muted border fw-normal" style="font-size:0.75rem;">Opcional</span></label>
+              {{ form.data_nascimento(class="form-control" + (" is-invalid" if form.data_nascimento.errors else ""),
+              id="data_nascimento", type="date") }}
+              <div class="form-text" style="font-size:0.75rem;">Opcional — o aluno pode preencher diretamente pelo seu
+                perfil.</div>
               {% for e in form.data_nascimento.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
               <label class="form-label" for="senha">
                 {{ 'Nova Senha (opcional)' if aluno else 'Senha de Acesso do Aluno' }}
               </label>
-              {{ form.senha(class="form-control" + (" is-invalid" if form.senha.errors else ""), id="senha", placeholder="••••••••" if aluno else "Ex: beach123 (mínimo 6 chars)") }}
+              {{ form.senha(class="form-control" + (" is-invalid" if form.senha.errors else ""), id="senha",
+              placeholder="••••••••" if aluno else "Ex: beach123 (mínimo 6 chars)") }}
               {% for e in form.senha.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
               <div class="form-text" style="font-size:0.75rem;">
-                {{ 'Deixe em branco para manter a senha atual.' if aluno else 'Caso deixe em branco, será definida a senha padrão "beach123".' }}
+                {{ 'Deixe em branco para manter a senha atual.' if aluno else 'Caso deixe em branco, será definida a
+                senha padrão "beach123".' }}
               </div>
             </div>
           </div>
@@ -80,7 +90,8 @@
             <div class="col-sm-3">
               <label class="form-label" for="categoria">Categoria</label>
               {{ form.categoria(class="form-select", id="categoria") }}
-              <div class="form-text" style="font-size:0.72rem;">Padrão nas avaliações; a mais recente atualiza este campo.</div>
+              <div class="form-text" style="font-size:0.72rem;">Padrão nas avaliações; a mais recente atualiza este
+                campo.</div>
             </div>
             <div class="col-sm-3">
               <label class="form-label" for="lado_dominante">Lado Dominante</label>
@@ -95,16 +106,19 @@
           <div class="form-section-title">Observações</div>
           <div class="mb-3">
             <label class="form-label" for="observacoes">Observações do professor</label>
-            {{ form.observacoes(class="form-control", id="observacoes", rows=3, placeholder="Lesões, restrições, pontos de atenção...") }}
+            {{ form.observacoes(class="form-control", id="observacoes", rows=3, placeholder="Lesões, restrições, pontos
+            de atenção...") }}
           </div>
 
           <div class="mb-3">
             <div class="form-check form-switch">
-              {{ form.ativo(class="form-check-input", id="ativo", role="switch", checked=True if not aluno or aluno.ativo else False) }}
+              {{ form.ativo(class="form-check-input", id="ativo", role="switch", checked=True if not aluno or
+              aluno.ativo else False) }}
               <label class="form-check-label fw-semibold" for="ativo">Aluno ativo (acesso liberado ao sistema)</label>
             </div>
             {% if not aluno %}
-              <div class="form-text" style="font-size:0.75rem;">Novos alunos são criados como ativos por padrão para terem acesso imediato.</div>
+            <div class="form-text" style="font-size:0.75rem;">Novos alunos são criados como ativos por padrão para terem
+              acesso imediato.</div>
             {% endif %}
           </div>
 
