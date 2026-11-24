@@ -48,13 +48,15 @@
               {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
-              <label class="form-label" for="telefone">Telefone / WhatsApp</label>
+              <label class="form-label" for="telefone">Telefone / WhatsApp <span class="badge bg-light text-muted border fw-normal" style="font-size:0.75rem;">Opcional</span></label>
               {{ form.telefone(class="form-control mask-phone" + (" is-invalid" if form.telefone.errors else ""), id="telefone", placeholder="(99) 99999-9999") }}
+              <div class="form-text" style="font-size:0.75rem;">Opcional — o aluno pode preencher diretamente pelo seu perfil.</div>
               {% for e in form.telefone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">
-              <label class="form-label" for="data_nascimento">Data de Nascimento</label>
-              {{ form.data_nascimento(class="form-control" + (" is-invalid" if form.data_nascimento.errors else ""), id="data_nascimento") }}
+              <label class="form-label" for="data_nascimento">Data de Nascimento <span class="badge bg-light text-muted border fw-normal" style="font-size:0.75rem;">Opcional</span></label>
+              {{ form.data_nascimento(class="form-control" + (" is-invalid" if form.data_nascimento.errors else ""), id="data_nascimento", type="date") }}
+              <div class="form-text" style="font-size:0.75rem;">Opcional — o aluno pode preencher diretamente pelo seu perfil.</div>
               {% for e in form.data_nascimento.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
             </div>
             <div class="col-sm-6">

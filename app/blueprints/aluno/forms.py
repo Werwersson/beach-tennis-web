@@ -5,6 +5,18 @@ from wtforms import (StringField, TextAreaField, SelectField, DateField,
 from wtforms.validators import DataRequired, Length, Optional, EqualTo
 
 
+class EditarDadosAlunoForm(FlaskForm):
+    """Formulário para o aluno preencher ou atualizar seus dados pessoais opcionais."""
+    telefone = StringField('Telefone / WhatsApp', validators=[
+        Optional(),
+        Length(max=20, message='O telefone deve ter no máximo 20 caracteres.')
+    ])
+    data_nascimento = DateField('Data de Nascimento', format='%Y-%m-%d', validators=[
+        Optional()
+    ])
+    submit_dados = SubmitField('Salvar Meus Dados')
+
+
 class AlterarSenhaForm(FlaskForm):
     """Formulário para o aluno alterar sua senha de acesso."""
     senha_atual = PasswordField('Senha Atual *', validators=[

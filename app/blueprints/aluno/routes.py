@@ -12,7 +12,7 @@ from app.utils.pdf_generator import gerar_relatorio_pdf_aluno
 from app.utils.bt_tracker import calcular_estatisticas_partida
 from app.utils.bt_tracker_pdf import gerar_pdf_bt_tracker
 from app.utils.schema_migration import garantir_esquema_banco
-from .forms import AlunoPartidaForm, AlterarSenhaForm
+from .forms import AlunoPartidaForm, AlterarSenhaForm, EditarDadosAlunoForm
 
 aluno_bp = Blueprint('aluno', __name__)
 
@@ -288,26 +288,50 @@ def relatorio_pdf():
 def perfil():
     """
     Tela de Perfil e Alteração de Senha do Aluno.
-    Permite visualizar os dados cadastrais do atleta e atualizar a senha com validação.
+    Permite visualizar os dados cadastrais do atleta, preencher ou atualizar
+    opcionalmente o telefone e data de nascimento, e atualizar a senha com validação.
     """
     aluno = get_current_aluno()
-    form = AlterarSenhaForm()
+    form_senha = AlterarSenhaForm()
+    form_dados = EditarDadosAlunoForm(obj=aluno)
 
-    if form.validate_on_submit():
-        senha_atual = form.senha_atual.data.strip()
-        nova_senha = form.nova_senha.data.strip()
+    if request.method == 'POST':
+        acao = request.form.get('acao')
+        # Submissão do formulário de senha
+        if acao == 'senha' or 'senha_atual' in request.form or request.endpoint == 'alterar_senha':
+            if form_senha.validate_on_submit():
+                senha_atual = form_senha.senha_atual.data.strip()
+                nova_senha = form_senha.nova_senha.data.strip()
 
-        if not current_user.check_senha(senha_atual):
-            flash('Senha atual incorreta. Por favor, digite sua senha atual corretamente.', 'danger')
-        elif senha_atual == nova_senha:
-            flash('A nova senha deve ser diferente da senha atual.', 'warning')
-        else:
-            current_user.set_senha(nova_senha)
-            db.session.commit()
-            flash('Sua senha foi alterada com sucesso! Utilize a nova senha em seus próximos acessos.', 'success')
-            return redirect(url_for('aluno.perfil'))
+                if not current_user.check_senha(senha_atual):
+                    flash('Senha atual incorreta. Por favor, digite sua senha atual corretamente.', 'danger')
+                elif senha_atual == nova_senha:
+                    flash('A nova senha deve ser diferente da senha atual.', 'warning')
+                else:
+                    current_user.set_senha(nova_senha)
+                    db.session.commit()
+                    flash('Sua senha foi alterada com sucesso! Utilize a nova senha em seus próximos acessos.', 'success')
+                    return redirect(url_for('aluno.perfil'))
+        # Submissão do formulário de dados opcionais (telefone e data de nascimento)
+        elif acao == 'dados' or 'telefone' in request.form or 'data_nascimento' in request.form:
+            if form_dados.validate_on_submit():
+                aluno.telefone = form_dados.telefone.data.strip() if form_dados.telefone.data else None
+                aluno.data_nascimento = form_dados.data_nascimento.data
+                db.session.commit()
+                flash('Seus dados pessoais foram atualizados com sucesso!', 'success')
+                return redirect(url_for('aluno.perfil'))
 
-    return render_template('aluno/perfil.html', aluno=aluno, form=form)
+    if request.method == 'GET':
+        form_dados.telefone.data = aluno.telefone or ''
+        form_dados.data_nascimento.data = aluno.data_nascimento
+
+    return render_template(
+        'aluno/perfil.html',
+        aluno=aluno,
+        form=form_senha,
+        form_senha=form_senha,
+        form_dados=form_dados
+    )
 
 
 # ── BT INSIGHT DO ALUNO ───────────────────────────────────────────────────
