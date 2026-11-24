@@ -312,8 +312,8 @@ def perfil():
                     db.session.commit()
                     flash('Sua senha foi alterada com sucesso! Utilize a nova senha em seus próximos acessos.', 'success')
                     return redirect(url_for('aluno.perfil'))
-        # Submissão do formulário de dados cadastrais (email, lado dominante, telefone, data de nascimento)
-        elif acao == 'dados' or 'email' in request.form or 'telefone' in request.form or 'data_nascimento' in request.form:
+        # Submissão do formulário de dados cadastrais (email, lado dominante, telefone, data de nascimento, cor de fundo)
+        elif acao == 'dados' or 'email' in request.form or 'telefone' in request.form or 'data_nascimento' in request.form or 'cor_fundo' in request.form:
             if form_dados.validate_on_submit():
                 novo_email = form_dados.email.data.strip().lower()
                 # Verifica se o e-mail não está sendo utilizado por outro usuário
@@ -329,6 +329,10 @@ def perfil():
                     aluno.lado_dominante = form_dados.lado_dominante.data
                     aluno.telefone = form_dados.telefone.data.strip() if form_dados.telefone.data else None
                     aluno.data_nascimento = form_dados.data_nascimento.data
+                    if form_dados.cor_fundo.data:
+                        cor_val = form_dados.cor_fundo.data.strip()
+                        if re.match(r'^(#[0-9a-fA-F]{3,8}|rgba?\(.*\)|[a-zA-Z]+)$', cor_val):
+                            aluno.cor_fundo = cor_val
                     db.session.commit()
                     flash('Seus dados cadastrais foram atualizados com sucesso!', 'success')
                     return redirect(url_for('aluno.perfil'))
@@ -338,6 +342,7 @@ def perfil():
         form_dados.lado_dominante.data = aluno.lado_dominante or 'destro'
         form_dados.telefone.data = aluno.telefone or ''
         form_dados.data_nascimento.data = aluno.data_nascimento
+        form_dados.cor_fundo.data = aluno.cor_fundo or '#F8F6F2'
 
     return render_template(
         'aluno/perfil.html',
@@ -346,6 +351,20 @@ def perfil():
         form_senha=form_senha,
         form_dados=form_dados
     )
+
+
+@aluno_bp.route('/definir-cor-fundo', methods=['POST'])
+@aluno_required
+def definir_cor_fundo():
+    """Permite alterar e salvar a cor de fundo da tela do aluno instantaneamente."""
+    aluno = get_current_aluno()
+    data = request.get_json(silent=True) or request.form
+    cor = (data.get('cor_fundo') or '').strip()
+    if cor and len(cor) <= 30 and re.match(r'^(#[0-9a-fA-F]{3,8}|rgba?\(.*\)|[a-zA-Z]+)$', cor):
+        aluno.cor_fundo = cor
+        db.session.commit()
+        return {'status': 'ok', 'cor_fundo': aluno.cor_fundo}
+    return {'status': 'error', 'message': 'Cor inválida'}, 400
 
 
 # ── BT INSIGHT DO ALUNO ───────────────────────────────────────────────────

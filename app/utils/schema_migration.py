@@ -23,7 +23,20 @@ def garantir_esquema_banco():
         dialect = db.engine.dialect.name.lower()
         is_postgres = 'postgres' in dialect
 
-        # 2. Atualiza tabela 'partidas' com colunas faltantes
+        # 2. Atualiza tabela 'alunos' com 'cor_fundo' se faltar
+        if 'alunos' in tables:
+            cols_alunos = [c['name'] for c in inspector.get_columns('alunos')]
+            if 'cor_fundo' not in cols_alunos:
+                try:
+                    with db.engine.begin() as conn:
+                        if is_postgres:
+                            conn.execute(text("ALTER TABLE alunos ADD COLUMN IF NOT EXISTS cor_fundo VARCHAR(30) DEFAULT '#F8F6F2';"))
+                        else:
+                            conn.execute(text("ALTER TABLE alunos ADD COLUMN cor_fundo VARCHAR(30) DEFAULT '#F8F6F2';"))
+                except Exception:
+                    pass
+
+        # 3. Atualiza tabela 'partidas' com colunas faltantes
         if 'partidas' in tables:
             cols_partidas = [c['name'] for c in inspector.get_columns('partidas')]
             comandos_partidas = [

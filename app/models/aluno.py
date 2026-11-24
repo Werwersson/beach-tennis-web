@@ -24,6 +24,7 @@ class Aluno(db.Model):
     objetivo = db.Column(db.String(20), default='lazer')  # lazer, competicao, condicionamento
     foto = db.Column(db.String(200), nullable=True)
     observacoes = db.Column(db.Text, nullable=True)
+    cor_fundo = db.Column(db.String(30), default='#F8F6F2', nullable=True)
     ativo = db.Column(db.Boolean, default=True, nullable=False)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
 

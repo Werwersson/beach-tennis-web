@@ -121,6 +121,40 @@
               </div>
             </div>
 
+            <!-- SELEÇÃO DE COR DE FUNDO -->
+            <div class="mt-3 pt-3 border-top">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label fw-semibold text-dark small mb-0">
+                  <i class="bi bi-palette-fill text-laranja me-1"></i>Cor de Fundo da Tela
+                </label>
+                <span class="badge bg-white text-muted border font-monospace" id="labelCorAtual" style="font-size:0.75rem;">
+                  {{ form_dados.cor_fundo.data or '#F8F6F2' }}
+                </span>
+              </div>
+              <p class="text-muted mb-2" style="font-size:0.75rem;">
+                Escolha a cor de fundo que preferir para suas telas. A mudança é aplicada na hora!
+              </p>
+
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#F8F6F2" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#F8F6F2;" title="Areia Padrão"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#FFFDF7" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#FFFDF7;" title="Areia Praia"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#FFFFFF" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#FFFFFF;" title="Branco"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#EAF2F8" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#EAF2F8;" title="Oceano Claro"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#EAF5EE" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#EAF5EE;" title="Menta Suave"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#F4EFF9" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#F4EFF9;" title="Sunset / Lavanda"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#EFEFEF" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#EFEFEF;" title="Cinza Claro"></button>
+                <button type="button" class="btn-theme-swatch shadow-sm" data-color="#1E2227" style="width:28px; height:28px; border-radius:50%; border:2px solid #ccc; background:#1E2227;" title="Modo Noturno / Dark"></button>
+
+                <!-- Color picker livre -->
+                <div class="d-inline-flex align-items-center gap-1 ms-2">
+                  <input type="color" id="pickerCorFundo" class="form-control form-control-color p-0 border-0" style="width:28px; height:28px; cursor:pointer;" value="{{ form_dados.cor_fundo.data or '#F8F6F2' }}" title="Escolher cor personalizada">
+                  <span class="small text-muted" style="font-size:0.75rem;">Outra cor</span>
+                </div>
+              </div>
+
+              {{ form_dados.cor_fundo(id="cor_fundo_input", class="d-none") }}
+            </div>
+
             <div class="d-flex justify-content-end mt-3">
               <button type="submit"
                 class="btn btn-sm btn-ocean d-flex align-items-center gap-1 shadow-sm px-3 fw-medium">
@@ -293,5 +327,45 @@
       }
     });
   });
+
+  // Lógica de seleção e pré-visualização de cor de fundo
+  function aplicarCorFundo(cor) {
+    if (!cor) return;
+    document.documentElement.style.setProperty('--aluno-bg-custom', cor);
+    document.body.style.backgroundColor = cor;
+    localStorage.setItem('bt_aluno_cor_fundo', cor);
+
+    var inputCor = document.getElementById('cor_fundo_input');
+    if (inputCor) inputCor.value = cor;
+    var labelCor = document.getElementById('labelCorAtual');
+    if (labelCor) labelCor.textContent = cor;
+    var picker = document.getElementById('pickerCorFundo');
+    if (picker && cor.startsWith('#') && (cor.length === 7 || cor.length === 4)) {
+      picker.value = cor;
+    }
+
+    // Salva automaticamente via API
+    fetch("{{ url_for('aluno.definir_cor_fundo') }}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token() if csrf_token is defined else "" }}'
+      },
+      body: JSON.stringify({ cor_fundo: cor })
+    }).catch(function () {});
+  }
+
+  document.querySelectorAll('.btn-theme-swatch').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      aplicarCorFundo(this.getAttribute('data-color'));
+    });
+  });
+
+  var picker = document.getElementById('pickerCorFundo');
+  if (picker) {
+    picker.addEventListener('input', function () {
+      aplicarCorFundo(this.value);
+    });
+  }
 </script>
 {% endblock %}

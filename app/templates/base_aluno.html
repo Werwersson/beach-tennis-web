@@ -3,11 +3,16 @@
 
 {% block extra_css %}
 <style>
+  :root {
+    --aluno-bg-servidor: {{ current_user.aluno.cor_fundo if (current_user.is_authenticated and current_user.aluno and current_user.aluno.cor_fundo) else '#F8F6F2' }};
+  }
+
   body {
-    background-color: #F8F6F2;
+    background-color: var(--aluno-bg-custom, var(--aluno-bg-servidor)) !important;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    transition: background-color 0.25s ease;
   }
 
   .aluno-navbar {
@@ -209,5 +214,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+  (function() {
+    var savedBg = localStorage.getItem('bt_aluno_cor_fundo');
+    if (savedBg) {
+      document.documentElement.style.setProperty('--aluno-bg-custom', savedBg);
+    }
+  })();
+</script>
 {% block aluno_js %}{% endblock %}
 {% endblock %}

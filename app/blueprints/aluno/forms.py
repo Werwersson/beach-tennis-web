@@ -22,6 +22,9 @@ class EditarDadosAlunoForm(FlaskForm):
     data_nascimento = DateField('Data de Nascimento', format='%Y-%m-%d', validators=[
         Optional()
     ])
+    cor_fundo = StringField('Cor de Fundo da Tela', default='#F8F6F2', validators=[
+        Optional(), Length(max=30)
+    ])
     submit_dados = SubmitField('Salvar Meus Dados')
 
 
